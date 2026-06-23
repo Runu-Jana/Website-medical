@@ -1,0 +1,35 @@
+import { Routes, Route } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
+import AdminLayout from './components/AdminLayout.jsx';
+import Login from './pages/Login.jsx';
+import Dashboard from './pages/Dashboard.jsx';
+import Products from './pages/Products.jsx';
+import ProductForm from './pages/ProductForm.jsx';
+import Categories from './pages/Categories.jsx';
+import Brands from './pages/Brands.jsx';
+import Orders from './pages/Orders.jsx';
+import NotFound from './pages/NotFound.jsx';
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route
+        element={
+          <ProtectedRoute>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/products/new" element={<ProductForm />} />
+        <Route path="/products/:id/edit" element={<ProductForm />} />
+        <Route path="/categories" element={<Categories />} />
+        <Route path="/brands" element={<Brands />} />
+        <Route path="/orders" element={<Orders />} />
+      </Route>
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
