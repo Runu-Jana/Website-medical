@@ -96,7 +96,7 @@ export default function Navbar() {
               <input
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                placeholder="Search for medicines, vitamins, products..."
+                placeholder="Search by product or category..."
                 className="w-full rounded-l-xl bg-transparent px-4 py-2.5 text-sm outline-none"
               />
               <button

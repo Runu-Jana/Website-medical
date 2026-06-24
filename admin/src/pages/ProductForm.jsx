@@ -13,7 +13,7 @@ const emptyForm = {
   description: '',
   price: '',
   oldPrice: '',
-  category: '',
+  categories: [],
   brand: '',
   countInStock: '',
   unit: '',
@@ -63,6 +63,14 @@ export default function ProductForm() {
 
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
+  const toggleCategory = (catId) =>
+    setForm((f) => ({
+      ...f,
+      categories: f.categories.includes(catId)
+        ? f.categories.filter((c) => c !== catId)
+        : [...f.categories, catId],
+    }));
+
   useEffect(() => {
     let active = true;
     const load = async () => {
@@ -84,7 +92,12 @@ export default function ProductForm() {
               description: product.description || '',
               price: product.price ?? '',
               oldPrice: product.oldPrice ?? '',
-              category: product.category?._id || product.category || '',
+              categories: (product.categories?.length
+                ? product.categories
+                : product.category
+                ? [product.category]
+                : []
+              ).map((c) => c?._id || c),
               brand: product.brand?._id || product.brand || '',
               countInStock: product.countInStock ?? '',
               unit: product.unit || '',
@@ -138,7 +151,7 @@ export default function ProductForm() {
       oldPrice: form.oldPrice === '' ? undefined : Number(form.oldPrice),
       images: form.images,
       thumbnail: form.images?.[0] || undefined,
-      category: form.category || undefined,
+      categories: form.categories,
       brand: form.brand || undefined,
       countInStock: form.countInStock === '' ? 0 : Number(form.countInStock),
       unit: form.unit || undefined,
@@ -300,15 +313,32 @@ export default function ProductForm() {
             <h3 className="mb-4 font-semibold text-slate-800">Organization</h3>
             <div className="space-y-4">
               <div>
-                <label className="label">Category</label>
-                <select value={form.category} onChange={(e) => set('category', e.target.value)} className="input">
-                  <option value="">Select category</option>
+                <label className="label">Categories</label>
+                <p className="mb-2 text-xs text-slate-400">Tick one or more categories.</p>
+                <div className="max-h-52 space-y-1 overflow-y-auto rounded-lg border border-slate-200 p-2">
+                  {categories.length === 0 && (
+                    <p className="px-1 py-2 text-sm text-slate-400">No categories yet.</p>
+                  )}
                   {categories.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
+                    <label
+                      key={c._id}
+                      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-50"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.categories.includes(c._id)}
+                        onChange={() => toggleCategory(c._id)}
+                        className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm text-slate-700">{c.name}</span>
+                    </label>
                   ))}
-                </select>
+                </div>
+                {form.categories.length > 0 && (
+                  <p className="mt-1.5 text-xs text-slate-500">
+                    {form.categories.length} selected
+                  </p>
+                )}
               </div>
               <div>
                 <label className="label">Brand</label>

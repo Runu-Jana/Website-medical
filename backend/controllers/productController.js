@@ -1,5 +1,33 @@
 import Product from '../models/Product.js';
+import Category from '../models/Category.js';
 import { slugify } from '../utils/slugify.js';
+
+// Build a keyword filter that matches product NAME or CATEGORY name
+// (and SKU when includeSku is set, for the admin list).
+const buildKeywordOr = async (keyword, { includeSku = false } = {}) => {
+  const rx = { $regex: keyword, $options: 'i' };
+  const or = [{ name: rx }];
+  if (includeSku) or.push({ sku: rx });
+  const matchedCats = await Category.find({ name: rx }).select('_id');
+  if (matchedCats.length) {
+    const ids = matchedCats.map((c) => c._id);
+    or.push({ category: { $in: ids } });
+    or.push({ categories: { $in: ids } });
+  }
+  return or;
+};
+
+// Keep the single `category` field mirrored to `categories[0]` (and vice-versa)
+// so storefront code that reads `product.category` keeps working with multi-select.
+const syncCategoryFields = (obj) => {
+  const arr = Array.isArray(obj.categories) ? obj.categories.filter(Boolean) : null;
+  if (arr) {
+    obj.categories = arr;
+    obj.category = arr[0] || undefined;
+  } else if (obj.category) {
+    obj.categories = [obj.category];
+  }
+};
 
 // @route GET /api/products  (storefront listing with filters)
 export const getProducts = async (req, res) => {
@@ -19,9 +47,11 @@ export const getProducts = async (req, res) => {
   } = req.query;
 
   const filter = { status: 'active' };
+  const and = [];
 
-  if (keyword) filter.name = { $regex: keyword, $options: 'i' };
-  if (category) filter.category = category;
+  if (keyword) and.push({ $or: await buildKeywordOr(keyword) });
+  if (category) and.push({ $or: [{ category }, { categories: category }] });
+  if (and.length) filter.$and = and;
   if (brand) filter.brand = brand;
   if (featured === 'true') filter.isFeatured = true;
   if (bestseller === 'true') filter.isBestSeller = true;
@@ -67,12 +97,13 @@ export const getProducts = async (req, res) => {
 export const getProductsAdmin = async (req, res) => {
   const { keyword, page = 1, limit = 15 } = req.query;
   const filter = {};
-  if (keyword) filter.name = { $regex: keyword, $options: 'i' };
+  if (keyword) filter.$or = await buildKeywordOr(keyword, { includeSku: true });
   const pageNum = Math.max(1, Number(page));
   const perPage = Number(limit);
   const [items, total] = await Promise.all([
     Product.find(filter)
       .populate('category', 'name')
+      .populate('categories', 'name')
       .populate('brand', 'name')
       .sort({ createdAt: -1 })
       .skip((pageNum - 1) * perPage)
@@ -90,6 +121,7 @@ export const getProduct = async (req, res) => {
     : { slug: idOrSlug };
   const product = await Product.findOne(query)
     .populate('category', 'name slug')
+    .populate('categories', 'name slug')
     .populate('brand', 'name slug');
   if (!product) return res.status(404).json({ message: 'Product not found' });
 
@@ -115,6 +147,7 @@ export const createProduct = async (req, res) => {
   if (!data.thumbnail && Array.isArray(data.images) && data.images.length) {
     data.thumbnail = data.images[0];
   }
+  syncCategoryFields(data);
   const product = await Product.create(data);
   res.status(201).json(product);
 };
@@ -126,13 +159,29 @@ export const updateProduct = async (req, res) => {
 
   const fields = [
     'name', 'sku', 'description', 'shortDescription', 'price', 'oldPrice',
-    'images', 'thumbnail', 'category', 'brand', 'countInStock', 'unit',
+    'images', 'thumbnail', 'category', 'categories', 'brand', 'countInStock', 'unit',
     'isFeatured', 'isBestSeller', 'isNewArrival', 'isDeal', 'dealEndsAt',
     'requiresPrescription', 'tags', 'status',
   ];
   fields.forEach((f) => {
     if (req.body[f] !== undefined) product[f] = req.body[f];
   });
+
+  // Reconcile single/array category so both stay in sync.
+  if (req.body.categories !== undefined || req.body.category !== undefined) {
+    const arr = Array.isArray(product.categories)
+      ? product.categories.filter(Boolean)
+      : [];
+    if (arr.length) {
+      product.categories = arr;
+      product.category = arr[0];
+    } else if (product.category) {
+      product.categories = [product.category];
+    } else {
+      product.categories = [];
+      product.category = undefined;
+    }
+  }
 
   if (req.body.name) {
     product.slug = `${slugify(req.body.name)}-${product._id.toString().slice(-6)}`;

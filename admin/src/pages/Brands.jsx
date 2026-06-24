@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiAward } from 'react-icons/fi';
+import { useEffect, useRef, useState } from 'react';
+import { FiPlus, FiEdit2, FiTrash2, FiAward, FiUploadCloud } from 'react-icons/fi';
 import api, { API_URL } from '../lib/api.js';
 import { useToast } from '../context/ToastContext.jsx';
 import Loader from '../components/Loader.jsx';
@@ -25,6 +25,32 @@ export default function Brands() {
   const [saving, setSaving] = useState(false);
   const [delTarget, setDelTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef(null);
+
+  const uploadLogo = async (file) => {
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('images', file);
+    setUploadingLogo(true);
+    try {
+      const { data } = await api.post('/upload', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const url = data.url || data.urls?.[0];
+      if (url) {
+        setForm((f) => ({ ...f, logo: url }));
+        toast.success('Logo uploaded');
+      } else {
+        toast.error('Upload returned no URL');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Upload failed');
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    }
+  };
 
   const load = async () => {
     setLoading(true);
@@ -166,6 +192,24 @@ export default function Brands() {
           <div>
             <label className="label">Logo URL</label>
             <input value={form.logo} onChange={(e) => setForm({ ...form, logo: e.target.value })} className="input" placeholder="https://..." />
+            <div className="mt-2">
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
+                className="hidden"
+                onChange={(e) => uploadLogo(e.target.files?.[0])}
+              />
+              <button
+                type="button"
+                onClick={() => logoInputRef.current?.click()}
+                disabled={uploadingLogo}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary disabled:opacity-60"
+              >
+                <FiUploadCloud size={16} />
+                {uploadingLogo ? 'Uploading…' : 'Upload logo (PNG / JPG / JPEG)'}
+              </button>
+            </div>
           </div>
           {form.logo && (
             <div className="flex h-20 items-center justify-center rounded-lg border border-slate-200 bg-slate-50">

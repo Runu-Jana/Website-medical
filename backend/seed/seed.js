@@ -75,6 +75,7 @@ const run = async () => {
         ...p,
         slug: `${slugify(p.name)}-${rand(1000, 9999)}`,
         category: catMap[p.categorySlug],
+        categories: [catMap[p.categorySlug]],
         brand: brandMap[p.brandSlug],
         thumbnail: p.images?.[0] || '',
         discountPercent,
