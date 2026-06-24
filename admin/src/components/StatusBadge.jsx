@@ -7,6 +7,7 @@ const MAP = {
   cancelled: 'bg-red-100 text-red-700',
   // product statuses
   active: 'bg-emerald-100 text-emerald-700',
+  inactive: 'bg-slate-200 text-slate-600',
   draft: 'bg-slate-100 text-slate-600',
   archived: 'bg-red-100 text-red-700',
   // generic

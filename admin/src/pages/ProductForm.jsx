@@ -73,7 +73,9 @@ export default function ProductForm() {
         setBrands(brs.data || []);
 
         if (isEdit) {
-          const { data: product } = await api.get(`/products/${id}`);
+          const { data } = await api.get(`/products/${id}`);
+          // Backend responds with { product, related } — unwrap it.
+          const product = data?.product || data;
           if (product && active) {
             setForm({
               name: product.name || '',
@@ -321,11 +323,16 @@ export default function ProductForm() {
               </div>
               <div>
                 <label className="label">Status</label>
-                <select value={form.status} onChange={(e) => set('status', e.target.value)} className="input">
-                  <option value="active">Active</option>
-                  <option value="draft">Draft</option>
-                  <option value="archived">Archived</option>
-                </select>
+                <Toggle
+                  label={form.status === 'active' ? 'Active' : 'Inactive'}
+                  hint={
+                    form.status === 'active'
+                      ? 'Visible to customers in the store'
+                      : 'Hidden from the store'
+                  }
+                  checked={form.status === 'active'}
+                  onChange={(v) => set('status', v ? 'active' : 'inactive')}
+                />
               </div>
             </div>
           </div>

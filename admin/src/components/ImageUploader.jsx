@@ -15,6 +15,19 @@ export default function ImageUploader({ images = [], onChange }) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [dragOver, setDragOver] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
+
+  const addUrl = () => {
+    const u = urlInput.trim();
+    if (!u) return;
+    if (!/^https?:\/\//i.test(u)) {
+      toast.error('Enter a valid image URL starting with http:// or https://');
+      return;
+    }
+    onChange([...(images || []), u]);
+    setUrlInput('');
+    toast.success('Image URL added');
+  };
 
   const handleFiles = async (fileList) => {
     const files = Array.from(fileList || []).slice(0, 10);
@@ -97,11 +110,35 @@ export default function ImageUploader({ images = [], onChange }) {
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept="image/png,image/jpeg,image/jpg,image/webp,image/*"
           multiple
           className="hidden"
           onChange={(e) => handleFiles(e.target.files)}
         />
+      </div>
+
+      {/* Add an image by URL instead of (or in addition to) uploading a file */}
+      <div className="mt-3 flex items-center gap-2">
+        <input
+          type="url"
+          value={urlInput}
+          onChange={(e) => setUrlInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addUrl();
+            }
+          }}
+          placeholder="Or paste an image URL (https://...)"
+          className="input flex-1"
+        />
+        <button
+          type="button"
+          onClick={addUrl}
+          className="whitespace-nowrap rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+        >
+          Add URL
+        </button>
       </div>
 
       {uploading && (
