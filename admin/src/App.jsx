@@ -7,6 +7,7 @@ import Products from './pages/Products.jsx';
 import ProductForm from './pages/ProductForm.jsx';
 import Categories from './pages/Categories.jsx';
 import Brands from './pages/Brands.jsx';
+import Banners from './pages/Banners.jsx';
 import Orders from './pages/Orders.jsx';
 import NotFound from './pages/NotFound.jsx';
 
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/products/:id/edit" element={<ProductForm />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/brands" element={<Brands />} />
+        <Route path="/banners" element={<Banners />} />
         <Route path="/orders" element={<Orders />} />
       </Route>
       <Route path="*" element={<NotFound />} />

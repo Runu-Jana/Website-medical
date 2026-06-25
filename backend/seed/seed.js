@@ -4,6 +4,7 @@ import connectDB from '../config/db.js';
 import User from '../models/User.js';
 import Category from '../models/Category.js';
 import Brand from '../models/Brand.js';
+import Banner from '../models/Banner.js';
 import Product from '../models/Product.js';
 import Order from '../models/Order.js';
 import { categories, brands, productSeeds } from './data.js';
@@ -22,6 +23,7 @@ const run = async () => {
       User.deleteMany({}),
       Category.deleteMany({}),
       Brand.deleteMany({}),
+      Banner.deleteMany({}),
       Product.deleteMany({}),
       Order.deleteMany({}),
     ]);
@@ -63,6 +65,44 @@ const run = async () => {
   const brandDocs = await Brand.insertMany(brands);
   const catMap = Object.fromEntries(catDocs.map((c) => [c.slug, c._id]));
   const brandMap = Object.fromEntries(brandDocs.map((b) => [b.slug, b._id]));
+
+  // Default home-page banners (fully editable from the admin panel afterwards)
+  await Banner.insertMany([
+    {
+      title: 'New Collagen Naturally',
+      subtitle: 'Orange Flavor Gummies',
+      badge: 'HOT',
+      bgColor: '#fbe3ec',
+      buttonText: 'Shop Now',
+      link: '/shop',
+      order: 1,
+      active: true,
+      image: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=1600&q=80',
+    },
+    {
+      title: 'Daily Vitamins & Immunity',
+      subtitle: 'Up to 40% off this week',
+      badge: 'Sale',
+      bgColor: '#e3f1ec',
+      buttonText: 'Grab the Deals',
+      link: '/shop?deal=true',
+      order: 2,
+      active: true,
+      image: 'https://images.unsplash.com/photo-1577174881658-0f30ed549adc?w=1600&q=80',
+    },
+    {
+      title: 'Trusted Health Essentials',
+      subtitle: 'Genuine products, delivered fast',
+      badge: 'New',
+      bgColor: '#eae6f7',
+      buttonText: 'Explore Store',
+      link: '/shop',
+      order: 3,
+      active: true,
+      image: 'https://images.unsplash.com/photo-1550572017-edd951b55104?w=1600&q=80',
+    },
+  ]);
+  console.log('✅ 3 home banners created');
 
   // Generic pharmacy shots used to give every demo product a 2–3 image gallery.
   const extraImages = [
