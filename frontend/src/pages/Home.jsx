@@ -7,6 +7,7 @@ import SectionHeading from '../components/SectionHeading'
 import CategoryCard from '../components/CategoryCard'
 import ProductGrid from '../components/ProductGrid'
 import ProductCard from '../components/ProductCard'
+import NewLaunches from '../components/NewLaunches'
 import CountdownTimer from '../components/CountdownTimer'
 import Spinner from '../components/Spinner'
 import { imgFallback } from '../lib/helpers'
@@ -155,10 +156,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* New arrivals */}
+      {/* New launches */}
       <section className="container-x mt-14">
-        <SectionHeading subtitle="Fresh" title="New Arrivals" link="/shop?isNew=true" />
-        <ProductGrid products={newArrivals} />
+        <h2 className="mb-6 text-3xl font-extrabold text-dark">New Launches</h2>
+        <NewLaunches products={newArrivals} />
       </section>
 
       {/* Brands */}
