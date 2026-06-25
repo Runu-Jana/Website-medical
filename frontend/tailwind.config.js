@@ -4,9 +4,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#1c64f2',
-        primaryDark: '#1a56db',
-        accent: '#16a34a',
+        primary: '#0e9f8e',
+        primaryDark: '#0c8174',
+        headerbar: '#15564e',
+        accent: '#10b981',
         dark: '#1e293b',
         lightbg: '#f8fafc',
         bordergray: '#e2e8f0',
@@ -16,7 +17,7 @@ export default {
       },
       boxShadow: {
         card: '0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06)',
-        lift: '0 10px 25px -5px rgba(28,100,242,0.15), 0 8px 10px -6px rgba(0,0,0,0.06)',
+        lift: '0 10px 25px -5px rgba(14,159,142,0.18), 0 8px 10px -6px rgba(0,0,0,0.06)',
       },
     },
   },
