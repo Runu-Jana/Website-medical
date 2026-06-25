@@ -60,7 +60,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-40 bg-white shadow-sm">
       {/* Announcement bar */}
-      <div className="bg-headerbar text-white">
+      <div className="bg-dark text-white">
         <div className="container-x flex h-9 items-center justify-between text-xs">
           <span className="hidden sm:block">
             Free shipping on all orders over <strong>$1000</strong>

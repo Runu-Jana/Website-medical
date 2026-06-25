@@ -6,8 +6,7 @@ export default {
       colors: {
         primary: '#0e9f8e',
         primaryDark: '#0c8174',
-        headerbar: '#15564e',
-        accent: '#10b981',
+        accent: '#16a34a',
         dark: '#1e293b',
         lightbg: '#f8fafc',
         bordergray: '#e2e8f0',

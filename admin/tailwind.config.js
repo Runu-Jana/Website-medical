@@ -18,9 +18,9 @@ export default {
           900: '#0e544d',
         },
         accent: {
-          DEFAULT: '#10b981',
-          light: '#34d399',
-          dark: '#059669',
+          DEFAULT: '#16a34a',
+          light: '#22c55e',
+          dark: '#15803d',
         },
         warning: {
           DEFAULT: '#f59e0b',
