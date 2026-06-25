@@ -69,7 +69,7 @@ export default function HeroSlider() {
   const bg = slide.bgColor || '#fbe3ec'
 
   return (
-    <section className="relative w-full overflow-hidden" style={{ backgroundColor: bg }}>
+    <section className="relative mt-[5px] w-full overflow-hidden" style={{ backgroundColor: bg }}>
       {/* Full-bleed product image covering the whole banner */}
       {slide.image && (
         <img
