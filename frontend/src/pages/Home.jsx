@@ -118,16 +118,6 @@ export default function Home() {
         <ProductGrid products={featured} />
       </section>
 
-      {/* Best sellers */}
-      <section className="container-x mt-14">
-        <SectionHeading
-          subtitle="Top Rated"
-          title="Best Sellers"
-          link="/shop?bestseller=true"
-        />
-        <ProductGrid products={bestsellers} />
-      </section>
-
       {/* Promo banners */}
       <section className="container-x mt-14 grid gap-4 sm:grid-cols-2">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primaryDark p-8 text-white">
@@ -160,6 +150,12 @@ export default function Home() {
       <section className="container-x mt-14">
         <h2 className="mb-6 text-3xl font-extrabold text-dark">New Launches</h2>
         <NewLaunches products={newArrivals} />
+      </section>
+
+      {/* Best sellers (promo row) */}
+      <section className="container-x mt-14">
+        <h2 className="mb-6 text-3xl font-extrabold text-dark">Best Sellers</h2>
+        <NewLaunches products={bestsellers} />
       </section>
 
       {/* Brands */}
