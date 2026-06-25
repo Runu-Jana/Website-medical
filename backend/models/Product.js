@@ -36,6 +36,15 @@ const productSchema = new mongoose.Schema(
     countInStock: { type: Number, required: true, default: 0 },
     unit: { type: String, default: 'pcs' }, // strip / box / bottle / pcs
 
+    // Variants (e.g. colour / flavour options) with their own availability
+    variants: [
+      {
+        label: { type: String, default: '' }, // e.g. "Lavender", "Original"
+        color: { type: String, default: '' }, // hex swatch, e.g. "#7c3aed"
+        available: { type: Boolean, default: true },
+      },
+    ],
+
     // Flags used by the storefront sections
     isFeatured: { type: Boolean, default: false },
     isBestSeller: { type: Boolean, default: false },

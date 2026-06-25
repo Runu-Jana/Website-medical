@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { FiArrowLeft, FiSave } from 'react-icons/fi';
+import { FiArrowLeft, FiSave, FiTrash2 } from 'react-icons/fi';
 import api from '../lib/api.js';
 import { useToast } from '../context/ToastContext.jsx';
 import Loader from '../components/Loader.jsx';
@@ -18,6 +18,7 @@ const emptyForm = {
   countInStock: '',
   unit: '',
   images: [],
+  variants: [],
   tags: '',
   status: 'active',
   isFeatured: false,
@@ -71,6 +72,19 @@ export default function ProductForm() {
         : [...f.categories, catId],
     }));
 
+  const addVariant = () =>
+    setForm((f) => ({
+      ...f,
+      variants: [...f.variants, { label: '', color: '#0e9f8e', available: true }],
+    }));
+  const updateVariant = (i, key, value) =>
+    setForm((f) => ({
+      ...f,
+      variants: f.variants.map((v, idx) => (idx === i ? { ...v, [key]: value } : v)),
+    }));
+  const removeVariant = (i) =>
+    setForm((f) => ({ ...f, variants: f.variants.filter((_, idx) => idx !== i) }));
+
   useEffect(() => {
     let active = true;
     const load = async () => {
@@ -102,6 +116,11 @@ export default function ProductForm() {
               countInStock: product.countInStock ?? '',
               unit: product.unit || '',
               images: product.images || [],
+              variants: (product.variants || []).map((v) => ({
+                label: v.label || '',
+                color: v.color || '#0e9f8e',
+                available: v.available !== false,
+              })),
               tags: Array.isArray(product.tags) ? product.tags.join(', ') : product.tags || '',
               status: product.status || 'active',
               isFeatured: !!product.isFeatured,
@@ -155,6 +174,13 @@ export default function ProductForm() {
       brand: form.brand || undefined,
       countInStock: form.countInStock === '' ? 0 : Number(form.countInStock),
       unit: form.unit || undefined,
+      variants: form.variants
+        .filter((v) => (v.label && v.label.trim()) || v.color)
+        .map((v) => ({
+          label: v.label.trim(),
+          color: v.color || '',
+          available: v.available !== false,
+        })),
       isFeatured: form.isFeatured,
       isBestSeller: form.isBestSeller,
       isNewArrival: form.isNewArrival,
@@ -304,6 +330,68 @@ export default function ProductForm() {
                 />
               </div>
             </div>
+          </div>
+
+          <div className="card p-5">
+            <div className="mb-1 flex items-center justify-between">
+              <h3 className="font-semibold text-slate-800">Variants & Availability</h3>
+              <button
+                type="button"
+                onClick={addVariant}
+                className="text-sm font-semibold text-primary hover:underline"
+              >
+                + Add variant
+              </button>
+            </div>
+            <p className="mb-4 text-xs text-slate-500">
+              Optional colour / flavour options shown on the product page. Untick “Available” to
+              mark a variant as sold out.
+            </p>
+            {form.variants.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-center text-sm text-slate-400">
+                No variants yet. Click “Add variant” to offer colour or flavour options.
+              </p>
+            ) : (
+              <div className="space-y-2.5">
+                {form.variants.map((v, i) => (
+                  <div
+                    key={i}
+                    className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 p-2.5"
+                  >
+                    <input
+                      type="color"
+                      value={v.color || '#0e9f8e'}
+                      onChange={(e) => updateVariant(i, 'color', e.target.value)}
+                      className="h-9 w-9 shrink-0 cursor-pointer rounded border border-slate-200 bg-white"
+                      title="Swatch colour"
+                    />
+                    <input
+                      value={v.label}
+                      onChange={(e) => updateVariant(i, 'label', e.target.value)}
+                      placeholder="Label e.g. Lavender"
+                      className="input min-w-[8rem] flex-1"
+                    />
+                    <label className="flex cursor-pointer items-center gap-1.5 text-sm text-slate-600">
+                      <input
+                        type="checkbox"
+                        checked={v.available !== false}
+                        onChange={(e) => updateVariant(i, 'available', e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                      />
+                      Available
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => removeVariant(i)}
+                      className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-danger"
+                      title="Remove variant"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

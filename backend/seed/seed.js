@@ -64,6 +64,29 @@ const run = async () => {
   const catMap = Object.fromEntries(catDocs.map((c) => [c.slug, c._id]));
   const brandMap = Object.fromEntries(brandDocs.map((b) => [b.slug, b._id]));
 
+  // Generic pharmacy shots used to give every demo product a 2–3 image gallery.
+  const extraImages = [
+    'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=900&q=80',
+    'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=900&q=80',
+    'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=900&q=80',
+  ];
+  const padImages = (imgs = []) => {
+    const out = [...imgs];
+    for (const ex of extraImages) {
+      if (out.length >= 3) break;
+      if (!out.includes(ex)) out.push(ex);
+    }
+    return out;
+  };
+
+  // Sample colour/flavour variants so the variant picker is visible in the demo.
+  const demoVariants = [
+    { label: 'Original', color: '#16a34a', available: true },
+    { label: 'Sensitive', color: '#7c3aed', available: true },
+    { label: 'Rose', color: '#ec4899', available: true },
+    { label: 'Citrus', color: '#f59e0b', available: false },
+  ];
+
   const products = await Product.insertMany(
     productSeeds.map((p) => {
       const oldP = p.oldPrice || 0;
@@ -77,7 +100,9 @@ const run = async () => {
         category: catMap[p.categorySlug],
         categories: [catMap[p.categorySlug]],
         brand: brandMap[p.brandSlug],
+        images: padImages(p.images),
         thumbnail: p.images?.[0] || '',
+        variants: p.variants || (p.categorySlug === 'personal-care' ? demoVariants : []),
         discountPercent,
         status: 'active',
       };

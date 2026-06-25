@@ -159,7 +159,7 @@ export const updateProduct = async (req, res) => {
 
   const fields = [
     'name', 'sku', 'description', 'shortDescription', 'price', 'oldPrice',
-    'images', 'thumbnail', 'category', 'categories', 'brand', 'countInStock', 'unit',
+    'images', 'thumbnail', 'category', 'categories', 'brand', 'countInStock', 'unit', 'variants',
     'isFeatured', 'isBestSeller', 'isNewArrival', 'isDeal', 'dealEndsAt',
     'requiresPrescription', 'tags', 'status',
   ];

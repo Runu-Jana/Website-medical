@@ -15,6 +15,7 @@ import {
   FaPrescriptionBottleAlt,
   FaCheckCircle,
   FaTimesCircle,
+  FaSearchPlus,
 } from 'react-icons/fa'
 
 export default function ProductDetail() {
@@ -28,6 +29,8 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true)
   const [qty, setQty] = useState(1)
   const [activeImg, setActiveImg] = useState(0)
+  const [variantIdx, setVariantIdx] = useState(0)
+  const [zoom, setZoom] = useState({ active: false, x: 50, y: 50 })
   const [tab, setTab] = useState('description')
 
   const [rating, setRating] = useState(5)
@@ -40,6 +43,7 @@ export default function ProductDetail() {
     setLoading(true)
     setQty(1)
     setActiveImg(0)
+    setVariantIdx(0)
     api
       .get(`/products/${slug}`)
       .then(({ data }) => {
@@ -103,13 +107,32 @@ export default function ProductDetail() {
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Gallery */}
         <div>
-          <div className="card flex aspect-square items-center justify-center overflow-hidden bg-white p-6">
+          <div
+            className="card group relative flex aspect-square cursor-zoom-in items-center justify-center overflow-hidden bg-white p-6"
+            onMouseEnter={() => setZoom((z) => ({ ...z, active: true }))}
+            onMouseLeave={() => setZoom((z) => ({ ...z, active: false }))}
+            onMouseMove={(e) => {
+              const r = e.currentTarget.getBoundingClientRect()
+              setZoom({
+                active: true,
+                x: ((e.clientX - r.left) / r.width) * 100,
+                y: ((e.clientY - r.top) / r.height) * 100,
+              })
+            }}
+          >
             <img
               src={images[activeImg]}
               onError={imgFallback}
               alt={product.name}
-              className="max-h-full max-w-full object-contain"
+              className="max-h-full max-w-full object-contain transition-transform duration-200 ease-out"
+              style={{
+                transform: zoom.active ? 'scale(2)' : 'scale(1)',
+                transformOrigin: `${zoom.x}% ${zoom.y}%`,
+              }}
             />
+            <span className="pointer-events-none absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-slate-600 opacity-0 shadow-card transition group-hover:opacity-100">
+              <FaSearchPlus size={15} />
+            </span>
           </div>
           {images.length > 1 && (
             <div className="mt-3 flex gap-3 overflow-x-auto no-scrollbar">
@@ -162,6 +185,43 @@ export default function ProductDetail() {
             <p className="mt-4 text-sm leading-relaxed text-slate-600">
               {product.shortDescription}
             </p>
+          )}
+
+          {product.variants?.length > 0 && (
+            <div className="mt-5">
+              <p className="text-sm font-semibold text-dark">
+                Color:{' '}
+                <span className="font-normal text-slate-500">
+                  {product.variants[variantIdx]?.label}
+                </span>
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2.5">
+                {product.variants.map((v, i) => {
+                  const soldOut = v.available === false
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      disabled={soldOut}
+                      onClick={() => setVariantIdx(i)}
+                      title={`${v.label || 'Variant'}${soldOut ? ' — sold out' : ''}`}
+                      className={`relative h-9 w-9 rounded-full border-2 transition ${
+                        i === variantIdx && !soldOut
+                          ? 'border-primary ring-2 ring-primary/30'
+                          : 'border-bordergray'
+                      } ${
+                        soldOut ? 'cursor-not-allowed opacity-40' : 'hover:border-primary'
+                      }`}
+                      style={{ backgroundColor: v.color || '#e2e8f0' }}
+                    >
+                      {soldOut && (
+                        <span className="absolute left-1/2 top-1/2 h-px w-9 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-slate-500" />
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           )}
 
           <div className="mt-5 flex flex-wrap items-center gap-4 text-sm">

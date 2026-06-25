@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   FaSearch,
   FaShoppingCart,
@@ -28,7 +28,25 @@ const navLinks = [
 
 export default function Navbar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { itemCount } = useCart()
+
+  // Active state that respects the query string, so /shop, /shop?view=categories
+  // and /shop?deal=true don't all highlight at once.
+  const isLinkActive = (to) => {
+    if (to === '/') return location.pathname === '/'
+    if (to === '/shop')
+      return (
+        location.pathname === '/shop' &&
+        !location.search.includes('view=categories') &&
+        !location.search.includes('deal=true')
+      )
+    if (to.includes('?')) {
+      const [path, query] = to.split('?')
+      return location.pathname === path && location.search.includes(query)
+    }
+    return location.pathname === to || location.pathname.startsWith(`${to}/`)
+  }
   const { user } = useAuth()
   const [keyword, setKeyword] = useState('')
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -197,17 +215,14 @@ export default function Navbar() {
           <ul className="flex items-center">
             {navLinks.map((l) => (
               <li key={l.label}>
-                <NavLink
+                <Link
                   to={l.to}
-                  end={l.end}
-                  className={({ isActive }) =>
-                    `flex h-12 items-center px-4 text-sm font-semibold transition ${
-                      isActive ? 'text-primary' : 'text-dark hover:text-primary'
-                    }`
-                  }
+                  className={`flex h-12 items-center px-4 text-sm font-semibold transition ${
+                    isLinkActive(l.to) ? 'text-primary' : 'text-dark hover:text-primary'
+                  }`}
                 >
                   {l.label}
-                </NavLink>
+                </Link>
               </li>
             ))}
           </ul>
