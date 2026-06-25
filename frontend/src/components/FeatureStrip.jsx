@@ -1,24 +1,34 @@
-import { FaShippingFast, FaHeadset, FaShieldAlt, FaUndoAlt } from 'react-icons/fa'
+import {
+  FaHandHoldingHeart,
+  FaFlask,
+  FaUserMd,
+  FaClinicMedical,
+  FaPrescriptionBottleAlt,
+} from 'react-icons/fa'
 
 const features = [
-  { icon: FaShippingFast, title: 'Free Shipping', text: 'On orders over $1000' },
-  { icon: FaHeadset, title: '24/7 Support', text: 'Dedicated assistance' },
-  { icon: FaShieldAlt, title: 'Genuine Products', text: '100% authentic' },
-  { icon: FaUndoAlt, title: 'Easy Returns', text: '7-day return policy' },
+  { icon: FaHandHoldingHeart, label: 'Healthcare', value: 'Up to 60% Off', bg: 'bg-[#fce7ee]' },
+  { icon: FaFlask, label: 'Lab Tests', value: 'Up to 70% Off', bg: 'bg-[#fdf1d6]' },
+  { icon: FaUserMd, label: 'Consult', value: 'In 15 Min', bg: 'bg-[#ece9fb]' },
+  { icon: FaClinicMedical, label: 'Local Pharmacy', value: 'Find Store', bg: 'bg-[#e3f5ea]' },
+  { icon: FaPrescriptionBottleAlt, label: 'Medicine', value: 'Flat 24% Off', bg: 'bg-[#dcf2ef]' },
 ]
 
 export default function FeatureStrip() {
   return (
-    <div className="container-x mt-10">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className="container-x mt-8">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
         {features.map((f) => (
-          <div key={f.title} className="card flex items-center gap-3 p-4">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <f.icon size={22} />
+          <div
+            key={f.label}
+            className={`flex items-center gap-3 rounded-2xl px-4 py-5 ${f.bg}`}
+          >
+            <span className="shrink-0 text-3xl text-slate-700">
+              <f.icon />
             </span>
             <div>
-              <h4 className="text-sm font-bold text-dark">{f.title}</h4>
-              <p className="text-xs text-slate-500">{f.text}</p>
+              <p className="text-sm text-slate-600">{f.label}</p>
+              <p className="text-sm font-extrabold uppercase tracking-wide text-dark">{f.value}</p>
             </div>
           </div>
         ))}
