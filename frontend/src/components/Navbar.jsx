@@ -18,10 +18,27 @@ import { useAuth } from '../context/AuthContext'
 import api from '../lib/api'
 
 const navLinks = [
-  { to: '/', label: 'Home', end: true },
-  { to: '/shop', label: 'Shop' },
-  { to: '/shop?view=categories', label: 'Categories' },
-  { to: '/shop?deal=true', label: 'Deal' },
+  { to: '/', label: 'Home' },
+  {
+    to: '/shop',
+    label: 'Shop',
+    dropdown: [
+      { to: '/shop', label: 'All Products' },
+      { to: '/shop?view=categories', label: 'Shop by Category' },
+      { to: '/shop?deal=true', label: "Today's Deals" },
+    ],
+  },
+  {
+    label: 'Pages',
+    dropdown: [
+      { to: '/about', label: 'About Us' },
+      { to: '/contact', label: 'Contact' },
+      { to: '/account', label: 'My Account' },
+      { to: '/cart', label: 'Cart' },
+    ],
+  },
+  { to: '/blog', label: 'Blog' },
+  { to: '/shop?keyword=medicine', label: 'Medicine' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
 ]
@@ -214,18 +231,53 @@ export default function Navbar() {
 
           <ul className="flex items-center">
             {navLinks.map((l) => (
-              <li key={l.label}>
-                <Link
-                  to={l.to}
-                  className={`flex h-12 items-center px-4 text-sm font-semibold transition ${
-                    isLinkActive(l.to) ? 'text-primary' : 'text-dark hover:text-primary'
-                  }`}
-                >
-                  {l.label}
-                </Link>
+              <li key={l.label} className="group relative">
+                {l.to ? (
+                  <Link
+                    to={l.to}
+                    className={`flex h-12 items-center gap-1 px-4 text-sm font-semibold transition ${
+                      isLinkActive(l.to) ? 'text-primary' : 'text-dark hover:text-primary'
+                    }`}
+                  >
+                    {l.label}
+                    {l.dropdown && <FaChevronDown size={10} />}
+                  </Link>
+                ) : (
+                  <span className="flex h-12 cursor-default items-center gap-1 px-4 text-sm font-semibold text-dark group-hover:text-primary">
+                    {l.label}
+                    {l.dropdown && <FaChevronDown size={10} />}
+                  </span>
+                )}
+                {l.dropdown && (
+                  <div className="invisible absolute left-0 top-full z-50 w-52 rounded-b-xl border border-bordergray bg-white py-2 opacity-0 shadow-lift transition group-hover:visible group-hover:opacity-100">
+                    {l.dropdown.map((d) => (
+                      <Link
+                        key={d.label}
+                        to={d.to}
+                        className="block px-4 py-2 text-sm text-dark hover:bg-lightbg hover:text-primary"
+                      >
+                        {d.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </li>
             ))}
           </ul>
+
+          {/* Support phone */}
+          <a
+            href="tel:+13248974567"
+            className="ml-auto hidden items-center gap-2 rounded-full bg-primary px-5 py-2 text-white xl:flex"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20">
+              <FaPhoneAlt size={14} />
+            </span>
+            <span className="leading-tight">
+              <span className="block text-sm font-bold">324 - 897 - 4567</span>
+              <span className="block text-[11px] text-white/80">Support 24/7</span>
+            </span>
+          </a>
         </div>
       </nav>
 
@@ -235,13 +287,32 @@ export default function Navbar() {
           <ul className="container-x flex flex-col py-2">
             {navLinks.map((l) => (
               <li key={l.label}>
-                <Link
-                  to={l.to}
-                  onClick={() => setMobileOpen(false)}
-                  className="block py-2.5 text-sm font-semibold text-dark hover:text-primary"
-                >
-                  {l.label}
-                </Link>
+                {l.to ? (
+                  <Link
+                    to={l.to}
+                    onClick={() => setMobileOpen(false)}
+                    className="block py-2.5 text-sm font-semibold text-dark hover:text-primary"
+                  >
+                    {l.label}
+                  </Link>
+                ) : (
+                  <span className="block pt-2.5 text-sm font-semibold text-dark">{l.label}</span>
+                )}
+                {l.dropdown && (
+                  <ul className="ml-3 border-l border-bordergray">
+                    {l.dropdown.map((d) => (
+                      <li key={d.label}>
+                        <Link
+                          to={d.to}
+                          onClick={() => setMobileOpen(false)}
+                          className="block py-2 pl-3 text-sm text-slate-600 hover:text-primary"
+                        >
+                          {d.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>

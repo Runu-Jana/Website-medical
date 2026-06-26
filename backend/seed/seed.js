@@ -5,6 +5,7 @@ import User from '../models/User.js';
 import Category from '../models/Category.js';
 import Brand from '../models/Brand.js';
 import Banner from '../models/Banner.js';
+import Post from '../models/Post.js';
 import Product from '../models/Product.js';
 import Order from '../models/Order.js';
 import { categories, brands, productSeeds } from './data.js';
@@ -24,6 +25,7 @@ const run = async () => {
       Category.deleteMany({}),
       Brand.deleteMany({}),
       Banner.deleteMany({}),
+      Post.deleteMany({}),
       Product.deleteMany({}),
       Order.deleteMany({}),
     ]);
@@ -103,6 +105,56 @@ const run = async () => {
     },
   ]);
   console.log('✅ 3 home banners created');
+
+  // Sample blog posts (fully editable from the admin panel afterwards)
+  const blogSeed = [
+    {
+      title: '5 Daily Habits for a Stronger Immune System',
+      category: 'Wellness',
+      author: 'Dr. Sarah Lin',
+      excerpt:
+        'Simple, science-backed habits — from sleep to hydration — that help your body fight off illness all year round.',
+      image: 'https://images.unsplash.com/photo-1505576399279-565b52d4ac71?w=1200&q=80',
+      content:
+        'A strong immune system starts with everyday choices. Prioritise 7–8 hours of sleep, stay hydrated, eat a colourful diet rich in vitamins C and D, move your body daily, and manage stress.\n\nConsistency matters more than intensity — small habits compound into lasting health.',
+    },
+    {
+      title: 'Understanding Your Blood Pressure Readings',
+      category: 'Health Tips',
+      author: 'DCare Team',
+      excerpt:
+        'What the top and bottom numbers really mean, and when you should talk to your doctor about your readings.',
+      image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1200&q=80',
+      content:
+        'Blood pressure is measured with two numbers: systolic (the pressure when your heart beats) over diastolic (the pressure when it rests).\n\nA normal reading is around 120/80 mmHg. Track it regularly at home with a validated monitor and share trends with your physician.',
+    },
+    {
+      title: 'Vitamins 101: Which Supplements Do You Actually Need?',
+      category: 'Nutrition',
+      author: 'Dr. Sarah Lin',
+      excerpt:
+        'A practical guide to the most common supplements and how to choose ones that fit your lifestyle.',
+      image: 'https://images.unsplash.com/photo-1577174881658-0f30ed549adc?w=1200&q=80',
+      content:
+        'Whole foods should always come first, but supplements can fill the gaps. Vitamin D, omega-3, and a daily multivitamin are popular for good reason.\n\nAlways check with a healthcare professional before starting a new supplement, especially if you take medication.',
+    },
+    {
+      title: 'How to Store Medicines Safely at Home',
+      category: 'Safety',
+      author: 'DCare Team',
+      excerpt:
+        'Keep your medicines effective and your family safe with these simple storage best-practices.',
+      image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=1200&q=80',
+      content:
+        'Heat and humidity degrade most medications. Store them in a cool, dry place — not the bathroom cabinet.\n\nKeep medicines in their original packaging, away from children, and check expiry dates every few months.',
+    },
+  ].map((p, i) => ({
+    ...p,
+    slug: `${slugify(p.title)}-${1000 + i}`,
+    published: true,
+  }));
+  await Post.insertMany(blogSeed);
+  console.log(`✅ ${blogSeed.length} blog posts created`);
 
   // Generic pharmacy shots used to give every demo product a 2–3 image gallery.
   const extraImages = [

@@ -11,6 +11,8 @@ import Register from './pages/Register'
 import Account from './pages/Account'
 import About from './pages/About'
 import Contact from './pages/Contact'
+import Blog from './pages/Blog'
+import BlogPost from './pages/BlogPost'
 import CategoryRedirect from './pages/CategoryRedirect'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -38,6 +40,8 @@ export default function App() {
         />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
