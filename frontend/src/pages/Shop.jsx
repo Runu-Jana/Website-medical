@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom'
 import api from '../lib/api'
 import ProductGrid from '../components/ProductGrid'
 import Pagination from '../components/Pagination'
+import PriceRangeSlider from '../components/PriceRangeSlider'
 import { FaTimes, FaFilter } from 'react-icons/fa'
 
 const sortOptions = [
@@ -30,13 +31,26 @@ export default function Shop() {
   const maxPrice = searchParams.get('maxPrice') || ''
   const inStock = searchParams.get('inStock') === 'true'
 
-  const [minInput, setMinInput] = useState(minPrice)
-  const [maxInput, setMaxInput] = useState(maxPrice)
+  const [bounds, setBounds] = useState({ min: 0, max: 1000 })
+  const [range, setRange] = useState({ min: 0, max: 1000 })
 
+  // Available price bounds across the whole catalogue (pre-fills the slider).
   useEffect(() => {
-    setMinInput(minPrice)
-    setMaxInput(maxPrice)
-  }, [minPrice, maxPrice])
+    api
+      .get('/products/meta/price-range')
+      .then(({ data }) => {
+        if (data && Number.isFinite(data.max)) setBounds({ min: data.min, max: data.max })
+      })
+      .catch(() => {})
+  }, [])
+
+  // Keep the slider in sync with the URL params and the available bounds.
+  useEffect(() => {
+    setRange({
+      min: minPrice !== '' ? Number(minPrice) : bounds.min,
+      max: maxPrice !== '' ? Number(maxPrice) : bounds.max,
+    })
+  }, [minPrice, maxPrice, bounds.min, bounds.max])
 
   useEffect(() => {
     Promise.all([api.get('/categories'), api.get('/brands')])
@@ -92,9 +106,10 @@ export default function Shop() {
 
   const applyPrice = () => {
     const next = new URLSearchParams(searchParams)
-    if (minInput) next.set('minPrice', minInput)
+    // Only store params when the user narrowed the range below the full bounds.
+    if (range.min > bounds.min) next.set('minPrice', String(range.min))
     else next.delete('minPrice')
-    if (maxInput) next.set('maxPrice', maxInput)
+    if (range.max < bounds.max) next.set('maxPrice', String(range.max))
     else next.delete('maxPrice')
     next.delete('page')
     setSearchParams(next)
@@ -197,29 +212,11 @@ export default function Shop() {
 
             {/* Price */}
             <div className="card p-5">
-              <h4 className="mb-3 text-sm font-bold uppercase tracking-wide text-dark">
+              <h4 className="mb-4 text-sm font-bold uppercase tracking-wide text-dark">
                 Price Range
               </h4>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  value={minInput}
-                  onChange={(e) => setMinInput(e.target.value)}
-                  placeholder="Min"
-                  className="input-base px-3 py-2"
-                />
-                <span className="text-slate-400">-</span>
-                <input
-                  type="number"
-                  min="0"
-                  value={maxInput}
-                  onChange={(e) => setMaxInput(e.target.value)}
-                  placeholder="Max"
-                  className="input-base px-3 py-2"
-                />
-              </div>
-              <button onClick={applyPrice} className="btn-outline mt-3 w-full">
+              <PriceRangeSlider bounds={bounds} value={range} onChange={setRange} />
+              <button onClick={applyPrice} className="btn-outline mt-5 w-full">
                 Apply
               </button>
             </div>

@@ -32,6 +32,49 @@
   }
 }
 
+/* Dual-handle price range slider — two transparent range inputs over one track */
+.range-input {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 0;
+  margin: 0;
+  transform: translateY(-50%);
+  background: transparent;
+  pointer-events: none;
+}
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  height: 16px;
+  width: 16px;
+  border-radius: 9999px;
+  background: #0e9f8e;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+.range-input::-moz-range-thumb {
+  pointer-events: auto;
+  height: 16px;
+  width: 16px;
+  border-radius: 9999px;
+  background: #0e9f8e;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+.range-input::-webkit-slider-runnable-track {
+  background: transparent;
+}
+.range-input::-moz-range-track {
+  background: transparent;
+}
+
 /* Hide scrollbar for horizontal strips */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

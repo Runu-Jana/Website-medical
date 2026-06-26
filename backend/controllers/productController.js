@@ -29,6 +29,15 @@ const syncCategoryFields = (obj) => {
   }
 };
 
+// @route GET /api/products/meta/price-range  (lowest & highest active product price)
+export const getPriceRange = async (req, res) => {
+  const [r] = await Product.aggregate([
+    { $match: { status: 'active' } },
+    { $group: { _id: null, min: { $min: '$price' }, max: { $max: '$price' } } },
+  ]);
+  res.json({ min: Math.floor(r?.min ?? 0), max: Math.ceil(r?.max ?? 1000) });
+};
+
 // @route GET /api/products  (storefront listing with filters)
 export const getProducts = async (req, res) => {
   const {
