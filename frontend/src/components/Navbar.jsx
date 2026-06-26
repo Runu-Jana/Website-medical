@@ -203,7 +203,7 @@ export default function Navbar() {
 
       {/* Main nav */}
       <nav className="hidden border-b border-bordergray bg-white lg:block">
-        <div className="container-x flex items-center gap-2">
+        <div className="container-x flex items-center gap-2 py-2.5">
           <div ref={catRef} className="relative">
             <button
               onClick={() => setCatOpen((v) => !v)}
