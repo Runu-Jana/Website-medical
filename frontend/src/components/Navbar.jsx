@@ -207,12 +207,12 @@ export default function Navbar() {
           <div ref={catRef} className="relative">
             <button
               onClick={() => setCatOpen((v) => !v)}
-              className="flex h-12 items-center gap-2 rounded-t-lg bg-primary px-5 text-sm font-semibold text-white"
+              className="flex h-12 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-white"
             >
               <FaBars size={14} /> All Categories <FaChevronDown size={12} />
             </button>
             {catOpen && (
-              <div className="absolute left-0 top-full z-50 w-64 rounded-b-xl border border-bordergray bg-white py-2 shadow-lift">
+              <div className="absolute left-0 top-full z-50 mt-2 w-64 rounded-xl border border-bordergray bg-white py-2 shadow-lift">
                 {categories.length === 0 && (
                   <span className="block px-4 py-2 text-sm text-slate-400">No categories</span>
                 )}
@@ -297,10 +297,10 @@ export default function Navbar() {
           {/* Support phone */}
           <a
             href="tel:+13248974567"
-            className="ml-auto hidden items-center gap-2 rounded-full bg-primary px-5 py-2 text-white xl:flex"
+            className="ml-auto hidden h-12 items-center gap-2 rounded-full bg-primary py-1.5 pl-1.5 pr-6 text-white xl:flex"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20">
-              <FaPhoneAlt size={14} />
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+              <FaPhoneAlt size={13} />
             </span>
             <span className="leading-tight">
               <span className="block text-sm font-bold">324 - 897 - 4567</span>
