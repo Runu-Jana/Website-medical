@@ -150,13 +150,29 @@ export default function Home() {
       {/* New launches */}
       <section className="container-x mt-14">
         <h2 className="mb-6 text-3xl font-extrabold text-dark">New Launches</h2>
-        <NewLaunches products={newArrivals} />
+        <NewLaunches
+          products={newArrivals}
+          offer={{
+            discount: '15%',
+            subtitle: 'For new member sign up\nat the first time',
+            coupon: 'COUPON15',
+            bg: 'bg-[#dcf3e4]',
+          }}
+        />
       </section>
 
       {/* Best sellers (promo row) */}
       <section className="container-x mt-14">
         <h2 className="mb-6 text-3xl font-extrabold text-dark">Best Sellers</h2>
-        <NewLaunches products={bestsellers} />
+        <NewLaunches
+          products={bestsellers}
+          offer={{
+            discount: '20%',
+            subtitle: 'On your favourite\nbest-selling products',
+            coupon: 'BESTSELLER20',
+            bg: 'bg-[#e6eefc]',
+          }}
+        />
       </section>
 
       {/* Blog teaser */}
