@@ -12,13 +12,13 @@ export default function ProductCard({ product }) {
   return (
     <div className="card group flex flex-col overflow-hidden hover:-translate-y-1 hover:shadow-lift">
       <div className="relative">
-        <Link to={link} className="block aspect-square overflow-hidden bg-lightbg">
+        <Link to={link} className="block aspect-square overflow-hidden bg-white">
           <img
             src={productImage(product)}
             onError={imgFallback}
             alt={product.name}
             loading="lazy"
-            className="h-full w-full object-contain p-4 transition duration-300 group-hover:scale-105"
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           />
         </Link>
         <div className="absolute left-3 top-3 flex flex-col gap-1">
