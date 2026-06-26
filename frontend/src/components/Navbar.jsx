@@ -10,6 +10,7 @@ import {
   FaBars,
   FaTimes,
   FaChevronDown,
+  FaChevronRight,
   FaHeartbeat,
   FaPills,
 } from 'react-icons/fa'
@@ -24,7 +25,7 @@ const navLinks = [
     label: 'Shop',
     dropdown: [
       { to: '/shop', label: 'All Products' },
-      { to: '/shop?view=categories', label: 'Shop by Category' },
+      { to: '/shop?view=categories', label: 'Shop by Category', submenu: 'categories' },
       { to: '/shop?deal=true', label: "Today's Deals" },
     ],
   },
@@ -250,15 +251,43 @@ export default function Navbar() {
                 )}
                 {l.dropdown && (
                   <div className="invisible absolute left-0 top-full z-50 w-52 rounded-b-xl border border-bordergray bg-white py-2 opacity-0 shadow-lift transition group-hover:visible group-hover:opacity-100">
-                    {l.dropdown.map((d) => (
-                      <Link
-                        key={d.label}
-                        to={d.to}
-                        className="block px-4 py-2 text-sm text-dark hover:bg-lightbg hover:text-primary"
-                      >
-                        {d.label}
-                      </Link>
-                    ))}
+                    {l.dropdown.map((d) =>
+                      d.submenu === 'categories' ? (
+                        <div key={d.label} className="group/sub relative">
+                          <Link
+                            to={d.to}
+                            className="flex items-center justify-between px-4 py-2 text-sm text-dark hover:bg-lightbg hover:text-primary"
+                          >
+                            {d.label} <FaChevronRight size={10} />
+                          </Link>
+                          <div className="invisible absolute left-full top-0 z-50 max-h-[22rem] w-56 overflow-y-auto rounded-xl border border-bordergray bg-white py-2 opacity-0 shadow-lift transition group-hover/sub:visible group-hover/sub:opacity-100">
+                            {categories.length === 0 ? (
+                              <span className="block px-4 py-2 text-sm text-slate-400">
+                                No categories
+                              </span>
+                            ) : (
+                              categories.map((c) => (
+                                <Link
+                                  key={c._id}
+                                  to={`/shop?category=${c._id}`}
+                                  className="flex items-center gap-2 px-4 py-2 text-sm text-dark hover:bg-lightbg hover:text-primary"
+                                >
+                                  <FaPills size={12} className="text-primary" /> {c.name}
+                                </Link>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <Link
+                          key={d.label}
+                          to={d.to}
+                          className="block px-4 py-2 text-sm text-dark hover:bg-lightbg hover:text-primary"
+                        >
+                          {d.label}
+                        </Link>
+                      )
+                    )}
                   </div>
                 )}
               </li>
