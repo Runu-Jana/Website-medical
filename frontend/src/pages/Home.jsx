@@ -8,6 +8,7 @@ import CategoryCard from '../components/CategoryCard'
 import ProductGrid from '../components/ProductGrid'
 import ProductCard from '../components/ProductCard'
 import NewLaunches from '../components/NewLaunches'
+import BlogTeaser from '../components/BlogTeaser'
 import CountdownTimer from '../components/CountdownTimer'
 import Spinner from '../components/Spinner'
 import { imgFallback } from '../lib/helpers'
@@ -157,6 +158,9 @@ export default function Home() {
         <h2 className="mb-6 text-3xl font-extrabold text-dark">Best Sellers</h2>
         <NewLaunches products={bestsellers} />
       </section>
+
+      {/* Blog teaser */}
+      <BlogTeaser />
 
       {/* Brands */}
       {brands.length > 0 && (
