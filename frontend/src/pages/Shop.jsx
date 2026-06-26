@@ -4,7 +4,7 @@ import api from '../lib/api'
 import ProductGrid from '../components/ProductGrid'
 import Pagination from '../components/Pagination'
 import PriceRangeSlider from '../components/PriceRangeSlider'
-import { FaTimes, FaFilter } from 'react-icons/fa'
+import { FaTimes, FaFilter, FaThLarge, FaThList } from 'react-icons/fa'
 
 const sortOptions = [
   { value: 'newest', label: 'Newest' },
@@ -21,6 +21,7 @@ export default function Shop() {
   const [data, setData] = useState({ products: [], page: 1, pages: 1, total: 0 })
   const [loading, setLoading] = useState(true)
   const [showFilters, setShowFilters] = useState(false)
+  const [view, setView] = useState('grid')
 
   const keyword = searchParams.get('keyword') || ''
   const category = searchParams.get('category') || ''
@@ -257,23 +258,51 @@ export default function Shop() {
             <p className="text-sm text-slate-600">
               <span className="font-semibold text-dark">{data.total}</span> products found
             </p>
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-slate-500">Sort by:</label>
-              <select
-                value={sort}
-                onChange={(e) => updateParam('sort', e.target.value)}
-                className="input-base w-auto py-2"
-              >
-                {sortOptions.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-slate-500">Sort by:</label>
+                <select
+                  value={sort}
+                  onChange={(e) => updateParam('sort', e.target.value)}
+                  className="input-base w-auto py-2"
+                >
+                  {sortOptions.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* View toggle */}
+              <div className="flex items-center gap-1 rounded-lg border border-bordergray p-1">
+                <button
+                  type="button"
+                  onClick={() => setView('list')}
+                  aria-label="List view"
+                  title="List view"
+                  className={`rounded-md p-1.5 transition ${
+                    view === 'list' ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:text-primary'
+                  }`}
+                >
+                  <FaThList size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView('grid')}
+                  aria-label="Grid view"
+                  title="Grid view"
+                  className={`rounded-md p-1.5 transition ${
+                    view === 'grid' ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:text-primary'
+                  }`}
+                >
+                  <FaThLarge size={16} />
+                </button>
+              </div>
             </div>
           </div>
 
-          <ProductGrid products={data.products} loading={loading} />
+          <ProductGrid products={data.products} loading={loading} view={view} />
 
           {!loading && (
             <Pagination

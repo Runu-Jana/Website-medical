@@ -1,7 +1,13 @@
 import ProductCard from './ProductCard'
 import Spinner from './Spinner'
 
-export default function ProductGrid({ products, loading, cols = 4, empty = 'No products found.' }) {
+export default function ProductGrid({
+  products,
+  loading,
+  cols = 4,
+  view = 'grid',
+  empty = 'No products found.',
+}) {
   if (loading) return <Spinner />
   if (!products || products.length === 0) {
     return (
@@ -10,6 +16,17 @@ export default function ProductGrid({ products, loading, cols = 4, empty = 'No p
       </div>
     )
   }
+
+  if (view === 'list') {
+    return (
+      <div className="flex flex-col gap-4">
+        {products.map((p) => (
+          <ProductCard key={p._id} product={p} list />
+        ))}
+      </div>
+    )
+  }
+
   const colClass =
     cols === 4
       ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'

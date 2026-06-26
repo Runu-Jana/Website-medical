@@ -4,14 +4,18 @@ import RatingStars from './RatingStars'
 import { useCart } from '../context/CartContext'
 import { formatPrice, productImage, imgFallback } from '../lib/helpers'
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, list = false }) {
   const { addToCart } = useCart()
   const outOfStock = product.countInStock <= 0
   const link = `/product/${product.slug || product._id}`
 
   return (
-    <div className="card group flex flex-col overflow-hidden hover:-translate-y-1 hover:shadow-lift">
-      <div className="relative">
+    <div
+      className={`card group overflow-hidden hover:shadow-lift ${
+        list ? 'flex flex-row' : 'flex flex-col hover:-translate-y-1'
+      }`}
+    >
+      <div className={`relative ${list ? 'w-32 shrink-0 sm:w-52' : ''}`}>
         <Link to={link} className="block aspect-square overflow-hidden bg-white">
           <img
             src={productImage(product)}
@@ -56,6 +60,10 @@ export default function ProductCard({ product }) {
         <div className="mt-1.5">
           <RatingStars rating={product.rating} count={product.numReviews} />
         </div>
+        {list && product.shortDescription && (
+          <p className="mt-2 line-clamp-2 text-sm text-slate-500">{product.shortDescription}</p>
+        )}
+
         <div className="mt-3 flex items-center gap-2">
           <span className="text-lg font-bold text-primary">{formatPrice(product.price)}</span>
           {product.oldPrice > product.price && (
@@ -69,7 +77,7 @@ export default function ProductCard({ product }) {
           type="button"
           disabled={outOfStock}
           onClick={() => addToCart(product)}
-          className="btn-primary mt-3 w-full"
+          className={`btn-primary mt-3 w-full ${list ? 'sm:w-48' : ''}`}
         >
           <FaCartPlus />
           {outOfStock ? 'Out of Stock' : 'Add to Cart'}
