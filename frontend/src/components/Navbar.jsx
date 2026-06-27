@@ -123,7 +123,7 @@ export default function Navbar() {
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white">
               <FaHeartbeat size={22} />
             </span>
-            <span className="text-2xl font-extrabold text-dark">
+            <span className="text-3xl font-extrabold text-dark">
               D<span className="text-primary">Care</span>
             </span>
           </Link>
