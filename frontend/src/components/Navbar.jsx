@@ -100,7 +100,7 @@ export default function Navbar() {
       <div className="bg-dark text-white">
         <div className="container-x flex h-9 items-center justify-between text-xs">
           <span className="hidden sm:block">
-            Free shipping on all orders over <strong>$1000</strong>
+            Free shipping on all orders over <strong>₹1000</strong>
           </span>
           <div className="flex items-center gap-4">
             <a href="tel:+18001234567" className="flex items-center gap-1.5 hover:text-accent">

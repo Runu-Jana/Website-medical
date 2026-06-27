@@ -1,19 +1,19 @@
-// Currency formatter ($)
+// Currency formatter (₹)
 export const formatCurrency = (value) => {
   const num = Number(value) || 0;
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'INR',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(num);
 };
 
-// Compact currency for big values: $12.3k
+// Compact currency for big values: ₹12.3k
 export const formatCurrencyCompact = (value) => {
   const num = Number(value) || 0;
   if (Math.abs(num) >= 1000) {
-    return '$' + formatCompact(num);
+    return '₹' + formatCompact(num);
   }
   return formatCurrency(num);
 };
