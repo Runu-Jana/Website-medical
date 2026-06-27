@@ -4,6 +4,7 @@ import api from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import Spinner from '../components/Spinner'
 import { formatPrice } from '../lib/helpers'
+import AddressAutocomplete from '../components/AddressAutocomplete'
 import { FaSignOutAlt, FaUserCircle, FaBoxOpen, FaMapMarkerAlt } from 'react-icons/fa'
 
 export default function Account() {
@@ -76,6 +77,15 @@ export default function Account() {
               <FaMapMarkerAlt className="text-primary" /> Delivery Address
             </h3>
             <form onSubmit={saveAddress} className="space-y-3">
+              <div>
+                <AddressAutocomplete
+                  onSelect={(a) => setAddr((prev) => ({ ...prev, ...a }))}
+                />
+                <p className="mt-1 text-xs text-slate-400">
+                  Start typing and pick a suggestion — city, state, country &amp; postal code fill
+                  in automatically.
+                </p>
+              </div>
               <input
                 className="input-base"
                 placeholder="Address line"
