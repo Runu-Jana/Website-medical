@@ -1,30 +1,41 @@
-import Brand from '../models/Brand.js';
+import prisma from '../prisma/client.js';
 import { slugify } from '../utils/slugify.js';
+import { serializeBrand } from '../prisma/serialize.js';
 
 export const getBrands = async (req, res) => {
-  res.json(await Brand.find().sort({ name: 1 }));
+  const brands = await prisma.brand.findMany({ orderBy: { name: 'asc' } });
+  res.json(brands.map(serializeBrand));
 };
 
 export const createBrand = async (req, res) => {
-  const { name } = req.body;
+  const { name, logo } = req.body;
   if (!name) return res.status(400).json({ message: 'Name is required' });
-  const brand = await Brand.create({ ...req.body, slug: slugify(name) });
-  res.status(201).json(brand);
+  const brand = await prisma.brand.create({
+    data: { name, slug: slugify(name), logo: logo || '' },
+  });
+  res.status(201).json(serializeBrand(brand));
 };
 
 export const updateBrand = async (req, res) => {
-  const brand = await Brand.findById(req.params.id);
-  if (!brand) return res.status(404).json({ message: 'Brand not found' });
-  ['name', 'logo'].forEach((f) => {
-    if (req.body[f] !== undefined) brand[f] = req.body[f];
-  });
-  if (req.body.name) brand.slug = slugify(req.body.name);
-  res.json(await brand.save());
+  const data = {};
+  if (req.body.name !== undefined) {
+    data.name = req.body.name;
+    data.slug = slugify(req.body.name);
+  }
+  if (req.body.logo !== undefined) data.logo = req.body.logo;
+  try {
+    const brand = await prisma.brand.update({ where: { id: req.params.id }, data });
+    res.json(serializeBrand(brand));
+  } catch {
+    res.status(404).json({ message: 'Brand not found' });
+  }
 };
 
 export const deleteBrand = async (req, res) => {
-  const brand = await Brand.findById(req.params.id);
-  if (!brand) return res.status(404).json({ message: 'Brand not found' });
-  await brand.deleteOne();
-  res.json({ message: 'Brand removed' });
+  try {
+    await prisma.brand.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Brand removed' });
+  } catch {
+    res.status(404).json({ message: 'Brand not found' });
+  }
 };

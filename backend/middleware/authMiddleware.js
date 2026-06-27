@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import prisma from '../prisma/client.js';
+import { serializeUser } from '../prisma/serialize.js';
 
 export const protect = async (req, res, next) => {
   let token;
@@ -12,10 +13,11 @@ export const protect = async (req, res, next) => {
   }
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'devsecret');
-    req.user = await User.findById(decoded.id).select('-password');
-    if (!req.user) {
+    const user = await prisma.user.findUnique({ where: { id: decoded.id } });
+    if (!user) {
       return res.status(401).json({ message: 'User no longer exists' });
     }
+    req.user = serializeUser(user); // exposes both id and _id, strips password
     next();
   } catch (err) {
     return res.status(401).json({ message: 'Not authorized, token failed' });

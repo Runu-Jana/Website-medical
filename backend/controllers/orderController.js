@@ -1,5 +1,5 @@
-import Order from '../models/Order.js';
-import Product from '../models/Product.js';
+import prisma from '../prisma/client.js';
+import { serializeOrder } from '../prisma/serialize.js';
 
 // @route POST /api/orders  (customer or guest checkout)
 export const createOrder = async (req, res) => {
@@ -13,40 +13,53 @@ export const createOrder = async (req, res) => {
   const taxPrice = 0;
   const totalPrice = itemsPrice + shippingPrice + taxPrice;
 
-  const order = await Order.create({
-    user: req.user?._id,
-    items,
-    shippingAddress,
-    paymentMethod: paymentMethod || 'Cash on Delivery',
-    itemsPrice,
-    shippingPrice,
-    taxPrice,
-    totalPrice,
+  const order = await prisma.order.create({
+    data: {
+      userId: req.user?.id || null,
+      items,
+      shippingAddress: shippingAddress || {},
+      paymentMethod: paymentMethod || 'Cash on Delivery',
+      itemsPrice,
+      shippingPrice,
+      taxPrice,
+      totalPrice,
+    },
   });
 
-  // update sold counts + stock
+  // Update sold counts + stock for known products (ignore unknown ids).
   await Promise.all(
-    items.map((i) =>
-      Product.findByIdAndUpdate(i.product, {
-        $inc: { sold: i.qty, countInStock: -i.qty },
-      })
-    )
+    items
+      .filter((i) => i.product)
+      .map((i) =>
+        prisma.product
+          .update({
+            where: { id: i.product },
+            data: { sold: { increment: i.qty }, countInStock: { decrement: i.qty } },
+          })
+          .catch(() => {})
+      )
   );
 
-  res.status(201).json(order);
+  res.status(201).json(serializeOrder(order));
 };
 
 // @route GET /api/orders/mine
 export const getMyOrders = async (req, res) => {
-  const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
-  res.json(orders);
+  const orders = await prisma.order.findMany({
+    where: { userId: req.user.id },
+    orderBy: { createdAt: 'desc' },
+  });
+  res.json(orders.map(serializeOrder));
 };
 
 // @route GET /api/orders/:id
 export const getOrder = async (req, res) => {
-  const order = await Order.findById(req.params.id).populate('user', 'name email');
+  const order = await prisma.order.findUnique({
+    where: { id: req.params.id },
+    include: { user: { select: { id: true, name: true, email: true } } },
+  });
   if (!order) return res.status(404).json({ message: 'Order not found' });
-  res.json(order);
+  res.json(serializeOrder(order));
 };
 
 // ---- Admin ----
@@ -54,32 +67,36 @@ export const getOrder = async (req, res) => {
 // @route GET /api/orders  (admin)
 export const getOrders = async (req, res) => {
   const { status, page = 1, limit = 15 } = req.query;
-  const filter = {};
-  if (status) filter.status = status;
+  const where = {};
+  if (status) where.status = status;
   const pageNum = Math.max(1, Number(page));
   const perPage = Number(limit);
   const [orders, total] = await Promise.all([
-    Order.find(filter)
-      .populate('user', 'name email')
-      .sort({ createdAt: -1 })
-      .skip((pageNum - 1) * perPage)
-      .limit(perPage),
-    Order.countDocuments(filter),
+    prisma.order.findMany({
+      where,
+      include: { user: { select: { id: true, name: true, email: true } } },
+      orderBy: { createdAt: 'desc' },
+      skip: (pageNum - 1) * perPage,
+      take: perPage,
+    }),
+    prisma.order.count({ where }),
   ]);
-  res.json({ orders, page: pageNum, pages: Math.ceil(total / perPage), total });
+  res.json({ orders: orders.map(serializeOrder), page: pageNum, pages: Math.ceil(total / perPage), total });
 };
 
 // @route PUT /api/orders/:id/status  (admin)
 export const updateOrderStatus = async (req, res) => {
-  const order = await Order.findById(req.params.id);
+  const order = await prisma.order.findUnique({ where: { id: req.params.id } });
   if (!order) return res.status(404).json({ message: 'Order not found' });
   const { status } = req.body;
-  if (status) order.status = status;
+  const data = {};
+  if (status) data.status = status;
   if (status === 'delivered') {
-    order.isDelivered = true;
-    order.deliveredAt = new Date();
-    order.isPaid = true;
-    if (!order.paidAt) order.paidAt = new Date();
+    data.isDelivered = true;
+    data.deliveredAt = new Date();
+    data.isPaid = true;
+    if (!order.paidAt) data.paidAt = new Date();
   }
-  res.json(await order.save());
+  const updated = await prisma.order.update({ where: { id: order.id }, data });
+  res.json(serializeOrder(updated));
 };

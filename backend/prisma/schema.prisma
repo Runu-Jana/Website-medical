@@ -1,0 +1,136 @@
+// PostgreSQL schema for DCare (migrated from MongoDB/Mongoose).
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("customer")
+  phone     String   @default("")
+  avatar    String   @default("")
+  address   Json?
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String    @default("")
+  image       String    @default("")
+  icon        String    @default("")
+  featured    Boolean   @default(false)
+  products    Product[] @relation("ProductCategories")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Brand {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  logo      String    @default("")
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id                   String     @id @default(uuid())
+  name                 String
+  slug                 String     @unique
+  sku                  String     @default("")
+  description          String     @default("")
+  shortDescription     String     @default("")
+  price                Float      @default(0)
+  oldPrice             Float      @default(0)
+  discountPercent      Float      @default(0)
+  images               String[]
+  thumbnail            String     @default("")
+  brand                Brand?     @relation(fields: [brandId], references: [id])
+  brandId              String?
+  categories           Category[] @relation("ProductCategories")
+  countInStock         Int        @default(0)
+  unit                 String     @default("pcs")
+  variants             Json?
+  isFeatured           Boolean    @default(false)
+  isBestSeller         Boolean    @default(false)
+  isNewArrival         Boolean    @default(false)
+  isDeal               Boolean    @default(false)
+  dealEndsAt           DateTime?
+  requiresPrescription Boolean    @default(false)
+  tags                 String[]
+  rating               Float      @default(0)
+  numReviews           Int        @default(0)
+  reviews              Json?
+  sold                 Int        @default(0)
+  status               String     @default("active")
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  @@index([status])
+  @@index([brandId])
+}
+
+model Order {
+  id              String    @id @default(uuid())
+  user            User?     @relation(fields: [userId], references: [id])
+  userId          String?
+  orderNumber     String?
+  items           Json?
+  shippingAddress Json?
+  paymentMethod   String    @default("Cash on Delivery")
+  itemsPrice      Float     @default(0)
+  shippingPrice   Float     @default(0)
+  taxPrice        Float     @default(0)
+  totalPrice      Float     @default(0)
+  isPaid          Boolean   @default(false)
+  paidAt          DateTime?
+  isDelivered     Boolean   @default(false)
+  deliveredAt     DateTime?
+  status          String    @default("pending")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Banner {
+  id         String   @id @default(uuid())
+  title      String
+  subtitle   String   @default("")
+  badge      String   @default("")
+  image      String   @default("")
+  bgColor    String   @default("#fbe3ec")
+  buttonText String   @default("Shop Now")
+  link       String   @default("/shop")
+  order      Int      @default(0)
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  title     String
+  slug      String   @unique
+  excerpt   String   @default("")
+  content   String   @default("")
+  image     String   @default("")
+  category  String   @default("Health")
+  author    String   @default("DCare Team")
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
