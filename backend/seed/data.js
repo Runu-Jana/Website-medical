@@ -35,6 +35,10 @@ export const brands = [
   { name: 'Renata', slug: 'renata', logo: 'https://dummyimage.com/200x80/8b5cf6/ffffff&text=Renata' },
   { name: 'Omron', slug: 'omron', logo: 'https://dummyimage.com/200x80/ef4444/ffffff&text=Omron' },
   { name: 'Johnson & Johnson', slug: 'johnson', logo: 'https://dummyimage.com/200x80/f59e0b/ffffff&text=J%26J' },
+  { name: 'Beurer', slug: 'beurer', logo: 'https://dummyimage.com/200x80/0e9f8e/ffffff&text=Beurer' },
+  { name: 'PharmEasy', slug: 'pharmeasy', logo: 'https://dummyimage.com/200x80/14b8a6/ffffff&text=PharmEasy' },
+  { name: 'WOW Life Science', slug: 'wow', logo: 'https://dummyimage.com/200x80/16a34a/ffffff&text=WOW' },
+  { name: 'GSK', slug: 'gsk', logo: 'https://dummyimage.com/200x80/ef4444/ffffff&text=GSK' },
 ];
 
 const img = (id) => `https://images.unsplash.com/photo-${id}?w=900&q=80`;
@@ -156,4 +160,32 @@ export const productSeeds = [
     shortDescription: 'Monitor blood glucose at home.',
     description: 'Complete blood glucose monitoring kit with meter, 25 strips, lancing device and lancets for accurate sugar tracking.',
     images: [img('1583947215259-38e31be8751f')], tags: ['glucometer', 'diabetes'], rating: 4.6, numReviews: 57 },
+
+  { name: 'Beurer BC 32 Wrist Blood Pressure Monitor', categorySlug: 'healthcare-devices', brandSlug: 'beurer',
+    price: 50, oldPrice: 54, unit: 'pcs', countInStock: 30, sold: 60,
+    isBestSeller: true, isFeatured: true,
+    shortDescription: 'Box of 1 Unit — fully automatic wrist BP monitor.',
+    description: 'The Beurer BC 32 wrist blood pressure monitor offers quick, accurate measurement with a large display, risk indicator and memory for two users.',
+    images: [img('1576091160550-2173dba999ef')], tags: ['blood pressure', 'monitor', 'beurer'], rating: 4.2, numReviews: 3 },
+
+  { name: 'PharmEasy Diabetic Protein Powder French Vanilla', categorySlug: 'vitamins-supplements', brandSlug: 'pharmeasy',
+    price: 13, unit: 'jar', countInStock: 80, sold: 90,
+    isNewArrival: true,
+    shortDescription: 'Net Weight 200g — protein for diabetic nutrition.',
+    description: 'A scientifically formulated diabetic protein powder with French Vanilla flavour, high protein, vitamins and minerals to support balanced nutrition.',
+    images: [img('1550572017-edd951b55104')], tags: ['protein', 'diabetic', 'nutrition'], rating: 4.0, numReviews: 3 },
+
+  { name: 'WOW Organic Omega 3 Wellness Supplement', categorySlug: 'vitamins-supplements', brandSlug: 'wow',
+    price: 9, oldPrice: 15, unit: 'bottle', countInStock: 110, sold: 130,
+    isBestSeller: true,
+    shortDescription: 'Bottle of 60 tablets — heart & joint support.',
+    description: 'WOW Organic Omega 3 with EPA, DHA and other Omega 3s supports a healthy heart, joints and brain function. 60 capsules.',
+    images: [img('1550572017-edd951b55104')], tags: ['omega 3', 'wellness', 'wow'], rating: 3.6, numReviews: 3 },
+
+  { name: 'Crocin 650 Strip Of 15 Tablets', categorySlug: 'medicine', brandSlug: 'gsk',
+    price: 25, oldPrice: 30, unit: 'box', countInStock: 200, sold: 150,
+    isNewArrival: true,
+    shortDescription: 'Box of 4 × 15 Tablets — fast fever & pain relief.',
+    description: 'Crocin 650 (Paracetamol 650mg) provides effective relief from fever and mild to moderate pain. Box of 4 strips × 15 tablets.',
+    images: [img('1471864190281-a93a3070b6de')], tags: ['fever', 'pain', 'paracetamol'], rating: 3.4, numReviews: 3 },
 ];

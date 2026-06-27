@@ -146,7 +146,21 @@ export default function Navbar() {
           </form>
 
           <div className="ml-auto flex items-center gap-1 sm:gap-3">
-            {(!user || !user.address) && (
+            {user && user.address?.city ? (
+              <Link
+                to="/account"
+                className="mr-1 hidden items-center gap-2 border-r border-bordergray pr-4 lg:flex"
+                title="Change delivery address"
+              >
+                <FaMapMarkerAlt className="text-primary" size={20} />
+                <span className="leading-tight">
+                  <span className="block text-[11px] text-slate-500">Express delivery to</span>
+                  <span className="block max-w-[10rem] truncate text-sm font-bold text-dark">
+                    {user.address.city}
+                  </span>
+                </span>
+              </Link>
+            ) : (
               <Link
                 to={user ? '/account' : '/login'}
                 className="mr-1 hidden items-center gap-2 border-r border-bordergray pr-4 lg:flex"

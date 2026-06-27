@@ -58,6 +58,9 @@ export const updateProfile = async (req, res) => {
   if (!user) return res.status(404).json({ message: 'User not found' });
   user.name = req.body.name || user.name;
   user.phone = req.body.phone ?? user.phone;
+  if (req.body.address) {
+    user.address = { ...(user.address?.toObject?.() ?? user.address ?? {}), ...req.body.address };
+  }
   if (req.body.password) user.password = req.body.password;
   const updated = await user.save();
   res.json({ user: updated, token: generateToken(updated._id) });

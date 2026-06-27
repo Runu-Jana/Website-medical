@@ -4,13 +4,38 @@ import api from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import Spinner from '../components/Spinner'
 import { formatPrice } from '../lib/helpers'
-import { FaSignOutAlt, FaUserCircle, FaBoxOpen } from 'react-icons/fa'
+import { FaSignOutAlt, FaUserCircle, FaBoxOpen, FaMapMarkerAlt } from 'react-icons/fa'
 
 export default function Account() {
-  const { user, logout } = useAuth()
+  const { user, logout, updateUser } = useAuth()
   const navigate = useNavigate()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+
+  const [addr, setAddr] = useState({
+    line1: user?.address?.line1 || '',
+    city: user?.address?.city || '',
+    state: user?.address?.state || '',
+    postalCode: user?.address?.postalCode || '',
+    country: user?.address?.country || '',
+  })
+  const [savingAddr, setSavingAddr] = useState(false)
+  const [addrMsg, setAddrMsg] = useState('')
+
+  const saveAddress = async (e) => {
+    e.preventDefault()
+    setSavingAddr(true)
+    setAddrMsg('')
+    try {
+      const { data } = await api.put('/auth/profile', { address: addr })
+      updateUser(data.user)
+      setAddrMsg('Address saved!')
+    } catch (err) {
+      setAddrMsg(err.response?.data?.message || 'Could not save address')
+    } finally {
+      setSavingAddr(false)
+    }
+  }
 
   useEffect(() => {
     let active = true
@@ -43,6 +68,53 @@ export default function Account() {
             <button onClick={handleLogout} className="btn-outline mt-5 w-full">
               <FaSignOutAlt /> Logout
             </button>
+          </div>
+
+          {/* Delivery address */}
+          <div className="card mt-6 p-6">
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
+              <FaMapMarkerAlt className="text-primary" /> Delivery Address
+            </h3>
+            <form onSubmit={saveAddress} className="space-y-3">
+              <input
+                className="input-base"
+                placeholder="Address line"
+                value={addr.line1}
+                onChange={(e) => setAddr({ ...addr, line1: e.target.value })}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  className="input-base"
+                  placeholder="City"
+                  value={addr.city}
+                  onChange={(e) => setAddr({ ...addr, city: e.target.value })}
+                />
+                <input
+                  className="input-base"
+                  placeholder="State"
+                  value={addr.state}
+                  onChange={(e) => setAddr({ ...addr, state: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  className="input-base"
+                  placeholder="Postal code"
+                  value={addr.postalCode}
+                  onChange={(e) => setAddr({ ...addr, postalCode: e.target.value })}
+                />
+                <input
+                  className="input-base"
+                  placeholder="Country"
+                  value={addr.country}
+                  onChange={(e) => setAddr({ ...addr, country: e.target.value })}
+                />
+              </div>
+              {addrMsg && <p className="text-sm font-medium text-accent">{addrMsg}</p>}
+              <button type="submit" disabled={savingAddr} className="btn-primary w-full">
+                {savingAddr ? 'Saving...' : 'Save Address'}
+              </button>
+            </form>
           </div>
         </div>
 
