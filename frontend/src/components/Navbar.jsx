@@ -13,6 +13,7 @@ import {
   FaChevronRight,
   FaHeartbeat,
   FaPills,
+  FaMapMarkerAlt,
 } from 'react-icons/fa'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
@@ -145,6 +146,19 @@ export default function Navbar() {
           </form>
 
           <div className="ml-auto flex items-center gap-1 sm:gap-3">
+            {(!user || !user.address) && (
+              <Link
+                to={user ? '/account' : '/login'}
+                className="mr-1 hidden items-center gap-2 border-r border-bordergray pr-4 lg:flex"
+                title={user ? 'Add a delivery address' : 'Sign in to set your address'}
+              >
+                <FaMapMarkerAlt className="text-primary" size={20} />
+                <span className="leading-tight">
+                  <span className="block text-[11px] text-slate-500">Express delivery to</span>
+                  <span className="block text-sm font-bold text-dark">Select Address</span>
+                </span>
+              </Link>
+            )}
             <Link
               to="/shop"
               className="hidden flex-col items-center px-2 text-slate-600 hover:text-primary sm:flex"
@@ -207,7 +221,7 @@ export default function Navbar() {
           <div ref={catRef} className="relative">
             <button
               onClick={() => setCatOpen((v) => !v)}
-              className="flex h-12 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-white"
+              className="flex h-12 items-center gap-2 rounded-full border border-primary bg-primary px-6 text-sm font-semibold text-white transition duration-200 hover:scale-105 hover:bg-transparent hover:text-primary"
             >
               <FaBars size={14} /> All Categories <FaChevronDown size={12} />
             </button>
@@ -297,14 +311,16 @@ export default function Navbar() {
           {/* Support phone */}
           <a
             href="tel:+13248974567"
-            className="ml-auto hidden h-12 items-center gap-2 rounded-full bg-primary py-1.5 pl-1.5 pr-6 text-white xl:flex"
+            className="group ml-auto hidden h-12 items-center gap-2 rounded-full border border-primary bg-primary py-1.5 pl-1.5 pr-6 text-white transition duration-200 hover:scale-105 hover:bg-transparent hover:text-primary xl:flex"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 transition group-hover:bg-primary/10">
               <FaPhoneAlt size={13} />
             </span>
             <span className="leading-tight">
               <span className="block text-sm font-bold">324 - 897 - 4567</span>
-              <span className="block text-[11px] text-white/80">Support 24/7</span>
+              <span className="block text-[11px] text-white/80 transition group-hover:text-primary/70">
+                Support 24/7
+              </span>
             </span>
           </a>
         </div>
