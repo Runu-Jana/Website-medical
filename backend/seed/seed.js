@@ -39,6 +39,8 @@ const run = async () => {
     User.deleteMany({}),
     Category.deleteMany({}),
     Brand.deleteMany({}),
+    Banner.deleteMany({}),
+    Post.deleteMany({}),
     Product.deleteMany({}),
     Order.deleteMany({}),
   ]);
