@@ -4,6 +4,7 @@ import api from '../lib/api'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { formatPrice, imgFallback, PLACEHOLDER_IMG } from '../lib/helpers'
+import AddressAutocomplete from '../components/AddressAutocomplete'
 import { FaMoneyBillWave, FaCreditCard, FaMobileAlt } from 'react-icons/fa'
 
 const paymentMethods = [
@@ -83,6 +84,23 @@ export default function Checkout() {
           <div className="card p-6">
             <h3 className="mb-4 text-lg font-bold">Shipping Address</h3>
             <div className="grid gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-sm font-medium">Find your address</label>
+                <AddressAutocomplete
+                  onSelect={(a) =>
+                    setForm((f) => ({
+                      ...f,
+                      address: a.line1 || f.address,
+                      city: a.city || f.city,
+                      postalCode: a.postalCode || f.postalCode,
+                      country: a.country || f.country,
+                    }))
+                  }
+                />
+                <p className="mt-1 text-xs text-slate-400">
+                  Pick a suggestion to auto-fill address, city, postal code &amp; country.
+                </p>
+              </div>
               <div className="sm:col-span-2">
                 <label className="mb-1 block text-sm font-medium">Full Name</label>
                 <input
