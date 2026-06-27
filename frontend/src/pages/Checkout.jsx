@@ -23,6 +23,7 @@ export default function Checkout() {
     phone: '',
     address: '',
     city: '',
+    state: '',
     postalCode: '',
     country: '',
   })
@@ -36,6 +37,11 @@ export default function Checkout() {
         ...f,
         fullName: f.fullName || user.name || '',
         phone: f.phone || user.phone || '',
+        address: f.address || user.address?.line1 || '',
+        city: f.city || user.address?.city || '',
+        state: f.state || user.address?.state || '',
+        postalCode: f.postalCode || user.address?.postalCode || '',
+        country: f.country || user.address?.country || '',
       }))
     }
   }, [user])
@@ -92,6 +98,7 @@ export default function Checkout() {
                       ...f,
                       address: a.line1 || f.address,
                       city: a.city || f.city,
+                      state: a.state || f.state,
                       postalCode: a.postalCode || f.postalCode,
                       country: a.country || f.country,
                     }))
@@ -127,6 +134,15 @@ export default function Checkout() {
                   name="city"
                   required
                   value={form.city}
+                  onChange={onChange}
+                  className="input-base"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">State</label>
+                <input
+                  name="state"
+                  value={form.state}
                   onChange={onChange}
                   className="input-base"
                 />

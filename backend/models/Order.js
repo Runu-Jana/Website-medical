@@ -22,8 +22,9 @@ const orderSchema = new mongoose.Schema(
       phone: String,
       address: String,
       city: String,
+      state: String,
       postalCode: String,
-      country: { type: String, default: 'Bangladesh' },
+      country: String,
     },
 
     paymentMethod: { type: String, default: 'Cash on Delivery' },
