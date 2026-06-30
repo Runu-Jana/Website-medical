@@ -17,6 +17,8 @@ model User {
   phone          String    @default("")
   avatar         String    @default("")
   address        Json?
+  cart           Json?
+  wishlist       Json?
   trustedDevices Json?
   loginCount     Int       @default(0)
   lastLoginAt    DateTime?

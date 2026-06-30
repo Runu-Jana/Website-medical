@@ -11,6 +11,7 @@ import {
 import RatingStars from './RatingStars'
 import QuickViewModal from './QuickViewModal'
 import { useCart } from '../context/CartContext'
+import { useWishlist } from '../context/WishlistContext'
 import { formatPrice, productImage, imgFallback, isInList, toggleInList } from '../lib/helpers'
 
 function HoverIcon({ label, active, onClick, children }) {
@@ -36,11 +37,12 @@ function HoverIcon({ label, active, onClick, children }) {
 
 export default function ProductCard({ product, list = false }) {
   const { addToCart } = useCart()
+  const { isWishlisted, toggle: toggleWishlist } = useWishlist()
   const outOfStock = product.countInStock <= 0
   const link = `/product/${product.slug || product._id}`
+  const fav = isWishlisted(product._id)
 
   const [quickOpen, setQuickOpen] = useState(false)
-  const [fav, setFav] = useState(() => isInList('wishlist', product._id))
   const [compared, setCompared] = useState(() => isInList('compare', product._id))
 
   const stop = (e) => {
@@ -49,7 +51,7 @@ export default function ProductCard({ product, list = false }) {
   }
   const toggleFav = (e) => {
     stop(e)
-    setFav(toggleInList('wishlist', product._id))
+    toggleWishlist(product)
   }
   const toggleCompare = (e) => {
     stop(e)

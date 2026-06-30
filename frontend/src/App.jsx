@@ -13,6 +13,7 @@ import About from './pages/About'
 import Contact from './pages/Contact'
 import Blog from './pages/Blog'
 import BlogPost from './pages/BlogPost'
+import Wishlist from './pages/Wishlist'
 import CategoryRedirect from './pages/CategoryRedirect'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/product/:slug" element={<ProductDetail />} />
         <Route path="/category/:slug" element={<CategoryRedirect />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/order-success/:id" element={<OrderSuccess />} />
         <Route path="/login" element={<Login />} />

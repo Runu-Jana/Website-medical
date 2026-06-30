@@ -16,6 +16,7 @@ import {
   FaMapMarkerAlt,
 } from 'react-icons/fa'
 import { useCart } from '../context/CartContext'
+import { useWishlist } from '../context/WishlistContext'
 import { useAuth } from '../context/AuthContext'
 import api from '../lib/api'
 
@@ -49,6 +50,7 @@ export default function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const { itemCount } = useCart()
+  const { count: wishlistCount } = useWishlist()
 
   // Active state that respects the query string, so /shop, /shop?view=categories
   // and /shop?deal=true don't all highlight at once.
@@ -174,10 +176,17 @@ export default function Navbar() {
               </Link>
             )}
             <Link
-              to="/shop"
+              to="/wishlist"
               className="hidden flex-col items-center px-2 text-slate-600 hover:text-primary sm:flex"
             >
-              <FaRegHeart size={20} />
+              <span className="relative">
+                <FaRegHeart size={20} />
+                {wishlistCount > 0 && (
+                  <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
+                    {wishlistCount}
+                  </span>
+                )}
+              </span>
               <span className="mt-0.5 text-[11px]">Wishlist</span>
             </Link>
             <Link
