@@ -45,8 +45,30 @@ export function AuthProvider({ children }) {
 
   const updateUser = (next) => setUser(next)
 
+  // Phone OTP — step 1: try a trusted-device login (no code needed).
+  const phoneCheck = async (phone) => {
+    const deviceToken = localStorage.getItem('device_token') || undefined
+    const { data } = await api.post('/auth/phone/check', { phone, deviceToken })
+    if (data.trusted && data.token) {
+      setUser(data.user)
+      setToken(data.token)
+    }
+    return data
+  }
+
+  // Phone OTP — step 2: verify the code (Firebase idToken or dev {phone, code}).
+  const phoneVerify = async (payload) => {
+    const { data } = await api.post('/auth/phone/verify', payload)
+    if (data.deviceToken) localStorage.setItem('device_token', data.deviceToken)
+    setUser(data.user)
+    setToken(data.token)
+    return data
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{ user, token, login, register, logout, updateUser, phoneCheck, phoneVerify }}
+    >
       {children}
     </AuthContext.Provider>
   )
