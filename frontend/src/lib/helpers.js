@@ -20,6 +20,31 @@ export function imgFallback(e) {
   e.currentTarget.src = PLACEHOLDER_IMG
 }
 
+// Tiny localStorage-backed lists for wishlist / compare (no backend needed).
+export function getList(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key) || '[]')
+  } catch {
+    return []
+  }
+}
+export function isInList(key, id) {
+  return getList(key).includes(id)
+}
+export function toggleInList(key, id) {
+  const list = getList(key)
+  const next = list.includes(id) ? list.filter((x) => x !== id) : [...list, id]
+  localStorage.setItem(key, JSON.stringify(next))
+  return next.includes(id)
+}
+
+// Deterministic pseudo-number from a string (stable "X viewing" / "sold" counts).
+export function stableNumber(seed = '', min = 0, max = 100) {
+  let h = 0
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0
+  return min + (h % (max - min + 1))
+}
+
 export const FREE_SHIPPING_THRESHOLD = 1000
 export const SHIPPING_FEE = 60
 
