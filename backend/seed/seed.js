@@ -17,6 +17,7 @@ const wipe = async () => {
   await prisma.brand.deleteMany();
   await prisma.banner.deleteMany();
   await prisma.post.deleteMany();
+  await prisma.prescription.deleteMany();
   await prisma.user.deleteMany();
 };
 

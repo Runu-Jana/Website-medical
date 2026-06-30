@@ -34,6 +34,7 @@ const navLinks = [
   {
     label: 'Pages',
     dropdown: [
+      { to: '/prescription', label: 'Upload Prescription' },
       { to: '/about', label: 'About Us' },
       { to: '/contact', label: 'Contact' },
       { to: '/account', label: 'My Account' },

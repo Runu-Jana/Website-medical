@@ -6,6 +6,7 @@ import {
   FiAward,
   FiImage,
   FiFileText,
+  FiUpload,
   FiShoppingCart,
   FiActivity,
   FiX,
@@ -18,6 +19,7 @@ const links = [
   { to: '/brands', label: 'Brands', icon: FiAward },
   { to: '/banners', label: 'Banners', icon: FiImage },
   { to: '/posts', label: 'Blog', icon: FiFileText },
+  { to: '/prescriptions', label: 'Prescriptions', icon: FiUpload },
   { to: '/orders', label: 'Orders', icon: FiShoppingCart },
 ];
 
