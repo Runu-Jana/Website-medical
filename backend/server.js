@@ -27,8 +27,16 @@ connectDB();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
-// Large body limits to support high-resolution base64 payloads if needed
-app.use(express.json({ limit: '1024mb' }));
+// Large body limits to support high-resolution base64 payloads if needed.
+// `verify` keeps the raw body so we can validate the Razorpay webhook signature.
+app.use(
+  express.json({
+    limit: '1024mb',
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true, limit: '1024mb' }));
 
 const allowedOrigins = (process.env.CLIENT_URLS || '')

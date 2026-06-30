@@ -78,9 +78,12 @@ export default function Checkout() {
   })
 
   const payOnline = async (payload) => {
-    // Create the Razorpay order first (fails fast if not configured), then ours.
-    const { data: pay } = await api.post('/payments/order', { amount: totals.total })
+    // Create our order first, then the linked Razorpay order (enables webhook reconcile).
     const { data: order } = await api.post('/orders', payload)
+    const { data: pay } = await api.post('/payments/order', {
+      amount: totals.total,
+      orderId: order._id,
+    })
     const ok = await loadRazorpay()
     if (!ok) throw new Error('Could not load the payment window. Check your connection.')
 

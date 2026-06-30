@@ -3,6 +3,7 @@ import {
   getPaymentConfig,
   createPaymentOrder,
   verifyPayment,
+  webhook,
 } from '../controllers/paymentController.js';
 
 const router = express.Router();
@@ -10,5 +11,6 @@ const router = express.Router();
 router.get('/config', getPaymentConfig);
 router.post('/order', createPaymentOrder);
 router.post('/verify', verifyPayment);
+router.post('/webhook', webhook);
 
 export default router;
