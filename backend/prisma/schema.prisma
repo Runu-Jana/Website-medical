@@ -96,7 +96,9 @@ model Order {
   orderNumber     String?
   items           Json?
   shippingAddress Json?
-  paymentMethod   String    @default("Cash on Delivery")
+  paymentMethod     String  @default("Cash on Delivery")
+  razorpayOrderId   String?
+  razorpayPaymentId String?
   itemsPrice      Float     @default(0)
   shippingPrice   Float     @default(0)
   taxPrice        Float     @default(0)

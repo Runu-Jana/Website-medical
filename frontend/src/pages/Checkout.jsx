@@ -5,13 +5,20 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { formatPrice, imgFallback, PLACEHOLDER_IMG } from '../lib/helpers'
 import AddressAutocomplete from '../components/AddressAutocomplete'
-import { FaMoneyBillWave, FaCreditCard, FaMobileAlt } from 'react-icons/fa'
+import { FaMoneyBillWave, FaCreditCard } from 'react-icons/fa'
 
-const paymentMethods = [
-  { id: 'Cash on Delivery', label: 'Cash on Delivery', icon: FaMoneyBillWave },
-  { id: 'Card', label: 'Credit / Debit Card', icon: FaCreditCard },
-  { id: 'bKash', label: 'bKash', icon: FaMobileAlt },
-]
+const COD = { id: 'Cash on Delivery', label: 'Cash on Delivery', icon: FaMoneyBillWave }
+const ONLINE = { id: 'Razorpay', label: 'Pay Online — UPI / Card / Netbanking', icon: FaCreditCard }
+
+const loadRazorpay = () =>
+  new Promise((resolve) => {
+    if (window.Razorpay) return resolve(true)
+    const s = document.createElement('script')
+    s.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    s.onload = () => resolve(true)
+    s.onerror = () => resolve(false)
+    document.body.appendChild(s)
+  })
 
 export default function Checkout() {
   const navigate = useNavigate()
@@ -30,6 +37,11 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState('Cash on Delivery')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [payConfig, setPayConfig] = useState({ razorpay: false })
+
+  useEffect(() => {
+    api.get('/payments/config').then(({ data }) => setPayConfig(data || {})).catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (user) {
@@ -53,28 +65,64 @@ export default function Checkout() {
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
+  const buildPayload = () => ({
+    items: items.map((i) => ({
+      product: i._id,
+      name: i.name,
+      image: i.thumbnail || '',
+      price: i.price,
+      qty: i.qty,
+    })),
+    shippingAddress: { ...form },
+    paymentMethod,
+  })
+
+  const payOnline = async (payload) => {
+    // Create the Razorpay order first (fails fast if not configured), then ours.
+    const { data: pay } = await api.post('/payments/order', { amount: totals.total })
+    const { data: order } = await api.post('/orders', payload)
+    const ok = await loadRazorpay()
+    if (!ok) throw new Error('Could not load the payment window. Check your connection.')
+
+    const rzp = new window.Razorpay({
+      key: pay.keyId,
+      order_id: pay.id,
+      amount: pay.amount,
+      currency: pay.currency,
+      name: 'DCare',
+      description: 'Order payment',
+      prefill: { name: form.fullName, contact: form.phone },
+      theme: { color: '#0e9f8e' },
+      handler: async (resp) => {
+        try {
+          await api.post('/payments/verify', { ...resp, orderId: order._id })
+          clearCart()
+          navigate(`/order-success/${order._id}`, { state: { order } })
+        } catch {
+          setError('Payment could not be verified. If money was deducted, please contact support.')
+          setSubmitting(false)
+        }
+      },
+      modal: { ondismiss: () => setSubmitting(false) },
+    })
+    rzp.open()
+  }
+
   const onSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setSubmitting(true)
     try {
-      const payload = {
-        items: items.map((i) => ({
-          product: i._id,
-          name: i.name,
-          image: i.thumbnail || '',
-          price: i.price,
-          qty: i.qty,
-        })),
-        shippingAddress: { ...form },
-        paymentMethod,
+      const payload = buildPayload()
+      if (paymentMethod === 'Razorpay') {
+        await payOnline(payload)
+      } else {
+        const { data } = await api.post('/orders', payload)
+        clearCart()
+        navigate(`/order-success/${data._id || data.id}`, { state: { order: data } })
       }
-      const { data } = await api.post('/orders', payload)
-      clearCart()
-      const id = data._id || data.order?._id || data.id
-      navigate(`/order-success/${id}`, { state: { order: data } })
     } catch (err) {
-      setError(err.response?.data?.message || 'Could not place order. Please try again.')
+      setError(err.response?.data?.message || err.message || 'Could not place order. Please try again.')
       setSubmitting(false)
     }
   }
@@ -184,7 +232,7 @@ export default function Checkout() {
           <div className="card p-6">
             <h3 className="mb-4 text-lg font-bold">Payment Method</h3>
             <div className="space-y-3">
-              {paymentMethods.map((m) => (
+              {[COD, ...(payConfig.razorpay ? [ONLINE] : [])].map((m) => (
                 <label
                   key={m.id}
                   className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${
@@ -257,7 +305,11 @@ export default function Checkout() {
             {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
 
             <button type="submit" disabled={submitting} className="btn-primary mt-5 w-full">
-              {submitting ? 'Placing Order...' : 'Place Order'}
+              {submitting
+                ? 'Processing…'
+                : paymentMethod === 'Razorpay'
+                ? `Pay ${formatPrice(totals.total)}`
+                : 'Place Order'}
             </button>
             <Link to="/cart" className="mt-3 block text-center text-sm text-slate-500 hover:text-primary">
               Back to Cart
