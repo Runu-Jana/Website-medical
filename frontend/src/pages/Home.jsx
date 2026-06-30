@@ -9,6 +9,7 @@ import ProductGrid from '../components/ProductGrid'
 import ProductCard from '../components/ProductCard'
 import NewLaunches from '../components/NewLaunches'
 import BlogTeaser from '../components/BlogTeaser'
+import Testimonials from '../components/Testimonials'
 import CountdownTimer from '../components/CountdownTimer'
 import Spinner from '../components/Spinner'
 import { imgFallback } from '../lib/helpers'
@@ -228,6 +229,9 @@ export default function Home() {
           </form>
         </div>
       </section>
+
+      {/* Testimonials */}
+      <Testimonials />
     </div>
   )
 }
