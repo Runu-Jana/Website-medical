@@ -28,20 +28,25 @@ export default function Home() {
     let active = true
     const fetchAll = async () => {
       try {
-        const [cats, deal, feat, best, news, brnds] = await Promise.all([
+        const [cats, deal, feat, best, news, latest, brnds] = await Promise.all([
           api.get('/categories'),
           api.get('/products', { params: { deal: true, limit: 4 } }),
           api.get('/products', { params: { featured: true, limit: 8 } }),
           api.get('/products', { params: { bestseller: true, limit: 8 } }),
           api.get('/products', { params: { isNew: true, limit: 8 } }),
+          api.get('/products', { params: { sort: 'newest', limit: 8 } }),
           api.get('/brands'),
         ])
         if (!active) return
+        // Fall back to the latest products when a flagged list is empty,
+        // so these sections always show products.
+        const fallback = latest.data.products || []
+        const orFallback = (list) => (list && list.length ? list : fallback)
         setCategories(Array.isArray(cats.data) ? cats.data : [])
         setDeals(deal.data.products || [])
-        setFeatured(feat.data.products || [])
-        setBestsellers(best.data.products || [])
-        setNewArrivals(news.data.products || [])
+        setFeatured(orFallback(feat.data.products))
+        setBestsellers(orFallback(best.data.products))
+        setNewArrivals(orFallback(news.data.products))
         setBrands(Array.isArray(brnds.data) ? brnds.data : [])
       } catch {
         /* keep empty states */
