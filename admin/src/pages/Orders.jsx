@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { FiEye, FiShoppingCart, FiMapPin, FiCheckCircle } from 'react-icons/fi';
+import { FiEye, FiShoppingCart, FiMapPin, FiCheckCircle, FiRefreshCcw } from 'react-icons/fi';
 import api, { API_URL } from '../lib/api.js';
 import { useToast } from '../context/ToastContext.jsx';
 import Loader from '../components/Loader.jsx';
@@ -25,6 +25,8 @@ export default function Orders() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const [refunding, setRefunding] = useState(false);
+  const [refundAmt, setRefundAmt] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -59,6 +61,29 @@ export default function Orders() {
       toast.error(err.response?.data?.message || 'Update failed');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const doRefund = async () => {
+    if (!selected) return;
+    const partial = refundAmt !== '' && Number(refundAmt) > 0;
+    const label = partial ? `${formatCurrency(Number(refundAmt))}` : 'the full amount';
+    if (!window.confirm(`Refund ${label} for order #${selected.orderNumber || selected._id?.slice(-6)}?`))
+      return;
+    setRefunding(true);
+    try {
+      const { data } = await api.post('/payments/refund', {
+        orderId: selected._id,
+        ...(partial ? { amount: Number(refundAmt) } : {}),
+      });
+      toast.success('Refund processed');
+      setSelected(data.order || selected);
+      setRefundAmt('');
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Refund failed');
+    } finally {
+      setRefunding(false);
     }
   };
 
@@ -128,7 +153,10 @@ export default function Orders() {
                     <td className="px-4 py-3">
                       <div className="flex justify-end">
                         <button
-                          onClick={() => setSelected(o)}
+                          onClick={() => {
+                            setRefundAmt('');
+                            setSelected(o);
+                          }}
                           className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-semibold text-primary hover:bg-blue-100"
                         >
                           <FiEye size={15} /> View
@@ -199,6 +227,50 @@ export default function Orders() {
                 {updating && <span className="text-sm text-slate-400">Updating…</span>}
               </div>
             </div>
+
+            {/* Refund (online-paid orders only) */}
+            {selected.isPaid && selected.razorpayPaymentId && (
+              <div className="rounded-lg border border-slate-200 p-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                  <FiRefreshCcw className="text-red-500" /> Refund Payment
+                </div>
+                {selected.isRefunded ? (
+                  <p className="text-sm text-emerald-600">
+                    Fully refunded{selected.refundAmount ? ` — ${formatCurrency(selected.refundAmount)}` : ''}.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {selected.refundAmount > 0 && (
+                      <p className="text-xs text-slate-500">
+                        Already refunded: {formatCurrency(selected.refundAmount)}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={refundAmt}
+                        onChange={(e) => setRefundAmt(e.target.value)}
+                        placeholder={`Partial ₹ (blank = full ${formatCurrency(selected.totalPrice)})`}
+                        className="input max-w-xs"
+                      />
+                      <button
+                        onClick={doRefund}
+                        disabled={refunding}
+                        className="rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-100 disabled:opacity-60"
+                      >
+                        {refunding ? 'Refunding…' : 'Issue Refund'}
+                      </button>
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      Leave the amount blank to refund the full order total. Refunds go back to the
+                      customer's original payment method via Razorpay.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Shipping address */}
             {selected.shippingAddress && (

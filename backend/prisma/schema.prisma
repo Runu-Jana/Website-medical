@@ -105,6 +105,10 @@ model Order {
   totalPrice      Float     @default(0)
   isPaid          Boolean   @default(false)
   paidAt          DateTime?
+  isRefunded      Boolean   @default(false)
+  refundedAt      DateTime?
+  refundId        String?
+  refundAmount    Float     @default(0)
   isDelivered     Boolean   @default(false)
   deliveredAt     DateTime?
   status          String    @default("pending")
