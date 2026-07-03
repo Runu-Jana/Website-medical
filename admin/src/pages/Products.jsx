@@ -39,6 +39,7 @@ export default function Products() {
   const [file, setFile] = useState(null);
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState(null);
+  const [uploaded, setUploaded] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -89,6 +90,7 @@ export default function Products() {
   const openImport = () => {
     setResult(null);
     setFile(null);
+    setUploaded(false);
     setImportOpen(true);
   };
 
@@ -117,6 +119,9 @@ export default function Products() {
       fd.append('file', file);
       const { data } = await api.post('/products/import', fd);
       setResult(data);
+      // File processed — lock the button so the same file can't be re-imported
+      // (prevents duplicates). Re-enabled only after closing & reopening the modal.
+      setUploaded(true);
       if (data.created > 0) {
         toast.success(`Imported ${data.created} product${data.created > 1 ? 's' : ''}`);
         load();
@@ -356,6 +361,13 @@ export default function Products() {
             </div>
           )}
 
+          {uploaded && (
+            <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700">
+              This file has been imported. To import another file, click <b>Close</b> and open
+              <b> Import Excel</b> again.
+            </p>
+          )}
+
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
             <button
               type="button"
@@ -368,10 +380,11 @@ export default function Products() {
             <button
               type="button"
               onClick={runImport}
-              disabled={!file || importing}
+              disabled={!file || importing || uploaded}
               className="btn-primary"
             >
-              <FiUploadCloud size={16} /> {importing ? 'Importing…' : 'Upload & Import'}
+              <FiUploadCloud size={16} />{' '}
+              {importing ? 'Importing…' : uploaded ? 'Imported' : 'Upload & Import'}
             </button>
           </div>
         </div>
