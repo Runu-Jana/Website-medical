@@ -21,7 +21,7 @@ export default function Pagination({ page, pages, total, onChange }) {
     <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
       <p className="text-sm text-slate-500">
         Page <span className="font-semibold text-slate-700">{page}</span> of {pages}
-        {total != null && <span className="ml-2 text-slate-400">({total} total)</span>}
+        {total != null && <span className="ml-2 text-slate-500">({total} total)</span>}
       </p>
       <div className="flex items-center gap-1">
         <button
@@ -33,7 +33,7 @@ export default function Pagination({ page, pages, total, onChange }) {
         </button>
         {nums.map((n, i) =>
           n === '...' ? (
-            <span key={`e${i}`} className="px-2 text-slate-400">
+            <span key={`e${i}`} className="px-2 text-slate-500">
               …
             </span>
           ) : (

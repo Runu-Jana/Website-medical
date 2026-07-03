@@ -143,7 +143,7 @@ export default function Categories() {
                         <div>
                           <p className="font-medium text-slate-800">{c.name}</p>
                           {c.description && (
-                            <p className="max-w-[260px] truncate text-xs text-slate-400">{c.description}</p>
+                            <p className="max-w-[260px] truncate text-xs text-slate-500">{c.description}</p>
                           )}
                         </div>
                       </div>

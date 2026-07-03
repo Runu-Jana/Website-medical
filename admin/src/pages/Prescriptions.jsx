@@ -92,7 +92,7 @@ export default function Prescriptions() {
                 <p className="font-semibold text-slate-800">{rx.name || 'Customer'}</p>
                 <p className="text-sm text-slate-500">{rx.phone || '—'}</p>
                 {rx.note && <p className="mt-1 line-clamp-2 text-sm text-slate-500">{rx.note}</p>}
-                <p className="mt-1 text-xs text-slate-400">{formatDate(rx.createdAt)}</p>
+                <p className="mt-1 text-xs text-slate-500">{formatDate(rx.createdAt)}</p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {rx.fileUrl && (

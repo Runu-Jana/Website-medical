@@ -140,7 +140,7 @@ export default function Orders() {
                     </td>
                     <td className="px-4 py-3">
                       <p className="font-medium text-slate-700">{o.user?.name || 'Guest'}</p>
-                      <p className="text-xs text-slate-400">{o.user?.email}</p>
+                      <p className="text-xs text-slate-500">{o.user?.email}</p>
                     </td>
                     <td className="px-4 py-3 font-semibold text-slate-700">{formatCurrency(o.totalPrice)}</td>
                     <td className="px-4 py-3">
@@ -224,7 +224,7 @@ export default function Orders() {
                     </option>
                   ))}
                 </select>
-                {updating && <span className="text-sm text-slate-400">Updating…</span>}
+                {updating && <span className="text-sm text-slate-500">Updating…</span>}
               </div>
             </div>
 
@@ -263,7 +263,7 @@ export default function Orders() {
                         {refunding ? 'Refunding…' : 'Issue Refund'}
                       </button>
                     </div>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-500">
                       Leave the amount blank to refund the full order total. Refunds go back to the
                       customer's original payment method via Razorpay.
                     </p>
@@ -320,7 +320,7 @@ export default function Orders() {
                         <p className="truncate text-sm font-medium text-slate-700">
                           {it.name || it.product?.name || 'Item'}
                         </p>
-                        <p className="text-xs text-slate-400">Qty: {it.qty || it.quantity || 1}</p>
+                        <p className="text-xs text-slate-500">Qty: {it.qty || it.quantity || 1}</p>
                       </div>
                       <p className="text-sm font-semibold text-slate-700">
                         {formatCurrency((it.price || 0) * (it.qty || it.quantity || 1))}

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { FiMenu, FiLogOut, FiBell } from 'react-icons/fi';
+import { FiMenu, FiLogOut } from 'react-icons/fi';
 import Sidebar from './Sidebar.jsx';
+import NotificationsBell from './NotificationsBell.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const SECTIONS = {
@@ -51,13 +52,7 @@ export default function AdminLayout() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              aria-label="Notifications"
-              title="Notifications"
-              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
-            >
-              <FiBell size={19} />
-            </button>
+            <NotificationsBell />
             <div className="flex items-center gap-2 rounded-lg border border-slate-200 py-1 pl-1 pr-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-xs font-bold text-white">
                 {initials}

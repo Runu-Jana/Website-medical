@@ -32,7 +32,7 @@ export default function Modal({ open, onClose, title, children, footer, size = '
           <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
           >
             <FiX size={20} />
           </button>

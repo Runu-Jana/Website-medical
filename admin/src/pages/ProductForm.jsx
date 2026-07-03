@@ -255,14 +255,6 @@ export default function ProductForm() {
             <p className="text-sm text-slate-500">Fill in the product details below.</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={cancel} disabled={saving} className="btn-ghost">
-            <FiX size={18} /> Cancel
-          </button>
-          <button type="submit" disabled={saving} className="btn-primary">
-            <FiSave size={18} /> {saving ? 'Saving...' : 'Save Product'}
-          </button>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
@@ -518,6 +510,24 @@ export default function ProductForm() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Sticky action bar — always reachable on long forms */}
+      <div className="sticky bottom-0 z-10 -mx-4 flex items-center gap-2 border-t border-slate-200 bg-white/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+        {isDirty && (
+          <span className="mr-auto text-xs font-medium text-warning">You have unsaved changes</span>
+        )}
+        <button
+          type="button"
+          onClick={cancel}
+          disabled={saving}
+          className={`btn-ghost ${isDirty ? '' : 'ml-auto'}`}
+        >
+          <FiX size={18} /> Cancel
+        </button>
+        <button type="submit" disabled={saving} className="btn-primary">
+          <FiSave size={18} /> {saving ? 'Saving...' : 'Save Product'}
+        </button>
       </div>
     </form>
   );

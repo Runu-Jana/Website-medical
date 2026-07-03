@@ -48,7 +48,7 @@ export default function Login() {
           <div className="mb-4">
             <label className="label">Email address</label>
             <div className="relative">
-              <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 type="email"
                 required
@@ -63,7 +63,7 @@ export default function Login() {
           <div className="mb-6">
             <label className="label">Password</label>
             <div className="relative">
-              <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 type={show ? 'text' : 'password'}
                 required
@@ -75,7 +75,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => setShow((s) => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600"
               >
                 {show ? <FiEyeOff /> : <FiEye />}
               </button>

@@ -148,7 +148,7 @@ export default function Brands() {
                   )}
                 </div>
                 <p className="mt-3 truncate font-medium text-slate-800">{b.name}</p>
-                <p className="truncate text-xs text-slate-400">{b.slug}</p>
+                <p className="truncate text-xs text-slate-500">{b.slug}</p>
                 <div className="mt-3 flex justify-center gap-2 opacity-0 transition group-hover:opacity-100">
                   <button
                     onClick={() => openEdit(b)}

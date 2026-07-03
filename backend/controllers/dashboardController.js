@@ -175,3 +175,65 @@ export const getOrderStatusBreakdown = async (req, res) => {
   const statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
   res.json(statuses.map((s) => ({ status: s, count: map[s] || 0 })));
 };
+
+const LOW_STOCK_THRESHOLD = 5;
+
+// @route GET /api/dashboard/notifications  (admin)
+// Actionable items for the header bell: pending orders, low stock, pending Rx.
+export const getNotifications = async (req, res) => {
+  const [pendingOrders, lowStock, pendingRx, pendingOrderCount, lowStockCount, pendingRxCount] =
+    await Promise.all([
+      prisma.order.findMany({
+        where: { status: 'pending' },
+        include: { user: { select: { name: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      }),
+      prisma.product.findMany({
+        where: { status: 'active', countInStock: { lte: LOW_STOCK_THRESHOLD } },
+        orderBy: { countInStock: 'asc' },
+        take: 5,
+      }),
+      prisma.prescription.findMany({
+        where: { status: 'pending' },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      }),
+      prisma.order.count({ where: { status: 'pending' } }),
+      prisma.product.count({ where: { status: 'active', countInStock: { lte: LOW_STOCK_THRESHOLD } } }),
+      prisma.prescription.count({ where: { status: 'pending' } }),
+    ]);
+
+  const items = [
+    ...pendingOrders.map((o) => ({
+      id: `order-${o.id}`,
+      type: 'order',
+      title: `New order #${o.orderNumber || o.id.slice(-6)}`,
+      subtitle: `${o.user?.name || 'Guest'} · ₹${Number(o.totalPrice || 0).toFixed(0)}`,
+      link: '/orders',
+      time: o.createdAt,
+    })),
+    ...lowStock.map((p) => ({
+      id: `stock-${p.id}`,
+      type: 'stock',
+      title: `Low stock: ${p.name}`,
+      subtitle: `${p.countInStock} left in inventory`,
+      link: `/products/${p.id}/edit`,
+      time: p.updatedAt,
+    })),
+    ...pendingRx.map((r) => ({
+      id: `rx-${r.id}`,
+      type: 'prescription',
+      title: `Prescription from ${r.name || 'a customer'}`,
+      subtitle: 'Awaiting review',
+      link: '/prescriptions',
+      time: r.createdAt,
+    })),
+  ].sort((a, b) => new Date(b.time) - new Date(a.time));
+
+  res.json({
+    count: pendingOrderCount + lowStockCount + pendingRxCount,
+    breakdown: { orders: pendingOrderCount, lowStock: lowStockCount, prescriptions: pendingRxCount },
+    items,
+  });
+};

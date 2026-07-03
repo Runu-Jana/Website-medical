@@ -7,6 +7,7 @@ import {
   getCategoryDistribution,
   getRecentOrders,
   getOrderStatusBreakdown,
+  getNotifications,
 } from '../controllers/dashboardController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -21,5 +22,6 @@ router.get('/top-products', getTopProducts);
 router.get('/category-distribution', getCategoryDistribution);
 router.get('/recent-orders', getRecentOrders);
 router.get('/order-status', getOrderStatusBreakdown);
+router.get('/notifications', getNotifications);
 
 export default router;

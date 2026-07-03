@@ -191,7 +191,7 @@ export default function Posts() {
                   >
                     {p.published !== false ? 'Published' : 'Draft'}
                   </span>
-                  <span className="text-xs text-slate-400">{formatDate(p.createdAt)}</span>
+                  <span className="text-xs text-slate-500">{formatDate(p.createdAt)}</span>
                 </div>
                 <p className="mt-1 truncate font-semibold text-slate-800">{p.title}</p>
                 <p className="truncate text-sm text-slate-500">{p.excerpt}</p>
@@ -319,7 +319,7 @@ export default function Posts() {
           <label className="flex cursor-pointer items-center justify-between rounded-lg border border-slate-200 px-3 py-2.5">
             <div>
               <span className="text-sm font-medium text-slate-700">Published</span>
-              <p className="text-xs text-slate-400">Show this post on the storefront blog.</p>
+              <p className="text-xs text-slate-500">Show this post on the storefront blog.</p>
             </div>
             <button
               type="button"

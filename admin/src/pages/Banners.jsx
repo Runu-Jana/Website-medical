@@ -208,7 +208,7 @@ export default function Banners() {
                   >
                     {b.active !== false ? 'Active' : 'Hidden'}
                   </span>
-                  <span className="text-xs text-slate-400">Order: {b.order ?? 0}</span>
+                  <span className="text-xs text-slate-500">Order: {b.order ?? 0}</span>
                 </div>
                 <p className="mt-1 truncate font-semibold text-slate-800">{b.title}</p>
                 <p className="truncate text-sm text-slate-500">{b.subtitle}</p>
@@ -280,7 +280,7 @@ export default function Banners() {
 
           <div>
             <label className="label">Banner Image</label>
-            <p className="mb-1.5 text-xs text-slate-400">
+            <p className="mb-1.5 text-xs text-slate-500">
               Use a wide product photo — it fills the whole banner. Paste a URL or upload a file.
             </p>
             <input
@@ -376,7 +376,7 @@ export default function Banners() {
           <label className="flex cursor-pointer items-center justify-between rounded-lg border border-slate-200 px-3 py-2.5">
             <div>
               <span className="text-sm font-medium text-slate-700">Active</span>
-              <p className="text-xs text-slate-400">Show this banner in the storefront slider.</p>
+              <p className="text-xs text-slate-500">Show this banner in the storefront slider.</p>
             </div>
             <button
               type="button"
