@@ -164,7 +164,7 @@ export default function Products() {
       <div className="card">
         <div className="border-b border-slate-100 p-4">
           <form onSubmit={onSearch} className="relative max-w-md">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
@@ -215,7 +215,7 @@ export default function Products() {
                           </div>
                           <div className="min-w-0">
                             <p className="truncate font-medium text-slate-800 max-w-[220px]">{p.name}</p>
-                            <p className="text-xs text-slate-400">{p.sku || '—'}</p>
+                            <p className="text-xs text-slate-500">{p.sku || '—'}</p>
                           </div>
                         </div>
                       </td>
@@ -223,7 +223,7 @@ export default function Products() {
                       <td className="px-4 py-3">
                         <span className="font-semibold text-slate-800">{formatCurrency(p.price)}</span>
                         {p.oldPrice > p.price && (
-                          <span className="ml-1 text-xs text-slate-400 line-through">
+                          <span className="ml-1 text-xs text-slate-500 line-through">
                             {formatCurrency(p.oldPrice)}
                           </span>
                         )}
@@ -255,6 +255,7 @@ export default function Products() {
                             to={`/products/${p._id}/edit`}
                             className="rounded-lg p-2 text-slate-500 hover:bg-blue-50 hover:text-primary"
                             title="Edit"
+                            aria-label={`Edit ${p.name}`}
                           >
                             <FiEdit2 size={16} />
                           </Link>
@@ -262,6 +263,7 @@ export default function Products() {
                             onClick={() => setDelTarget(p)}
                             className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-danger"
                             title="Delete"
+                            aria-label={`Delete ${p.name}`}
                           >
                             <FiTrash2 size={16} />
                           </button>
@@ -323,7 +325,7 @@ export default function Products() {
           <div>
             <label className="label">Choose a file</label>
             <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-slate-300 p-4 hover:border-primary">
-              <FiFileText className="text-slate-400" size={22} />
+              <FiFileText className="text-slate-500" size={22} />
               <span className="text-sm text-slate-600">
                 {file ? file.name : 'Click to select an .xlsx, .xls or .csv file'}
               </span>

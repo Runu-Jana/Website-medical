@@ -1,12 +1,25 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { FiMenu, FiLogOut, FiBell } from 'react-icons/fi';
 import Sidebar from './Sidebar.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
+const SECTIONS = {
+  '': 'Dashboard',
+  products: 'Products',
+  categories: 'Categories',
+  brands: 'Brands',
+  banners: 'Banners',
+  posts: 'Blog',
+  prescriptions: 'Prescriptions',
+  orders: 'Orders',
+};
+
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
+  const { pathname } = useLocation();
+  const section = SECTIONS[pathname.split('/')[1] || ''] || 'Admin';
 
   const initials = (user?.name || 'Admin')
     .split(' ')
@@ -24,24 +37,26 @@ export default function AdminLayout() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
+              aria-label="Open navigation menu"
               className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden"
             >
               <FiMenu size={20} />
             </button>
             <div>
-              <h1 className="text-sm font-semibold text-slate-800 sm:text-base">
-                Welcome back, {user?.name?.split(' ')[0] || 'Admin'}
-              </h1>
+              <h1 className="text-sm font-semibold text-slate-800 sm:text-base">{section}</h1>
               <p className="hidden text-xs text-slate-500 sm:block">
-                Here is what's happening with your store today.
+                Welcome back, {user?.name?.split(' ')[0] || 'Admin'}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <button className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100">
+            <button
+              aria-label="Notifications"
+              title="Notifications"
+              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+            >
               <FiBell size={19} />
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-danger" />
             </button>
             <div className="flex items-center gap-2 rounded-lg border border-slate-200 py-1 pl-1 pr-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-xs font-bold text-white">
@@ -51,12 +66,13 @@ export default function AdminLayout() {
                 <p className="text-xs font-semibold leading-none text-slate-800">
                   {user?.name || 'Admin'}
                 </p>
-                <p className="text-[11px] text-slate-400">{user?.email}</p>
+                <p className="text-[11px] text-slate-500">{user?.email}</p>
               </div>
             </div>
             <button
               onClick={logout}
               title="Logout"
+              aria-label="Logout"
               className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-danger hover:bg-red-100"
             >
               <FiLogOut size={16} />

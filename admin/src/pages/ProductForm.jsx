@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { FiArrowLeft, FiSave, FiTrash2 } from 'react-icons/fi';
+import { FiArrowLeft, FiSave, FiTrash2, FiX } from 'react-icons/fi';
 import api from '../lib/api.js';
 import { useToast } from '../context/ToastContext.jsx';
 import Loader from '../components/Loader.jsx';
@@ -33,12 +33,17 @@ const Toggle = ({ label, checked, onChange, hint }) => (
   <label className="flex cursor-pointer items-center justify-between rounded-lg border border-slate-200 px-3 py-2.5">
     <div>
       <span className="text-sm font-medium text-slate-700">{label}</span>
-      {hint && <p className="text-xs text-slate-400">{hint}</p>}
+      {hint && <p className="text-xs text-slate-500">{hint}</p>}
     </div>
     <button
       type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
       onClick={() => onChange(!checked)}
-      className={`relative h-6 w-11 rounded-full transition ${checked ? 'bg-primary' : 'bg-slate-300'}`}
+      className={`relative h-6 w-11 rounded-full transition focus:outline-none focus:ring-2 focus:ring-primary-200 ${
+        checked ? 'bg-primary' : 'bg-slate-300'
+      }`}
     >
       <span
         className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition ${
@@ -61,6 +66,11 @@ export default function ProductForm() {
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Snapshot of the last-saved/loaded state, to detect unsaved changes.
+  const initialRef = useRef(JSON.stringify(emptyForm));
+  const savedRef = useRef(false);
+  const isDirty = JSON.stringify(form) !== initialRef.current;
 
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
@@ -99,7 +109,7 @@ export default function ProductForm() {
           // Backend responds with { product, related } — unwrap it.
           const product = data?.product || data;
           if (product && active) {
-            setForm({
+            const loaded = {
               name: product.name || '',
               sku: product.sku || '',
               shortDescription: product.shortDescription || '',
@@ -129,7 +139,9 @@ export default function ProductForm() {
               isDeal: !!product.isDeal,
               dealEndsAt: product.dealEndsAt ? product.dealEndsAt.slice(0, 16) : '',
               requiresPrescription: !!product.requiresPrescription,
-            });
+            };
+            setForm(loaded);
+            initialRef.current = JSON.stringify(loaded);
           }
         }
       } catch (err) {
@@ -144,6 +156,23 @@ export default function ProductForm() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Warn before a full page unload (refresh / close tab) when there are edits.
+  useEffect(() => {
+    const beforeUnload = (e) => {
+      if (isDirty && !savedRef.current) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => window.removeEventListener('beforeunload', beforeUnload);
+  }, [isDirty]);
+
+  const cancel = () => {
+    if (isDirty && !window.confirm('You have unsaved changes. Leave without saving?')) return;
+    navigate('/products');
+  };
 
   const validate = () => {
     const e = {};
@@ -201,6 +230,7 @@ export default function ProductForm() {
         await api.post('/products', payload);
         toast.success('Product created');
       }
+      savedRef.current = true; // suppress the unsaved-changes guard on the redirect
       navigate('/products');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Save failed');
@@ -225,9 +255,14 @@ export default function ProductForm() {
             <p className="text-sm text-slate-500">Fill in the product details below.</p>
           </div>
         </div>
-        <button type="submit" disabled={saving} className="btn-primary">
-          <FiSave size={18} /> {saving ? 'Saving...' : 'Save Product'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={cancel} disabled={saving} className="btn-ghost">
+            <FiX size={18} /> Cancel
+          </button>
+          <button type="submit" disabled={saving} className="btn-primary">
+            <FiSave size={18} /> {saving ? 'Saving...' : 'Save Product'}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
@@ -285,7 +320,8 @@ export default function ProductForm() {
           <div className="card p-5">
             <h3 className="mb-1 font-semibold text-slate-800">Product Images</h3>
             <p className="mb-4 text-xs text-slate-500">
-              The first image is used as the thumbnail. Drag to reorder or set any image as thumbnail.
+              The first image is used as the thumbnail. Use the arrows to reorder, or set any image
+              as the thumbnail.
             </p>
             <ImageUploader images={form.images} onChange={(imgs) => set('images', imgs)} />
           </div>
@@ -294,7 +330,7 @@ export default function ProductForm() {
             <h3 className="mb-4 font-semibold text-slate-800">Pricing & Inventory</h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
-                <label className="label">Price ($) *</label>
+                <label className="label">Price (₹) *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -307,7 +343,7 @@ export default function ProductForm() {
                 {errors.price && <p className="mt-1 text-xs text-danger">{errors.price}</p>}
               </div>
               <div>
-                <label className="label">Old Price ($)</label>
+                <label className="label">Old Price (₹)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -348,7 +384,7 @@ export default function ProductForm() {
               mark a variant as sold out.
             </p>
             {form.variants.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-center text-sm text-slate-400">
+              <p className="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-center text-sm text-slate-500">
                 No variants yet. Click “Add variant” to offer colour or flavour options.
               </p>
             ) : (
@@ -383,7 +419,7 @@ export default function ProductForm() {
                     <button
                       type="button"
                       onClick={() => removeVariant(i)}
-                      className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-danger"
+                      className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-danger"
                       title="Remove variant"
                     >
                       <FiTrash2 size={16} />
@@ -402,10 +438,10 @@ export default function ProductForm() {
             <div className="space-y-4">
               <div>
                 <label className="label">Categories</label>
-                <p className="mb-2 text-xs text-slate-400">Tick one or more categories.</p>
+                <p className="mb-2 text-xs text-slate-500">Tick one or more categories.</p>
                 <div className="max-h-52 space-y-1 overflow-y-auto rounded-lg border border-slate-200 p-2">
                   {categories.length === 0 && (
-                    <p className="px-1 py-2 text-sm text-slate-400">No categories yet.</p>
+                    <p className="px-1 py-2 text-sm text-slate-500">No categories yet.</p>
                   )}
                   {categories.map((c) => (
                     <label

@@ -44,7 +44,7 @@ const STATUS_COLORS = {
   delivered: '#16a34a',
   cancelled: '#ef4444',
 };
-const PIE_PALETTE = ['#1c64f2', '#16a34a', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
+const PIE_PALETTE = ['#0e9f8e', '#16a34a', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
 
 const resolveImg = (u) => {
   if (!u) return '';
@@ -221,8 +221,8 @@ export default function Dashboard() {
             <AreaChart data={weekly?.series || []}>
               <defs>
                 <linearGradient id="wRev" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#1c64f2" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="#1c64f2" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#0e9f8e" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="#0e9f8e" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="wOrd" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#16a34a" stopOpacity={0.35} />
@@ -235,14 +235,14 @@ export default function Dashboard() {
                 tick={{ fontSize: 12, fill: '#64748b' }}
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(v) => (weeklyMetric === 'revenue' ? '$' + formatCompact(v) : formatCompact(v))}
+                tickFormatter={(v) => (weeklyMetric === 'revenue' ? '₹' + formatCompact(v) : formatCompact(v))}
               />
               <Tooltip content={<ChartTooltip money={weeklyMetric === 'revenue'} />} />
               <Area
                 type="monotone"
                 dataKey={weeklyMetric}
                 name={weeklyMetric}
-                stroke={weeklyMetric === 'revenue' ? '#1c64f2' : '#16a34a'}
+                stroke={weeklyMetric === 'revenue' ? '#0e9f8e' : '#16a34a'}
                 strokeWidth={2.5}
                 fill={weeklyMetric === 'revenue' ? 'url(#wRev)' : 'url(#wOrd)'}
               />
@@ -312,7 +312,7 @@ export default function Dashboard() {
                 tick={{ fontSize: 12, fill: '#64748b' }}
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(v) => '$' + formatCompact(v)}
+                tickFormatter={(v) => '₹' + formatCompact(v)}
               />
               <YAxis
                 yAxisId="right"
@@ -326,7 +326,7 @@ export default function Dashboard() {
               <Legend
                 formatter={(value) => <span className="text-xs capitalize text-slate-600">{value}</span>}
               />
-              <Bar yAxisId="left" dataKey="revenue" name="revenue" fill="#1c64f2" radius={[4, 4, 0, 0]} barSize={18} />
+              <Bar yAxisId="left" dataKey="revenue" name="revenue" fill="#0e9f8e" radius={[4, 4, 0, 0]} barSize={18} />
               <Line
                 yAxisId="right"
                 type="monotone"
@@ -379,7 +379,7 @@ export default function Dashboard() {
                 const img = p.thumbnail || p.images?.[0];
                 return (
                   <div key={p._id} className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-slate-50">
-                    <span className="w-5 text-center text-sm font-bold text-slate-400">{i + 1}</span>
+                    <span className="w-5 text-center text-sm font-bold text-slate-500">{i + 1}</span>
                     <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-slate-100">
                       {img ? (
                         <img src={resolveImg(img)} alt={p.name} className="h-full w-full object-cover" />
@@ -423,7 +423,7 @@ export default function Dashboard() {
             <div className="-mx-2 overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs uppercase tracking-wider text-slate-400">
+                  <tr className="text-left text-xs uppercase tracking-wider text-slate-500">
                     <th className="px-2 py-2 font-semibold">Order</th>
                     <th className="px-2 py-2 font-semibold">Customer</th>
                     <th className="px-2 py-2 font-semibold">Total</th>
@@ -439,7 +439,7 @@ export default function Dashboard() {
                       </td>
                       <td className="px-2 py-2.5">
                         <p className="font-medium text-slate-700">{o.user?.name || 'Guest'}</p>
-                        <p className="text-xs text-slate-400">{o.user?.email}</p>
+                        <p className="text-xs text-slate-500">{o.user?.email}</p>
                       </td>
                       <td className="px-2 py-2.5 font-semibold text-slate-700">
                         {formatCurrency(o.totalPrice)}
