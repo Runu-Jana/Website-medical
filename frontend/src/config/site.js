@@ -8,11 +8,11 @@ export const siteConfig = {
   // + number, with NO "+", spaces or dashes.
   //   India  +91 98765 43210   ->  '919876543210'
   //   US/CA  +1 (800) 123-4567 ->  '18001234567'
-  whatsapp: '13248974567',
+  whatsapp: '917973944144',
 
   // Phone number to call. Any readable format is fine (spaces/dashes ok) —
   // it's shown as-is and auto-cleaned for the tel: link.
-  phone: '+1 800 123 4567',
+  phone: '+91 79739 44144',
 
   // Support email.
   email: 'support@dcare.com',
