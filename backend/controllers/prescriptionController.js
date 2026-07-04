@@ -1,5 +1,6 @@
 import prisma from '../prisma/client.js';
 import { withId } from '../prisma/serialize.js';
+import { createNotification } from '../lib/notify.js';
 
 // @route POST /api/prescriptions  (customer / guest)
 export const createPrescription = async (req, res) => {
@@ -17,6 +18,14 @@ export const createPrescription = async (req, res) => {
     },
   });
   res.status(201).json(withId(rx));
+
+  createNotification({
+    type: 'prescription',
+    title: `Prescription from ${rx.name || 'a customer'}`,
+    message: rx.note ? rx.note.slice(0, 80) : 'Awaiting review',
+    link: '/prescriptions',
+    meta: { prescriptionId: rx.id },
+  }).catch(() => {});
 };
 
 // @route GET /api/prescriptions  (admin)

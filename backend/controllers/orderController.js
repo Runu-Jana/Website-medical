@@ -1,5 +1,6 @@
 import prisma from '../prisma/client.js';
 import { serializeOrder } from '../prisma/serialize.js';
+import { createNotification, LOW_STOCK_THRESHOLD } from '../lib/notify.js';
 
 // @route POST /api/orders  (customer or guest checkout)
 export const createOrder = async (req, res) => {
@@ -27,7 +28,7 @@ export const createOrder = async (req, res) => {
   });
 
   // Update sold counts + stock for known products (ignore unknown ids).
-  await Promise.all(
+  const updated = await Promise.all(
     items
       .filter((i) => i.product)
       .map((i) =>
@@ -36,11 +37,37 @@ export const createOrder = async (req, res) => {
             where: { id: i.product },
             data: { sold: { increment: i.qty }, countInStock: { decrement: i.qty } },
           })
-          .catch(() => {})
+          .then((p) => ({ p, qty: i.qty }))
+          .catch(() => null)
       )
   );
 
   res.status(201).json(serializeOrder(order));
+
+  // Activity notifications (after responding, so checkout isn't slowed).
+  createNotification({
+    type: 'order',
+    title: `New order #${order.orderNumber || order.id.slice(-6)}`,
+    message: `₹${totalPrice.toFixed(0)} · ${order.paymentMethod}`,
+    link: '/orders',
+    meta: { orderId: order.id },
+  }).catch(() => {});
+
+  // Alert once when a product's stock crosses below the low-stock threshold.
+  for (const u of updated) {
+    if (!u) continue;
+    const newStock = u.p.countInStock;
+    const oldStock = newStock + u.qty;
+    if (oldStock > LOW_STOCK_THRESHOLD && newStock <= LOW_STOCK_THRESHOLD) {
+      createNotification({
+        type: 'stock',
+        title: `Low stock: ${u.p.name}`,
+        message: `${newStock} left in inventory`,
+        link: `/products/${u.p.id}/edit`,
+        meta: { productId: u.p.id },
+      }).catch(() => {});
+    }
+  }
 };
 
 // @route GET /api/orders/mine

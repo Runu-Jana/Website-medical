@@ -4,6 +4,7 @@ import prisma from '../prisma/client.js';
 import generateToken from '../utils/generateToken.js';
 import { serializeUser } from '../prisma/serialize.js';
 import { verifyFirebaseToken, firebaseEnabled } from '../lib/firebaseAdmin.js';
+import { notifyNewMember } from '../lib/notify.js';
 
 const DEVICE_TTL_DAYS = 180;
 const normalizePhone = (p) => (p || '').replace(/[^\d+]/g, '');
@@ -28,6 +29,7 @@ export const register = async (req, res) => {
   const user = await prisma.user.create({
     data: { name, email: lower, password: hashed, phone: phone || '' },
   });
+  notifyNewMember(user).catch(() => {}); // in-app + admin email
   res.status(201).json({ user: serializeUser(user), token: generateToken(user.id) });
 };
 
@@ -144,6 +146,7 @@ export const phoneVerify = async (req, res) => {
     user = await prisma.user.create({
       data: { name: (name && name.trim()) || 'Customer', phone, role: 'customer' },
     });
+    notifyNewMember(user).catch(() => {}); // in-app + admin email (phone signups too)
   } else if (name && name.trim() && (!user.name || user.name === 'Customer')) {
     user = await prisma.user.update({ where: { id: user.id }, data: { name: name.trim() } });
   }

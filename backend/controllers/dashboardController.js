@@ -176,64 +176,36 @@ export const getOrderStatusBreakdown = async (req, res) => {
   res.json(statuses.map((s) => ({ status: s, count: map[s] || 0 })));
 };
 
-const LOW_STOCK_THRESHOLD = 5;
-
 // @route GET /api/dashboard/notifications  (admin)
-// Actionable items for the header bell: pending orders, low stock, pending Rx.
+// Activity feed from the Notification store: unread count + latest items.
 export const getNotifications = async (req, res) => {
-  const [pendingOrders, lowStock, pendingRx, pendingOrderCount, lowStockCount, pendingRxCount] =
-    await Promise.all([
-      prisma.order.findMany({
-        where: { status: 'pending' },
-        include: { user: { select: { name: true } } },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-      }),
-      prisma.product.findMany({
-        where: { status: 'active', countInStock: { lte: LOW_STOCK_THRESHOLD } },
-        orderBy: { countInStock: 'asc' },
-        take: 5,
-      }),
-      prisma.prescription.findMany({
-        where: { status: 'pending' },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-      }),
-      prisma.order.count({ where: { status: 'pending' } }),
-      prisma.product.count({ where: { status: 'active', countInStock: { lte: LOW_STOCK_THRESHOLD } } }),
-      prisma.prescription.count({ where: { status: 'pending' } }),
-    ]);
-
-  const items = [
-    ...pendingOrders.map((o) => ({
-      id: `order-${o.id}`,
-      type: 'order',
-      title: `New order #${o.orderNumber || o.id.slice(-6)}`,
-      subtitle: `${o.user?.name || 'Guest'} · ₹${Number(o.totalPrice || 0).toFixed(0)}`,
-      link: '/orders',
-      time: o.createdAt,
-    })),
-    ...lowStock.map((p) => ({
-      id: `stock-${p.id}`,
-      type: 'stock',
-      title: `Low stock: ${p.name}`,
-      subtitle: `${p.countInStock} left in inventory`,
-      link: `/products/${p.id}/edit`,
-      time: p.updatedAt,
-    })),
-    ...pendingRx.map((r) => ({
-      id: `rx-${r.id}`,
-      type: 'prescription',
-      title: `Prescription from ${r.name || 'a customer'}`,
-      subtitle: 'Awaiting review',
-      link: '/prescriptions',
-      time: r.createdAt,
-    })),
-  ].sort((a, b) => new Date(b.time) - new Date(a.time));
-
+  const [count, rows] = await Promise.all([
+    prisma.notification.count({ where: { read: false } }),
+    prisma.notification.findMany({ orderBy: { createdAt: 'desc' }, take: 20 }),
+  ]);
   res.json({
-    count: pendingOrderCount + lowStockCount + pendingRxCount,
-    breakdown: { orders: pendingOrderCount, lowStock: lowStockCount, prescriptions: pendingRxCount },
-    items,
+    count,
+    items: rows.map((n) => ({
+      id: n.id,
+      type: n.type,
+      title: n.title,
+      subtitle: n.message,
+      link: n.link,
+      read: n.read,
+      time: n.createdAt,
+    })),
   });
+};
+
+// @route POST /api/dashboard/notifications/read  (admin)
+// Mark one (body.id) or all unread notifications as read; returns new count.
+export const markNotificationsRead = async (req, res) => {
+  const { id } = req.body || {};
+  if (id) {
+    await prisma.notification.update({ where: { id }, data: { read: true } }).catch(() => {});
+  } else {
+    await prisma.notification.updateMany({ where: { read: false }, data: { read: true } });
+  }
+  const count = await prisma.notification.count({ where: { read: false } });
+  res.json({ count });
 };

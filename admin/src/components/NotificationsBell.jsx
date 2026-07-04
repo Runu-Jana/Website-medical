@@ -1,17 +1,29 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiBell, FiShoppingCart, FiAlertTriangle, FiFileText, FiCheckCircle } from 'react-icons/fi';
+import {
+  FiBell,
+  FiShoppingCart,
+  FiAlertTriangle,
+  FiFileText,
+  FiUserPlus,
+  FiMail,
+  FiCheckCircle,
+} from 'react-icons/fi';
 import api from '../lib/api.js';
 
 const TYPE_ICON = {
   order: FiShoppingCart,
   stock: FiAlertTriangle,
   prescription: FiFileText,
+  user: FiUserPlus,
+  message: FiMail,
 };
 const TYPE_COLOR = {
   order: 'text-primary bg-primary-50',
   stock: 'text-warning bg-amber-50',
   prescription: 'text-accent bg-emerald-50',
+  user: 'text-violet-600 bg-violet-50',
+  message: 'text-sky-600 bg-sky-50',
 };
 
 const timeAgo = (d) => {
@@ -58,9 +70,26 @@ export default function NotificationsBell() {
     };
   }, [open, fetchNotifs]);
 
-  const go = (link) => {
+  const markAllRead = async () => {
+    setData((d) => ({ ...d, count: 0, items: d.items.map((i) => ({ ...i, read: true })) }));
+    try {
+      await api.post('/dashboard/notifications/read', {});
+    } catch {
+      fetchNotifs();
+    }
+  };
+
+  const openItem = async (n) => {
     setOpen(false);
-    navigate(link);
+    if (!n.read) {
+      setData((d) => ({
+        ...d,
+        count: Math.max(0, d.count - 1),
+        items: d.items.map((i) => (i.id === n.id ? { ...i, read: true } : i)),
+      }));
+      api.post('/dashboard/notifications/read', { id: n.id }).catch(() => {});
+    }
+    if (n.link) navigate(n.link);
   };
 
   const count = data.count || 0;
@@ -86,9 +115,12 @@ export default function NotificationsBell() {
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <p className="text-sm font-semibold text-slate-800">Notifications</p>
             {count > 0 && (
-              <span className="rounded-full bg-primary-50 px-2 py-0.5 text-xs font-semibold text-primary">
-                {count} pending
-              </span>
+              <button
+                onClick={markAllRead}
+                className="text-xs font-semibold text-primary hover:underline"
+              >
+                Mark all read
+              </button>
             )}
           </div>
 
@@ -97,7 +129,7 @@ export default function NotificationsBell() {
               <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
                 <FiCheckCircle className="text-accent" size={28} />
                 <p className="text-sm font-medium text-slate-600">You're all caught up</p>
-                <p className="text-xs text-slate-500">No pending orders, low stock or prescriptions.</p>
+                <p className="text-xs text-slate-500">New activity will show up here.</p>
               </div>
             ) : (
               data.items.map((n) => {
@@ -105,8 +137,10 @@ export default function NotificationsBell() {
                 return (
                   <button
                     key={n.id}
-                    onClick={() => go(n.link)}
-                    className="flex w-full items-start gap-3 border-b border-slate-50 px-4 py-3 text-left hover:bg-slate-50"
+                    onClick={() => openItem(n)}
+                    className={`flex w-full items-start gap-3 border-b border-slate-50 px-4 py-3 text-left hover:bg-slate-50 ${
+                      n.read ? '' : 'bg-primary-50/40'
+                    }`}
                   >
                     <span
                       className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
@@ -116,8 +150,15 @@ export default function NotificationsBell() {
                       <Icon size={15} />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-slate-800">{n.title}</span>
-                      <span className="block truncate text-xs text-slate-500">{n.subtitle}</span>
+                      <span className="flex items-center gap-2">
+                        <span className="block truncate text-sm font-medium text-slate-800">
+                          {n.title}
+                        </span>
+                        {!n.read && <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />}
+                      </span>
+                      {n.subtitle && (
+                        <span className="block truncate text-xs text-slate-500">{n.subtitle}</span>
+                      )}
                     </span>
                     <span className="shrink-0 text-[11px] text-slate-400">{timeAgo(n.time)}</span>
                   </button>
