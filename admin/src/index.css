@@ -40,6 +40,19 @@
   }
 }
 
+/* Read-only content should never show a blinking text-insertion caret
+   (e.g. when the browser's Caret Browsing / F7 mode is on). Real form
+   fields keep their caret. Text stays fully selectable & copyable. */
+body {
+  caret-color: transparent;
+}
+input,
+textarea,
+select,
+[contenteditable='true'] {
+  caret-color: auto;
+}
+
 /* Data tables are read-only: show a normal arrow over cells, not a text
    I-beam (which makes plain text look editable). Real interactive elements
    inside cells keep their pointer cursor. */
