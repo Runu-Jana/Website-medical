@@ -40,6 +40,20 @@
   }
 }
 
+/* Data tables are read-only: show a normal arrow over cells, not a text
+   I-beam (which makes plain text look editable). Real interactive elements
+   inside cells keep their pointer cursor. */
+table td,
+table th {
+  cursor: default;
+}
+table td a,
+table td button,
+table th a,
+table th button {
+  cursor: pointer;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
