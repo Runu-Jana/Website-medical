@@ -304,15 +304,19 @@ export default function Products() {
           <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
             <p className="font-semibold text-slate-700">How it works</p>
             <ol className="mt-2 list-decimal space-y-1 pl-5">
-              <li>Download the template and fill one product per row.</li>
               <li>
-                Only <span className="font-semibold">name</span> is required. Category &amp; brand
-                are matched by name (created automatically if new).
+                Download the template — it has the full catalog columns (SKU, generic name,
+                manufacturer, HSN, GST, salt, strength, dosage, SEO, vendor…). Fill one product per row.
               </li>
               <li>
-                <span className="font-semibold">images</span> and <span className="font-semibold">tags</span>{' '}
-                accept multiple comma-separated values. Flag columns (isFeatured, isDeal…) accept{' '}
-                <span className="font-semibold">yes/no</span>.
+                Only <span className="font-semibold">Product Name</span> is required. Any blank cell
+                falls back to a sensible default; <span className="font-semibold">Category</span> &amp;{' '}
+                <span className="font-semibold">Brand Name</span> are matched by name (auto-created if new).
+              </li>
+              <li>
+                Provide up to 4 image URLs (Main + Image 2–4). Prescription/Featured/Bestseller/
+                Trending/New&nbsp;Arrival accept <span className="font-semibold">Yes/No</span>. MRP is the
+                strike-through price, Sale Price is what customers pay.
               </li>
               <li>Upload the file (.xlsx, .xls or .csv).</li>
             </ol>

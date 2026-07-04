@@ -76,12 +76,42 @@ model Product {
   isDeal               Boolean    @default(false)
   dealEndsAt           DateTime?
   requiresPrescription Boolean    @default(false)
+  isTrending           Boolean    @default(false)
   tags                 String[]
   rating               Float      @default(0)
   numReviews           Int        @default(0)
   reviews              Json?
   sold                 Int        @default(0)
   status               String     @default("active")
+
+  // Catalog / pharma details
+  genericName          String     @default("")
+  manufacturer         String     @default("")
+  subCategory          String     @default("")
+  hsnCode              String     @default("")
+  gstPercent           Float      @default(0)
+  purchasePrice        Float      @default(0)
+  discountAmount       Float      @default(0)
+  minStock             Int        @default(0)
+  packSize             String     @default("")
+  saltComposition      String     @default("")
+  strength             String     @default("")
+  dosageForm           String     @default("")
+  uses                 String     @default("")
+  benefits             String     @default("")
+  sideEffects          String     @default("")
+  directions           String     @default("")
+  storage              String     @default("")
+
+  // SEO
+  seoTitle             String     @default("")
+  metaDescription      String     @default("")
+  metaKeywords         String     @default("")
+
+  // Marketplace vendor
+  vendorId             String     @default("")
+  vendorName           String     @default("")
+
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
 
