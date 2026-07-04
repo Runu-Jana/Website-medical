@@ -19,6 +19,7 @@ import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { useAuth } from '../context/AuthContext'
 import api from '../lib/api'
+import { siteConfig, telLink, mailLink } from '../config/site'
 
 const navLinks = [
   { to: '/', label: 'Home' },
@@ -106,14 +107,14 @@ export default function Navbar() {
             Free shipping on all orders over <strong>₹1000</strong>
           </span>
           <div className="flex items-center gap-4">
-            <a href="tel:+18001234567" className="flex items-center gap-1.5 hover:text-accent">
-              <FaPhoneAlt size={11} /> +1 800 123 4567
+            <a href={telLink()} className="flex items-center gap-1.5 hover:text-accent">
+              <FaPhoneAlt size={11} /> {siteConfig.phone}
             </a>
             <a
-              href="mailto:support@dcare.com"
+              href={mailLink()}
               className="hidden items-center gap-1.5 hover:text-accent sm:flex"
             >
-              <FaEnvelope size={11} /> support@dcare.com
+              <FaEnvelope size={11} /> {siteConfig.email}
             </a>
           </div>
         </div>
@@ -334,14 +335,14 @@ export default function Navbar() {
 
           {/* Support phone */}
           <a
-            href="tel:+13248974567"
+            href={telLink()}
             className="group ml-auto hidden h-12 items-center gap-2 rounded-full border border-primary bg-primary py-1.5 pl-1.5 pr-6 text-white transition duration-200 hover:scale-105 hover:bg-transparent hover:text-primary xl:flex"
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 transition group-hover:bg-primary/10">
               <FaPhoneAlt size={13} />
             </span>
             <span className="leading-tight">
-              <span className="block text-sm font-bold">324 - 897 - 4567</span>
+              <span className="block text-sm font-bold">{siteConfig.phone}</span>
               <span className="block text-[11px] text-white/80 transition group-hover:text-primary/70">
                 Support 24/7
               </span>

@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaClock } from 'react-icons/fa'
+import { siteConfig } from '../config/site'
 
 const info = [
   { icon: FaMapMarkerAlt, title: 'Address', text: '123 Health Street, Medical City' },
-  { icon: FaPhoneAlt, title: 'Phone', text: '+1 800 123 4567' },
-  { icon: FaEnvelope, title: 'Email', text: 'support@dcare.com' },
+  { icon: FaPhoneAlt, title: 'Phone', text: siteConfig.phone },
+  { icon: FaEnvelope, title: 'Email', text: siteConfig.email },
   { icon: FaClock, title: 'Hours', text: 'Open 24/7' },
 ]
 

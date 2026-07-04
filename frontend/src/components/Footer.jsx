@@ -13,6 +13,7 @@ import {
   FaCcPaypal,
   FaCcAmex,
 } from 'react-icons/fa'
+import { siteConfig, telLink, mailLink } from '../config/site'
 
 export default function Footer() {
   return (
@@ -79,10 +80,12 @@ export default function Footer() {
               <FaMapMarkerAlt className="mt-0.5 text-primary" /> 123 Health Street, Medical City
             </li>
             <li className="flex items-center gap-2">
-              <FaPhoneAlt className="text-primary" /> +1 800 123 4567
+              <FaPhoneAlt className="text-primary" />
+              <a href={telLink()} className="hover:text-primary">{siteConfig.phone}</a>
             </li>
             <li className="flex items-center gap-2">
-              <FaEnvelope className="text-primary" /> support@dcare.com
+              <FaEnvelope className="text-primary" />
+              <a href={mailLink()} className="hover:text-primary">{siteConfig.email}</a>
             </li>
           </ul>
           <div className="mt-5 flex gap-2 text-3xl text-slate-400">

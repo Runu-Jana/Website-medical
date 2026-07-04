@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../lib/api'
 import { useAuth } from '../context/AuthContext'
+import { waLink, telLink } from '../config/site'
 import {
   FaPrescriptionBottleAlt,
   FaQuestionCircle,
@@ -15,8 +16,6 @@ import {
   FaTimes,
 } from 'react-icons/fa'
 
-const PHONE = '+13248974567'
-const WHATSAPP = '13248974567'
 
 const quickActions = [
   { icon: FaPrescriptionBottleAlt, label: 'Request Medicine', to: '/shop' },
@@ -243,14 +242,14 @@ export default function PrescriptionUpload() {
 
           <div className="grid grid-cols-1 gap-3">
             <a
-              href={`tel:${PHONE}`}
+              href={telLink()}
               className="flex items-center justify-between rounded-2xl bg-amber-500 p-5 text-white"
             >
               <span className="text-lg font-bold">Call Us</span>
               <FaHeadset size={28} className="opacity-80" />
             </a>
             <a
-              href={`https://wa.me/${WHATSAPP}`}
+              href={waLink()}
               target="_blank"
               rel="noreferrer"
               className="flex items-center justify-between rounded-2xl bg-green-500 p-5 text-white"
