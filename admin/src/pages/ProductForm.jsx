@@ -24,9 +24,35 @@ const emptyForm = {
   isFeatured: false,
   isBestSeller: false,
   isNewArrival: false,
+  isTrending: false,
   isDeal: false,
   dealEndsAt: '',
   requiresPrescription: false,
+  // Pharma / catalog
+  genericName: '',
+  manufacturer: '',
+  subCategory: '',
+  hsnCode: '',
+  gstPercent: '',
+  purchasePrice: '',
+  discountAmount: '',
+  minStock: '',
+  packSize: '',
+  saltComposition: '',
+  strength: '',
+  dosageForm: '',
+  uses: '',
+  benefits: '',
+  sideEffects: '',
+  directions: '',
+  storage: '',
+  // SEO
+  seoTitle: '',
+  metaDescription: '',
+  metaKeywords: '',
+  // Vendor
+  vendorId: '',
+  vendorName: '',
 };
 
 const Toggle = ({ label, checked, onChange, hint }) => (
@@ -53,6 +79,34 @@ const Toggle = ({ label, checked, onChange, hint }) => (
     </button>
   </label>
 );
+
+const Field = ({ label, value, onChange, placeholder = '', type = 'text', step }) => (
+  <div>
+    <label className="label">{label}</label>
+    <input
+      type={type}
+      step={step}
+      min={type === 'number' ? '0' : undefined}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="input"
+      placeholder={placeholder}
+    />
+  </div>
+)
+
+const Area = ({ label, value, onChange, placeholder = '', rows = 3 }) => (
+  <div>
+    <label className="label">{label}</label>
+    <textarea
+      rows={rows}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="input resize-y"
+      placeholder={placeholder}
+    />
+  </div>
+)
 
 export default function ProductForm() {
   const { id } = useParams();
@@ -139,6 +193,29 @@ export default function ProductForm() {
               isDeal: !!product.isDeal,
               dealEndsAt: product.dealEndsAt ? product.dealEndsAt.slice(0, 16) : '',
               requiresPrescription: !!product.requiresPrescription,
+              isTrending: !!product.isTrending,
+              genericName: product.genericName || '',
+              manufacturer: product.manufacturer || '',
+              subCategory: product.subCategory || '',
+              hsnCode: product.hsnCode || '',
+              gstPercent: product.gstPercent ?? '',
+              purchasePrice: product.purchasePrice ?? '',
+              discountAmount: product.discountAmount ?? '',
+              minStock: product.minStock ?? '',
+              packSize: product.packSize || '',
+              saltComposition: product.saltComposition || '',
+              strength: product.strength || '',
+              dosageForm: product.dosageForm || '',
+              uses: product.uses || '',
+              benefits: product.benefits || '',
+              sideEffects: product.sideEffects || '',
+              directions: product.directions || '',
+              storage: product.storage || '',
+              seoTitle: product.seoTitle || '',
+              metaDescription: product.metaDescription || '',
+              metaKeywords: product.metaKeywords || '',
+              vendorId: product.vendorId || '',
+              vendorName: product.vendorName || '',
             };
             setForm(loaded);
             initialRef.current = JSON.stringify(loaded);
@@ -213,9 +290,35 @@ export default function ProductForm() {
       isFeatured: form.isFeatured,
       isBestSeller: form.isBestSeller,
       isNewArrival: form.isNewArrival,
+      isTrending: form.isTrending,
       isDeal: form.isDeal,
       dealEndsAt: form.isDeal && form.dealEndsAt ? form.dealEndsAt : undefined,
       requiresPrescription: form.requiresPrescription,
+      // Pharma / catalog
+      genericName: form.genericName,
+      manufacturer: form.manufacturer,
+      subCategory: form.subCategory,
+      hsnCode: form.hsnCode,
+      gstPercent: form.gstPercent === '' ? 0 : Number(form.gstPercent),
+      purchasePrice: form.purchasePrice === '' ? 0 : Number(form.purchasePrice),
+      discountAmount: form.discountAmount === '' ? 0 : Number(form.discountAmount),
+      minStock: form.minStock === '' ? 0 : Number(form.minStock),
+      packSize: form.packSize,
+      saltComposition: form.saltComposition,
+      strength: form.strength,
+      dosageForm: form.dosageForm,
+      uses: form.uses,
+      benefits: form.benefits,
+      sideEffects: form.sideEffects,
+      directions: form.directions,
+      storage: form.storage,
+      // SEO
+      seoTitle: form.seoTitle,
+      metaDescription: form.metaDescription,
+      metaKeywords: form.metaKeywords,
+      // Vendor
+      vendorId: form.vendorId,
+      vendorName: form.vendorName,
       tags: form.tags
         ? form.tags.split(',').map((t) => t.trim()).filter(Boolean)
         : [],
@@ -322,7 +425,7 @@ export default function ProductForm() {
             <h3 className="mb-4 font-semibold text-slate-800">Pricing & Inventory</h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
-                <label className="label">Price (₹) *</label>
+                <label className="label">Sale Price (₹) *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -334,29 +437,46 @@ export default function ProductForm() {
                 />
                 {errors.price && <p className="mt-1 text-xs text-danger">{errors.price}</p>}
               </div>
-              <div>
-                <label className="label">Old Price (₹)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={form.oldPrice}
-                  onChange={(e) => set('oldPrice', e.target.value)}
-                  className="input"
-                  placeholder="0.00"
-                />
-              </div>
-              <div>
-                <label className="label">Stock Quantity</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={form.countInStock}
-                  onChange={(e) => set('countInStock', e.target.value)}
-                  className="input"
-                  placeholder="0"
-                />
-              </div>
+              <Field label="MRP (₹)" type="number" step="0.01" value={form.oldPrice} onChange={(v) => set('oldPrice', v)} placeholder="0.00" />
+              <Field label="Purchase Price (₹)" type="number" step="0.01" value={form.purchasePrice} onChange={(v) => set('purchasePrice', v)} placeholder="0.00" />
+              <Field label="Discount Amount (₹)" type="number" step="0.01" value={form.discountAmount} onChange={(v) => set('discountAmount', v)} placeholder="Auto if blank" />
+              <Field label="GST %" type="number" step="0.01" value={form.gstPercent} onChange={(v) => set('gstPercent', v)} placeholder="e.g. 12" />
+              <Field label="HSN Code" value={form.hsnCode} onChange={(v) => set('hsnCode', v)} placeholder="e.g. 3004" />
+              <Field label="Stock Quantity" type="number" value={form.countInStock} onChange={(v) => set('countInStock', v)} placeholder="0" />
+              <Field label="Minimum Stock" type="number" value={form.minStock} onChange={(v) => set('minStock', v)} placeholder="e.g. 20" />
+              <Field label="Pack Size" value={form.packSize} onChange={(v) => set('packSize', v)} placeholder="e.g. 15 tablets" />
+            </div>
+          </div>
+
+          <div className="card p-5">
+            <h3 className="mb-4 font-semibold text-slate-800">Medicine & Catalog Details</h3>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field label="Generic Name" value={form.genericName} onChange={(v) => set('genericName', v)} placeholder="e.g. Paracetamol" />
+              <Field label="Manufacturer" value={form.manufacturer} onChange={(v) => set('manufacturer', v)} placeholder="e.g. Micro Labs Ltd" />
+              <Field label="Sub Category" value={form.subCategory} onChange={(v) => set('subCategory', v)} placeholder="e.g. Pain Relief" />
+              <Field label="Salt Composition" value={form.saltComposition} onChange={(v) => set('saltComposition', v)} placeholder="e.g. Paracetamol (500mg)" />
+              <Field label="Strength" value={form.strength} onChange={(v) => set('strength', v)} placeholder="e.g. 500mg" />
+              <Field label="Dosage Form" value={form.dosageForm} onChange={(v) => set('dosageForm', v)} placeholder="e.g. Tablet / Syrup" />
+            </div>
+          </div>
+
+          <div className="card p-5">
+            <h3 className="mb-4 font-semibold text-slate-800">Medicine Information</h3>
+            <div className="space-y-4">
+              <Area label="Uses" value={form.uses} onChange={(v) => set('uses', v)} placeholder="Fever, headache, body ache..." />
+              <Area label="Benefits" value={form.benefits} onChange={(v) => set('benefits', v)} placeholder="Fast-acting, gentle on the stomach..." />
+              <Area label="Side Effects" value={form.sideEffects} onChange={(v) => set('sideEffects', v)} placeholder="Rare: nausea, rash..." />
+              <Area label="Directions to Use" value={form.directions} onChange={(v) => set('directions', v)} placeholder="1 tablet every 6 hours or as directed..." />
+              <Area label="Storage Instructions" value={form.storage} onChange={(v) => set('storage', v)} placeholder="Store below 30°C, away from sunlight..." />
+            </div>
+          </div>
+
+          <div className="card p-5">
+            <h3 className="mb-4 font-semibold text-slate-800">SEO</h3>
+            <div className="space-y-4">
+              <Field label="SEO Title" value={form.seoTitle} onChange={(v) => set('seoTitle', v)} placeholder="Buy Paracetamol 500mg Online | DCare" />
+              <Area label="Meta Description" rows={2} value={form.metaDescription} onChange={(v) => set('metaDescription', v)} placeholder="Short description for search engines..." />
+              <Field label="Meta Keywords" value={form.metaKeywords} onChange={(v) => set('metaKeywords', v)} placeholder="paracetamol, fever, pain relief" />
             </div>
           </div>
 
@@ -489,6 +609,7 @@ export default function ProductForm() {
               <Toggle label="Featured" checked={form.isFeatured} onChange={(v) => set('isFeatured', v)} />
               <Toggle label="Best Seller" checked={form.isBestSeller} onChange={(v) => set('isBestSeller', v)} />
               <Toggle label="New Arrival" checked={form.isNewArrival} onChange={(v) => set('isNewArrival', v)} />
+              <Toggle label="Trending" checked={form.isTrending} onChange={(v) => set('isTrending', v)} />
               <Toggle label="On Deal" checked={form.isDeal} onChange={(v) => set('isDeal', v)} />
               {form.isDeal && (
                 <div className="pl-1">
@@ -507,6 +628,14 @@ export default function ProductForm() {
                 onChange={(v) => set('requiresPrescription', v)}
                 hint="Rx-only medication"
               />
+            </div>
+          </div>
+
+          <div className="card p-5">
+            <h3 className="mb-4 font-semibold text-slate-800">Vendor (Marketplace)</h3>
+            <div className="space-y-4">
+              <Field label="Vendor ID" value={form.vendorId} onChange={(v) => set('vendorId', v)} placeholder="Optional" />
+              <Field label="Vendor Name" value={form.vendorName} onChange={(v) => set('vendorName', v)} placeholder="Optional" />
             </div>
           </div>
         </div>

@@ -158,9 +158,33 @@ export const createProduct = async (req, res) => {
       isFeatured: !!b.isFeatured,
       isBestSeller: !!b.isBestSeller,
       isNewArrival: !!b.isNewArrival,
+      isTrending: !!b.isTrending,
       isDeal: !!b.isDeal,
       dealEndsAt: b.dealEndsAt ? new Date(b.dealEndsAt) : null,
       requiresPrescription: !!b.requiresPrescription,
+      // Pharma / catalog details
+      genericName: b.genericName || '',
+      manufacturer: b.manufacturer || '',
+      subCategory: b.subCategory || '',
+      hsnCode: b.hsnCode || '',
+      gstPercent: Number(b.gstPercent) || 0,
+      purchasePrice: Number(b.purchasePrice) || 0,
+      discountAmount: Number(b.discountAmount) || 0,
+      minStock: Number(b.minStock) || 0,
+      packSize: b.packSize || '',
+      saltComposition: b.saltComposition || '',
+      strength: b.strength || '',
+      dosageForm: b.dosageForm || '',
+      uses: b.uses || '',
+      benefits: b.benefits || '',
+      sideEffects: b.sideEffects || '',
+      directions: b.directions || '',
+      storage: b.storage || '',
+      seoTitle: b.seoTitle || '',
+      metaDescription: b.metaDescription || '',
+      metaKeywords: b.metaKeywords || '',
+      vendorId: b.vendorId || '',
+      vendorName: b.vendorName || '',
       tags: Array.isArray(b.tags) ? b.tags : [],
       status: b.status || 'active',
       reviews: [],
@@ -179,18 +203,30 @@ export const updateProduct = async (req, res) => {
 
   const b = req.body;
   const data = {};
-  ['name', 'sku', 'description', 'shortDescription', 'thumbnail', 'unit', 'status'].forEach((f) => {
+  [
+    'name', 'sku', 'description', 'shortDescription', 'thumbnail', 'unit', 'status',
+    // pharma / catalog / SEO / vendor strings
+    'genericName', 'manufacturer', 'subCategory', 'hsnCode', 'packSize',
+    'saltComposition', 'strength', 'dosageForm', 'uses', 'benefits', 'sideEffects',
+    'directions', 'storage', 'seoTitle', 'metaDescription', 'metaKeywords',
+    'vendorId', 'vendorName',
+  ].forEach((f) => {
     if (b[f] !== undefined) data[f] = b[f];
   });
   if (b.price !== undefined) data.price = Number(b.price);
   if (b.oldPrice !== undefined) data.oldPrice = Number(b.oldPrice);
   if (b.countInStock !== undefined) data.countInStock = Number(b.countInStock);
+  ['gstPercent', 'purchasePrice', 'discountAmount', 'minStock'].forEach((f) => {
+    if (b[f] !== undefined) data[f] = Number(b[f]) || 0;
+  });
   if (b.images !== undefined) data.images = Array.isArray(b.images) ? b.images : [];
   if (b.tags !== undefined) data.tags = Array.isArray(b.tags) ? b.tags : [];
   if (b.variants !== undefined) data.variants = b.variants;
-  ['isFeatured', 'isBestSeller', 'isNewArrival', 'isDeal', 'requiresPrescription'].forEach((f) => {
-    if (b[f] !== undefined) data[f] = !!b[f];
-  });
+  ['isFeatured', 'isBestSeller', 'isNewArrival', 'isTrending', 'isDeal', 'requiresPrescription'].forEach(
+    (f) => {
+      if (b[f] !== undefined) data[f] = !!b[f];
+    }
+  );
   if (b.dealEndsAt !== undefined) data.dealEndsAt = b.dealEndsAt ? new Date(b.dealEndsAt) : null;
   if (b.name) data.slug = `${slugify(b.name)}-${existing.id.slice(-6)}`;
 
