@@ -1,11 +1,12 @@
+import 'dotenv/config'; // MUST be first: load .env before any module reads process.env
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 import connectDB from './config/db.js';
+import { mailerEnabled } from './lib/mailer.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
 import authRoutes from './routes/authRoutes.js';
@@ -21,8 +22,8 @@ import orderRoutes from './routes/orderRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 
-dotenv.config();
 connectDB();
+console.log(`✉️  Email notifications: ${mailerEnabled ? 'enabled' : 'disabled (set SMTP_* in .env)'}`);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
