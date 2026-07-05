@@ -86,6 +86,8 @@ export function CartProvider({ children }) {
           qty: Math.min(stock, qty),
           unit: product.unit || '',
           countInStock: stock,
+          gstPercent: product.gstPercent || 0,
+          hsnCode: product.hsnCode || '',
         },
       ]
     })

@@ -88,9 +88,12 @@ export default function OrderSuccess() {
         </div>
       )}
 
-      <div className="mt-8 flex justify-center gap-3">
+      <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Link to="/shop" className="btn-primary">
           Continue Shopping
+        </Link>
+        <Link to={`/invoice/${order?._id || id}`} state={{ order }} className="btn-outline">
+          Download Invoice
         </Link>
         <Link to="/account" className="btn-outline">
           View My Orders

@@ -1,17 +1,7 @@
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { siteConfig } from '../config/site'
-
-// ── Business details used across the policies. Edit these to your real,
-//    registered details before going live. ──────────────────────────────
-const BIZ = {
-  brand: 'DCare',
-  legalName: '[Your Registered Business Name]',
-  address: '[Your Registered Business Address, City, State, PIN]',
-  gstin: '[Your GSTIN]',
-  jurisdiction: '[City, State]',
-  effective: '5 July 2026',
-}
+import { business as BIZ } from '../config/business'
 
 const P = (...paras) => paras // small helper for readability
 

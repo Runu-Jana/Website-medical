@@ -72,6 +72,8 @@ export default function Checkout() {
       image: i.thumbnail || '',
       price: i.price,
       qty: i.qty,
+      gstPercent: i.gstPercent || 0,
+      hsn: i.hsnCode || '',
     })),
     shippingAddress: { ...form },
     paymentMethod,

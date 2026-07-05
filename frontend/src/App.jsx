@@ -16,6 +16,7 @@ import BlogPost from './pages/BlogPost'
 import Wishlist from './pages/Wishlist'
 import PrescriptionUpload from './pages/PrescriptionUpload'
 import LegalPage from './pages/LegalPage'
+import Invoice from './pages/Invoice'
 import CategoryRedirect from './pages/CategoryRedirect'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -54,6 +55,8 @@ export default function App() {
         <Route path="/disclaimer" element={<LegalPage docKey="disclaimer" />} />
         <Route path="*" element={<NotFound />} />
       </Route>
+      {/* Standalone (no nav/footer) for clean printing */}
+      <Route path="/invoice/:id" element={<Invoice />} />
     </Routes>
   )
 }

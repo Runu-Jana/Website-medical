@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import api from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import Spinner from '../components/Spinner'
@@ -168,6 +168,13 @@ export default function Account() {
                           {items.map((i) => `${i.name} ×${i.qty}`).join(', ')}
                         </p>
                       )}
+                      <Link
+                        to={`/invoice/${o._id}`}
+                        state={{ order: o }}
+                        className="mt-2 inline-block text-xs font-semibold text-primary hover:underline"
+                      >
+                        Download Invoice
+                      </Link>
                     </div>
                   )
                 })}
