@@ -10,6 +10,7 @@ import {
   FiShoppingCart,
   FiUsers,
   FiMail,
+  FiShield,
   FiActivity,
   FiX,
 } from 'react-icons/fi';
@@ -25,6 +26,7 @@ const links = [
   { to: '/orders', label: 'Orders', icon: FiShoppingCart },
   { to: '/customers', label: 'Customers', icon: FiUsers },
   { to: '/messages', label: 'Messages', icon: FiMail },
+  { to: '/admins', label: 'Admins', icon: FiShield },
 ];
 
 export default function Sidebar({ open, onClose }) {

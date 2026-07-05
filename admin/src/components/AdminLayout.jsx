@@ -16,6 +16,7 @@ const SECTIONS = {
   orders: 'Orders',
   customers: 'Customers',
   messages: 'Messages',
+  admins: 'Admins',
 };
 
 export default function AdminLayout() {

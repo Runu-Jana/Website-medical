@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { FiActivity, FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
@@ -85,6 +85,12 @@ export default function Login() {
           <button type="submit" disabled={loading} className="btn-primary w-full py-2.5">
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
+
+          <div className="mt-3 text-center">
+            <Link to="/forgot-password" className="text-sm font-semibold text-primary hover:underline">
+              Forgot password?
+            </Link>
+          </div>
 
           <div className="mt-5 rounded-lg bg-blue-50 p-3 text-center text-xs text-primary-700">
             <span className="font-semibold">Demo credentials:</span> admin@dcare.com / admin123

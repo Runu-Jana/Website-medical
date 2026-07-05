@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import AdminLayout from './components/AdminLayout.jsx';
 import Login from './pages/Login.jsx';
+import ForgotPassword from './pages/ForgotPassword.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Products from './pages/Products.jsx';
 import ProductForm from './pages/ProductForm.jsx';
@@ -13,12 +14,14 @@ import Prescriptions from './pages/Prescriptions.jsx';
 import Orders from './pages/Orders.jsx';
 import Customers from './pages/Customers.jsx';
 import Messages from './pages/Messages.jsx';
+import Admins from './pages/Admins.jsx';
 import NotFound from './pages/NotFound.jsx';
 
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route
         element={
           <ProtectedRoute>
@@ -38,6 +41,7 @@ export default function App() {
         <Route path="/orders" element={<Orders />} />
         <Route path="/customers" element={<Customers />} />
         <Route path="/messages" element={<Messages />} />
+        <Route path="/admins" element={<Admins />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
