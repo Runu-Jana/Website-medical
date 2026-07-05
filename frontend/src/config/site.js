@@ -19,6 +19,14 @@ export const siteConfig = {
 
   // Optional greeting pre-filled in the customer's WhatsApp chat box.
   whatsappMessage: 'Hi DCare, I need help with ',
+
+  // Social profile URLs. Leave blank to hide that icon in the footer.
+  socials: {
+    facebook: '',
+    instagram: '',
+    twitter: '',
+    linkedin: '',
+  },
 }
 
 // wa.me deep link — opens a chat with you (optionally pre-filled).
