@@ -1,8 +1,9 @@
 import fs from 'fs';
-import { cloudinary, cloudinaryEnabled } from '../lib/cloudinary.js';
+import path from 'path';
+import { imagekit, imagekitEnabled } from '../lib/imagekit.js';
 
-// @route POST /api/upload  (admin) — single or multiple high-res images
-// Uploads to Cloudinary when configured (persists across deploys); otherwise
+// @route POST /api/upload  (admin) — single or multiple high-res images / PDFs
+// Uploads to ImageKit when configured (persists across deploys); otherwise
 // falls back to serving from the local /uploads folder.
 export const uploadImages = async (req, res) => {
   const files = req.files || (req.file ? [req.file] : []);
@@ -12,15 +13,16 @@ export const uploadImages = async (req, res) => {
 
   try {
     let urls;
-    if (cloudinaryEnabled) {
+    if (imagekitEnabled) {
       urls = await Promise.all(
         files.map(async (f) => {
-          const result = await cloudinary.uploader.upload(f.path, {
-            folder: 'dcare',
-            resource_type: 'auto', // handles images and PDFs
+          const result = await imagekit.upload({
+            file: fs.readFileSync(f.path), // Buffer
+            fileName: f.originalname || path.basename(f.path),
+            folder: '/dcare',
           });
           fs.unlink(f.path, () => {}); // remove the local temp copy
-          return result.secure_url;
+          return result.url;
         })
       );
     } else {

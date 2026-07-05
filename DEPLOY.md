@@ -25,7 +25,7 @@ set it as `DATABASE_URL` on the backend host.
    - `CLIENT_URLS` = your storefront + admin URLs, comma-separated
    - `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`
    - `SMTP_*`, `NOTIFY_EMAIL` (email)
-   - `CLOUDINARY_*` (image storage — **required in production**)
+   - `IMAGEKIT_*` (image storage — **required in production**)
    - `FIREBASE_*` (phone OTP, if using)
 5. After first deploy, seed once (Render Shell): `npm run seed`.
 
@@ -51,7 +51,7 @@ For **each** of `frontend/` and `admin/`:
    events: `payment.captured`, `order.paid`, `refund.processed`.
 
 ## 6. Images
-Set `CLOUDINARY_*` on the backend so uploaded product images persist (local
+Set `IMAGEKIT_*` on the backend so uploaded product images persist (local
 `/uploads` is wiped on every redeploy).
 
 ---
@@ -60,7 +60,7 @@ Set `CLOUDINARY_*` on the backend so uploaded product images persist (local
 - [ ] Real business details filled in `frontend/src/config/business.js` and `config/site.js`
 - [ ] Policy pages reviewed
 - [ ] `DATABASE_URL` on managed Postgres; `npm run seed` run once
-- [ ] `CLOUDINARY_*` set (images persist)
+- [ ] `IMAGEKIT_*` set (images persist)
 - [ ] `SMTP_*` set (order + signup emails work)
 - [ ] Razorpay **live** keys + webhook configured; KYC approved
 - [ ] `CLIENT_URLS` (backend) and `VITE_API_URL` (frontends) point at real domains
