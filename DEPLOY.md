@@ -4,10 +4,10 @@ Three apps + one database:
 
 | Part | Folder | Suggested host |
 |------|--------|----------------|
-| Backend API (Express/Prisma) | `backend/` | Render / Railway |
-| Storefront (Vite/React) | `frontend/` | Vercel / Netlify |
-| Admin panel (Vite/React) | `admin/` | Vercel / Netlify |
-| PostgreSQL database | — | Neon / Render Postgres / Railway |
+| Backend API (Express/Prisma) | `backend/` | Render (free) |
+| Storefront (Vite/React) | `frontend/` | Hostinger (static upload) |
+| Admin panel (Vite/React) | `admin/` | Hostinger subdomain (static upload) |
+| PostgreSQL database | — | Neon (free) |
 
 ---
 
@@ -29,17 +29,35 @@ set it as `DATABASE_URL` on the backend host.
    - `FIREBASE_*` (phone OTP, if using)
 5. After first deploy, seed once (Render Shell): `npm run seed`.
 
-## 3. Storefront & Admin (Vercel example)
-For **each** of `frontend/` and `admin/`:
-1. New Project → set the **root directory** to `frontend` (then repeat for `admin`).
-2. Framework preset: **Vite**. Build: `npm run build`. Output: `dist`.
-3. Environment variable: `VITE_API_URL` = your backend URL (e.g. `https://dcare-api.onrender.com`).
-4. Add an SPA rewrite so routes work: create `vercel.json` in that folder with
-   a catch-all rewrite to `/index.html` (Netlify: a `_redirects` file with `/* /index.html 200`).
+## 3. Storefront & Admin — on Hostinger (shared) as static files
+Shared Hostinger can't run Node, but it serves these React apps perfectly as
+static files. You build them **locally** (pointing at the Render API) and upload
+the `dist` output. A `.htaccess` for SPA routing is already included in each
+`public/` folder, so it lands in `dist` automatically.
+
+**Build the storefront (main domain):**
+1. Create `frontend/.env` with your backend URL:
+   `VITE_API_URL=https://<your-backend>.onrender.com`
+2. `cd frontend && npm install && npm run build`
+3. In hPanel → File Manager, upload the **contents of `frontend/dist/`** (including
+   `.htaccess`) into `public_html`.
+
+**Build the admin (recommended: a subdomain like `admin.yourdomain.com`):**
+1. In hPanel → Subdomains, create `admin` → it makes a folder like `public_html/admin`.
+2. Create `admin/.env` with `VITE_API_URL=https://<your-backend>.onrender.com`
+3. `cd admin && npm install && npm run build`
+4. Upload the **contents of `admin/dist/`** into the subdomain's folder.
+   (If instead you use a sub-path `yourdomain.com/admin`, set `base:'/admin/'` in
+   `admin/vite.config.js` and adjust `admin/public/.htaccess` paths first.)
+
+Repeat the build + upload whenever you change the front-end (there's no
+auto-deploy on shared hosting).
 
 ## 4. Wire them together
-- Set the backend `CLIENT_URLS` to your deployed storefront + admin domains (CORS).
-- Set `VITE_API_URL` on both frontends to the backend URL, then redeploy them.
+- Backend `CLIENT_URLS` must list your real front-end origins for CORS, e.g.
+  `https://yourdomain.com,https://admin.yourdomain.com` — set this on Render.
+- The front-ends were built with `VITE_API_URL` pointing at the Render backend.
+  If the backend URL changes, rebuild and re-upload.
 
 ## 5. Payments — go live
 1. Complete Razorpay **KYC** (business details, bank, the legal/policy pages —

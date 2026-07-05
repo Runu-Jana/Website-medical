@@ -1,0 +1,13 @@
+# SPA routing for Hostinger (Apache) — admin panel.
+# Use this when the admin is served from its OWN subdomain (admin.yourdomain.com)
+# or the root of a folder. If you serve it from a sub-path instead, change the
+# two "/" paths below to your sub-path (e.g. /admin/) and set base:'/admin/'
+# in admin/vite.config.js before building.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
