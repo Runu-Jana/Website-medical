@@ -1,5 +1,18 @@
+// Local inline SVG placeholder — never depends on a third-party host, so the
+// "No Image" state always renders (even offline or if an external CDN is down).
 export const PLACEHOLDER_IMG =
-  'https://dummyimage.com/600x600/e2e8f0/64748b&text=No+Image'
+  'data:image/svg+xml;charset=UTF-8,' +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+       <rect width="600" height="600" fill="#e2e8f0"/>
+       <g fill="none" stroke="#94a3b8" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+         <rect x="180" y="200" width="240" height="180" rx="14"/>
+         <circle cx="245" cy="255" r="22"/>
+         <path d="M195 360l70-70 45 45 55-55 40 40"/>
+       </g>
+       <text x="300" y="430" font-family="Arial, sans-serif" font-size="34" fill="#94a3b8" text-anchor="middle">No Image</text>
+     </svg>`
+  )
 
 export function formatPrice(value) {
   const num = Number(value || 0)
