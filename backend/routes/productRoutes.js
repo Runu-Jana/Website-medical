@@ -12,6 +12,7 @@ import {
 } from '../controllers/productController.js';
 import { importProducts, downloadTemplate } from '../controllers/productImportController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
+import { reviewLimiter } from '../middleware/rateLimit.js';
 
 const router = express.Router();
 
@@ -39,6 +40,6 @@ router.post('/import', protect, admin, sheetUpload.single('file'), importProduct
 router.get('/:idOrSlug', getProduct);
 router.put('/:id', protect, admin, updateProduct);
 router.delete('/:id', protect, admin, deleteProduct);
-router.post('/:id/reviews', protect, createReview);
+router.post('/:id/reviews', reviewLimiter, protect, createReview);
 
 export default router;

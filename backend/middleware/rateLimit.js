@@ -1,0 +1,24 @@
+import rateLimit from 'express-rate-limit';
+
+const opts = (windowMs, max, message) => ({
+  windowMs,
+  max,
+  message: { message },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Auth (login, phone check/verify): generous for real users, blocks brute force.
+export const authLimiter = rateLimit(
+  opts(15 * 60 * 1000, 40, 'Too many attempts. Please wait a few minutes and try again.')
+);
+
+// Contact form: stops spam without bothering genuine senders.
+export const contactLimiter = rateLimit(
+  opts(60 * 60 * 1000, 8, 'Too many messages. Please try again later.')
+);
+
+// Product reviews: prevents review flooding.
+export const reviewLimiter = rateLimit(
+  opts(60 * 60 * 1000, 20, 'Too many reviews. Please try again later.')
+);

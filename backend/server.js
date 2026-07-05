@@ -1,12 +1,14 @@
 import 'dotenv/config'; // MUST be first: load .env before any module reads process.env
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import morgan from 'morgan';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 import connectDB from './config/db.js';
 import { mailerEnabled } from './lib/mailer.js';
+import { authLimiter } from './middleware/rateLimit.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
 import authRoutes from './routes/authRoutes.js';
@@ -30,17 +32,30 @@ console.log(`✉️  Email notifications: ${mailerEnabled ? 'enabled' : 'disable
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
-// Large body limits to support high-resolution base64 payloads if needed.
+// Behind a hosting proxy (Render/Railway) so req.ip is the real client IP.
+app.set('trust proxy', 1);
+
+// Security headers. CSP is off (this is a JSON API + image host, not HTML);
+// allow images to be embedded cross-origin by the storefront/admin.
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
+
+// Reasonable body limits. Actual files are uploaded as multipart (see the
+// upload route), so JSON stays small — this shrinks the DoS surface.
 // `verify` keeps the raw body so we can validate the Razorpay webhook signature.
 app.use(
   express.json({
-    limit: '1024mb',
+    limit: '5mb',
     verify: (req, res, buf) => {
       req.rawBody = buf;
     },
   })
 );
-app.use(express.urlencoded({ extended: true, limit: '1024mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 const allowedOrigins = (process.env.CLIENT_URLS || '')
   .split(',')
@@ -70,7 +85,7 @@ app.get('/api/health', (req, res) =>
   res.json({ status: 'ok', service: 'dcare-api', time: new Date() })
 );
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/brands', brandRoutes);

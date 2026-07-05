@@ -171,7 +171,7 @@ export default function PrescriptionUpload() {
                   <input
                     ref={fileRef}
                     type="file"
-                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                    accept="image/*,.heic,.heif,application/pdf"
                     className="hidden"
                     onChange={(e) => pickFile(e.target.files?.[0])}
                   />

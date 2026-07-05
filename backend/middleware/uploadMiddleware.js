@@ -24,15 +24,19 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowed = /jpeg|jpg|png|webp|gif|avif|svg/;
-  const extOk = allowed.test(path.extname(file.originalname).toLowerCase());
-  const mimeOk = /image\//.test(file.mimetype);
+  // Photos (incl. iPhone HEIC) and scanned PDFs. SVG is intentionally excluded
+  // because it can carry embedded scripts (an XSS / malware vector).
+  const allowedExt = /jpeg|jpg|png|webp|avif|heic|heif|pdf/;
+  const extOk = allowedExt.test(path.extname(file.originalname).toLowerCase());
+  // Some phones report HEIC as application/octet-stream, so allow that too.
+  const mimeOk = /^image\/|^application\/pdf$|^application\/octet-stream$/.test(file.mimetype);
   if (extOk && mimeOk) return cb(null, true);
-  cb(new Error('Only image files are allowed'));
+  cb(new Error('Only images (JPG, PNG, WEBP, HEIC) or PDF files are allowed'));
 };
 
-// Allow very large, high-resolution images (default 1GB)
-const MAX_BYTES = Number(process.env.MAX_UPLOAD_BYTES) || 1024 * 1024 * 1024;
+// Generous per-file limit (default 25MB) — plenty for high-res photos & PDFs,
+// while blocking abusive multi-GB uploads. Override via MAX_UPLOAD_BYTES.
+const MAX_BYTES = Number(process.env.MAX_UPLOAD_BYTES) || 25 * 1024 * 1024;
 
 const upload = multer({
   storage,

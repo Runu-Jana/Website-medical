@@ -17,7 +17,7 @@ export const uploadImages = async (req, res) => {
         files.map(async (f) => {
           const result = await cloudinary.uploader.upload(f.path, {
             folder: 'dcare',
-            resource_type: 'image',
+            resource_type: 'auto', // handles images and PDFs
           });
           fs.unlink(f.path, () => {}); // remove the local temp copy
           return result.secure_url;
