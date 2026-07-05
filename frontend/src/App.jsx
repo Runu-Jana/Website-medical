@@ -15,6 +15,7 @@ import Blog from './pages/Blog'
 import BlogPost from './pages/BlogPost'
 import Wishlist from './pages/Wishlist'
 import PrescriptionUpload from './pages/PrescriptionUpload'
+import LegalPage from './pages/LegalPage'
 import CategoryRedirect from './pages/CategoryRedirect'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -46,6 +47,11 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
+        <Route path="/privacy-policy" element={<LegalPage docKey="privacy-policy" />} />
+        <Route path="/terms" element={<LegalPage docKey="terms" />} />
+        <Route path="/refund-policy" element={<LegalPage docKey="refund-policy" />} />
+        <Route path="/shipping-policy" element={<LegalPage docKey="shipping-policy" />} />
+        <Route path="/disclaimer" element={<LegalPage docKey="disclaimer" />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

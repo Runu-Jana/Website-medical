@@ -67,9 +67,13 @@ export default function Footer() {
           <ul className="space-y-2 text-sm">
             <li><Link to="/account" className="hover:text-primary">My Account</Link></li>
             <li><Link to="/cart" className="hover:text-primary">My Cart</Link></li>
-            <li><Link to="/shop" className="hover:text-primary">Track Order</Link></li>
             <li><Link to="/about" className="hover:text-primary">About Us</Link></li>
             <li><Link to="/contact" className="hover:text-primary">Contact Us</Link></li>
+            <li><Link to="/privacy-policy" className="hover:text-primary">Privacy Policy</Link></li>
+            <li><Link to="/terms" className="hover:text-primary">Terms &amp; Conditions</Link></li>
+            <li><Link to="/refund-policy" className="hover:text-primary">Refund &amp; Return</Link></li>
+            <li><Link to="/shipping-policy" className="hover:text-primary">Shipping Policy</Link></li>
+            <li><Link to="/disclaimer" className="hover:text-primary">Medical Disclaimer</Link></li>
           </ul>
         </div>
 
