@@ -74,6 +74,20 @@ export default function ProductDetail() {
   const images = product.images && product.images.length ? product.images : [PLACEHOLDER_IMG]
   const outOfStock = product.countInStock <= 0
 
+  // Structured medicine info shown in its own tab when any field is present.
+  const medFacts = [
+    ['Uses', product.uses],
+    ['Benefits', product.benefits],
+    ['Side Effects', product.sideEffects],
+    ['Directions for Use', product.directions],
+    ['Storage', product.storage],
+  ].filter(([, v]) => v)
+  const hasMedInfo =
+    medFacts.length > 0 ||
+    product.saltComposition ||
+    product.strength ||
+    product.dosageForm
+
   const handleBuyNow = () => {
     addToCart(product, qty)
     navigate('/cart')
@@ -187,6 +201,30 @@ export default function ProductDetail() {
             </p>
           )}
 
+          {/* Key pharma highlights */}
+          {(product.saltComposition || product.manufacturer || product.strength) && (
+            <div className="mt-4 space-y-1 rounded-xl bg-lightbg p-3 text-sm">
+              {product.saltComposition && (
+                <p className="text-slate-600">
+                  <span className="font-semibold text-dark">Composition:</span>{' '}
+                  {product.saltComposition}
+                </p>
+              )}
+              {product.strength && (
+                <p className="text-slate-600">
+                  <span className="font-semibold text-dark">Strength:</span> {product.strength}
+                  {product.dosageForm ? ` · ${product.dosageForm}` : ''}
+                </p>
+              )}
+              {product.manufacturer && (
+                <p className="text-slate-600">
+                  <span className="font-semibold text-dark">Manufacturer:</span>{' '}
+                  {product.manufacturer}
+                </p>
+              )}
+            </div>
+          )}
+
           {product.variants?.length > 0 && (
             <div className="mt-5">
               <p className="text-sm font-semibold text-dark">
@@ -281,6 +319,7 @@ export default function ProductDetail() {
         <div className="flex flex-wrap gap-2 border-b border-bordergray">
           {[
             { id: 'description', label: 'Description' },
+            ...(hasMedInfo ? [{ id: 'medicine', label: 'Medicine Details' }] : []),
             { id: 'info', label: 'Additional Info' },
             { id: 'reviews', label: `Reviews (${product.numReviews || 0})` },
           ].map((t) => (
@@ -305,13 +344,59 @@ export default function ProductDetail() {
             </p>
           )}
 
+          {tab === 'medicine' && (
+            <div className="max-w-2xl space-y-6">
+              {(product.saltComposition || product.strength || product.dosageForm) && (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {product.saltComposition && (
+                    <div className="rounded-xl bg-lightbg p-3">
+                      <p className="text-xs text-slate-500">Salt Composition</p>
+                      <p className="text-sm font-semibold text-dark">{product.saltComposition}</p>
+                    </div>
+                  )}
+                  {product.strength && (
+                    <div className="rounded-xl bg-lightbg p-3">
+                      <p className="text-xs text-slate-500">Strength</p>
+                      <p className="text-sm font-semibold text-dark">{product.strength}</p>
+                    </div>
+                  )}
+                  {product.dosageForm && (
+                    <div className="rounded-xl bg-lightbg p-3">
+                      <p className="text-xs text-slate-500">Dosage Form</p>
+                      <p className="text-sm font-semibold text-dark">{product.dosageForm}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              {medFacts.map(([k, v]) => (
+                <div key={k}>
+                  <h3 className="text-base font-bold text-dark">{k}</h3>
+                  <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-slate-600">{v}</p>
+                </div>
+              ))}
+              <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">
+                This information is for reference only and is not a substitute for professional
+                medical advice. Always consult a doctor or pharmacist before use.{' '}
+                <Link to="/disclaimer" className="font-semibold underline">
+                  Read our medical disclaimer
+                </Link>
+                .
+              </p>
+            </div>
+          )}
+
           {tab === 'info' && (
             <table className="w-full max-w-lg text-sm">
               <tbody className="divide-y divide-bordergray">
                 {[
                   ['Brand', product.brand?.name],
+                  ['Generic Name', product.genericName],
+                  ['Manufacturer', product.manufacturer],
                   ['Category', product.category?.name],
+                  ['Sub Category', product.subCategory],
+                  ['Pack Size', product.packSize],
                   ['Unit', product.unit],
+                  ['HSN Code', product.hsnCode],
                   ['SKU', product.sku],
                   ['Stock', product.countInStock],
                   ['Prescription', product.requiresPrescription ? 'Required' : 'Not required'],
