@@ -1,6 +1,11 @@
 import prisma from '../prisma/client.js';
 import { serializeOrder } from '../prisma/serialize.js';
-import { createNotification, LOW_STOCK_THRESHOLD } from '../lib/notify.js';
+import {
+  createNotification,
+  notifyOrderPlaced,
+  notifyOrderStatus,
+  LOW_STOCK_THRESHOLD,
+} from '../lib/notify.js';
 
 // @route POST /api/orders  (customer or guest checkout)
 export const createOrder = async (req, res) => {
@@ -52,6 +57,9 @@ export const createOrder = async (req, res) => {
     link: '/orders',
     meta: { orderId: order.id },
   }).catch(() => {});
+
+  // Order confirmation email to the customer (if logged in) + admin heads-up.
+  notifyOrderPlaced({ order, items, customerEmail: req.user?.email }).catch(() => {});
 
   // Alert once when a product's stock crosses below the low-stock threshold.
   for (const u of updated) {
@@ -113,7 +121,10 @@ export const getOrders = async (req, res) => {
 
 // @route PUT /api/orders/:id/status  (admin)
 export const updateOrderStatus = async (req, res) => {
-  const order = await prisma.order.findUnique({ where: { id: req.params.id } });
+  const order = await prisma.order.findUnique({
+    where: { id: req.params.id },
+    include: { user: { select: { email: true } } },
+  });
   if (!order) return res.status(404).json({ message: 'Order not found' });
   const { status } = req.body;
   const data = {};
@@ -126,4 +137,9 @@ export const updateOrderStatus = async (req, res) => {
   }
   const updated = await prisma.order.update({ where: { id: order.id }, data });
   res.json(serializeOrder(updated));
+
+  // Email the customer about the status change (if it actually changed).
+  if (status && status !== order.status && order.user?.email) {
+    notifyOrderStatus({ order: updated, customerEmail: order.user.email }).catch(() => {});
+  }
 };
