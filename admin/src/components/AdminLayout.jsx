@@ -14,6 +14,8 @@ const SECTIONS = {
   posts: 'Blog',
   prescriptions: 'Prescriptions',
   orders: 'Orders',
+  customers: 'Customers',
+  messages: 'Messages',
 };
 
 export default function AdminLayout() {

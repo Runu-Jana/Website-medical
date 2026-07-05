@@ -11,6 +11,8 @@ import Banners from './pages/Banners.jsx';
 import Posts from './pages/Posts.jsx';
 import Prescriptions from './pages/Prescriptions.jsx';
 import Orders from './pages/Orders.jsx';
+import Customers from './pages/Customers.jsx';
+import Messages from './pages/Messages.jsx';
 import NotFound from './pages/NotFound.jsx';
 
 export default function App() {
@@ -34,6 +36,8 @@ export default function App() {
         <Route path="/posts" element={<Posts />} />
         <Route path="/prescriptions" element={<Prescriptions />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/customers" element={<Customers />} />
+        <Route path="/messages" element={<Messages />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

@@ -8,6 +8,8 @@ import {
   FiFileText,
   FiUpload,
   FiShoppingCart,
+  FiUsers,
+  FiMail,
   FiActivity,
   FiX,
 } from 'react-icons/fi';
@@ -21,6 +23,8 @@ const links = [
   { to: '/posts', label: 'Blog', icon: FiFileText },
   { to: '/prescriptions', label: 'Prescriptions', icon: FiUpload },
   { to: '/orders', label: 'Orders', icon: FiShoppingCart },
+  { to: '/customers', label: 'Customers', icon: FiUsers },
+  { to: '/messages', label: 'Messages', icon: FiMail },
 ];
 
 export default function Sidebar({ open, onClose }) {

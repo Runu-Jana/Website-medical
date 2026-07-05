@@ -20,7 +20,7 @@ export const notifyNewMember = async (user) => {
     type: 'user',
     title: 'New member joined',
     message: `${user.name || 'Customer'} · ${who}`,
-    link: '/',
+    link: '/customers',
     meta: { userId: user.id },
   });
 

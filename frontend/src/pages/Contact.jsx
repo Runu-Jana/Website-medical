@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaClock } from 'react-icons/fa'
 import { siteConfig } from '../config/site'
+import api from '../lib/api'
 
 const info = [
   { icon: FaMapMarkerAlt, title: 'Address', text: '123 Health Street, Medical City' },
@@ -11,6 +12,25 @@ const info = [
 
 export default function Contact() {
   const [sent, setSent] = useState(false)
+  const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' })
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  const on = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+
+  const submit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setSubmitting(true)
+    try {
+      await api.post('/contact', form)
+      setSent(true)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not send. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div className="container-x py-10">
@@ -43,33 +63,32 @@ export default function Contact() {
               </p>
             </div>
           ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                setSent(true)
-              }}
-              className="space-y-4"
-            >
+            <form onSubmit={submit} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-1 block text-sm font-medium">Name</label>
-                  <input required className="input-base" />
+                  <input name="name" value={form.name} onChange={on} required className="input-base" />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium">Email</label>
-                  <input type="email" required className="input-base" />
+                  <input name="email" type="email" value={form.email} onChange={on} required className="input-base" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Phone (optional)</label>
+                  <input name="phone" value={form.phone} onChange={on} className="input-base" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Subject</label>
+                  <input name="subject" value={form.subject} onChange={on} required className="input-base" />
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium">Subject</label>
-                <input required className="input-base" />
-              </div>
-              <div>
                 <label className="mb-1 block text-sm font-medium">Message</label>
-                <textarea required rows={5} className="input-base" />
+                <textarea name="message" value={form.message} onChange={on} required rows={5} className="input-base" />
               </div>
-              <button type="submit" className="btn-primary">
-                Send Message
+              {error && <p className="text-sm text-red-500">{error}</p>}
+              <button type="submit" disabled={submitting} className="btn-primary">
+                {submitting ? 'Sending…' : 'Send Message'}
               </button>
             </form>
           )}

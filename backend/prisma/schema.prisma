@@ -205,3 +205,17 @@ model Notification {
   @@index([read])
   @@index([createdAt])
 }
+
+model Contact {
+  id        String   @id @default(uuid())
+  name      String   @default("")
+  email     String   @default("")
+  phone     String   @default("")
+  subject   String   @default("")
+  message   String   @default("")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([read])
+  @@index([createdAt])
+}
