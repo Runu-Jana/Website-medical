@@ -39,13 +39,15 @@ export default function Testimonials() {
   return (
     <section className="container-x mt-16">
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h2 className="text-3xl font-extrabold text-dark">What Our Customers have to Say</h2>
-        <div className="hidden shrink-0 gap-2 sm:flex">
+        <h2 className="text-2xl font-extrabold text-dark sm:text-3xl">
+          What Our Customers have to Say
+        </h2>
+        <div className="flex shrink-0 gap-2">
           <button
             type="button"
             onClick={() => scrollBy(-1)}
             aria-label="Previous"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-bordergray text-slate-500 transition hover:border-primary hover:text-primary"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-bordergray text-slate-500 transition hover:border-primary hover:text-primary active:bg-primary active:text-white"
           >
             <FaChevronLeft size={14} />
           </button>
@@ -53,7 +55,7 @@ export default function Testimonials() {
             type="button"
             onClick={() => scrollBy(1)}
             aria-label="Next"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-bordergray text-slate-500 transition hover:border-primary hover:text-primary"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-bordergray text-slate-500 transition hover:border-primary hover:text-primary active:bg-primary active:text-white"
           >
             <FaChevronRight size={14} />
           </button>
@@ -62,10 +64,13 @@ export default function Testimonials() {
 
       <div
         ref={scrollRef}
-        className="no-scrollbar flex snap-x gap-6 overflow-x-auto scroll-smooth pb-2"
+        className="no-scrollbar -mx-1 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth px-1 pb-2"
       >
         {testimonials.map((t) => (
-          <div key={t.name} className="w-[300px] shrink-0 snap-start">
+          <div
+            key={t.name}
+            className="w-[80vw] max-w-[320px] shrink-0 snap-start sm:w-[320px]"
+          >
             <p className="font-bold text-dark">{t.name}</p>
             <p className="text-sm text-slate-500">{t.date}</p>
             <div className="mt-4 rounded-2xl bg-[#e9f7ef] p-6">
@@ -75,6 +80,9 @@ export default function Testimonials() {
           </div>
         ))}
       </div>
+
+      {/* Mobile scroll hint */}
+      <p className="mt-2 text-center text-xs text-slate-400 sm:hidden">← Swipe to see more reviews →</p>
     </section>
   )
 }
