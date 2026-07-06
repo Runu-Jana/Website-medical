@@ -11,23 +11,22 @@ Three apps + one database:
 
 ---
 
-## 1. Database
-Create a managed Postgres (Neon is easiest). Copy its connection string — you'll
-set it as `DATABASE_URL` on the backend host.
-
-## 2. Backend (Render example)
-1. New **Web Service** → connect this repo → root directory `backend`.
-2. Build command: `npm install && npx prisma generate`
-3. Start command: `npx prisma migrate deploy || npx prisma db push; node server.js`
-4. Add environment variables (from `backend/.env.example`):
-   - `DATABASE_URL` (your managed Postgres URL)
-   - `JWT_SECRET` (long random string)
-   - `CLIENT_URLS` = your storefront + admin URLs, comma-separated
-   - `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`
-   - `SMTP_*`, `NOTIFY_EMAIL` (email)
-   - `IMAGEKIT_*` (image storage — **required in production**)
-   - `FIREBASE_*` (phone OTP, if using)
-5. After first deploy, seed once (Render Shell): `npm run seed`.
+## 1 + 2. Backend + Database on Railway (one project)
+1. **railway.app** → sign in with GitHub → **New Project → Deploy from GitHub repo** → pick this repo.
+2. Open the service → **Settings**:
+   - **Root Directory:** `backend`
+   - **Start Command:** `npx prisma db push --accept-data-loss && node server.js`
+     (build/`prisma generate` runs automatically via postinstall)
+3. In the project, **New → Database → Add PostgreSQL**.
+4. Back in the **backend service → Variables**, add:
+   - `DATABASE_URL` = `${{Postgres.DATABASE_URL}}` (reference the Postgres you just added)
+   - `JWT_SECRET` = a long random string
+   - `CLIENT_URLS` = your Hostinger storefront + admin origins, comma-separated
+   - `OTP_DEV_MODE` = `true` (phone login works with code 123456 until Firebase is set)
+   - Later: `IMAGEKIT_*`, `SMTP_*` + `NOTIFY_EMAIL`, `RAZORPAY_*`, `FIREBASE_*`
+5. Deploy. The app **auto-seeds** the admin + demo catalog on the first (empty) boot —
+   no manual seed step. Grab the public URL from **Settings → Networking → Generate Domain**.
+6. Health check: open `https://<your-app>.up.railway.app/api/health`.
 
 ## 3. Storefront & Admin — on Hostinger (shared) as static files
 Shared Hostinger can't run Node, but it serves these React apps perfectly as
@@ -77,7 +76,7 @@ Set `IMAGEKIT_*` on the backend so uploaded product images persist (local
 ## Go-live checklist
 - [ ] Real business details filled in `frontend/src/config/business.js` and `config/site.js`
 - [ ] Policy pages reviewed
-- [ ] `DATABASE_URL` on managed Postgres; `npm run seed` run once
+- [ ] Backend + Postgres on Railway; app auto-seeds on first boot
 - [ ] `IMAGEKIT_*` set (images persist)
 - [ ] `SMTP_*` set (order + signup emails work)
 - [ ] Razorpay **live** keys + webhook configured; KYC approved
