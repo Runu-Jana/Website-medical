@@ -7,6 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import connectDB from './config/db.js';
+import { autoSeedIfEmpty } from './config/autoSeed.js';
 import { mailerEnabled } from './lib/mailer.js';
 import { authLimiter } from './middleware/rateLimit.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
@@ -27,7 +28,7 @@ import userRoutes from './routes/userRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 
-connectDB();
+connectDB().then(() => autoSeedIfEmpty());
 console.log(`✉️  Email notifications: ${mailerEnabled ? 'enabled' : 'disabled (set SMTP_* in .env)'}`);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

@@ -21,14 +21,7 @@ const wipe = async () => {
   await prisma.user.deleteMany();
 };
 
-const run = async () => {
-  if (process.argv.includes('--destroy')) {
-    await wipe();
-    console.log('🗑️  All data destroyed');
-    await prisma.$disconnect();
-    process.exit(0);
-  }
-
+export const seedDatabase = async () => {
   console.log('🌱 Seeding database...');
   await wipe();
 
@@ -232,18 +225,32 @@ const run = async () => {
   await prisma.order.createMany({ data: orders });
   console.log(`✅ ${orders.length} historical orders created (14 months)`);
 
-  console.log('\n──────────────────────────────');
-  console.log('  Admin login for the panel:');
-  console.log(`  Email:    ${admin.email}`);
-  console.log(`  Password: ${adminPassword}`);
-  console.log('──────────────────────────────\n');
-
-  await prisma.$disconnect();
-  process.exit(0);
+  return { adminEmail: admin.email, adminPassword };
 };
 
-run().catch(async (err) => {
-  console.error(err);
-  await prisma.$disconnect();
-  process.exit(1);
-});
+// CLI entry: `node seed/seed.js` (optionally `--destroy`). NOT run when imported.
+const invokedDirectly =
+  process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('seed/seed.js');
+if (invokedDirectly) {
+  (async () => {
+    try {
+      if (process.argv.includes('--destroy')) {
+        await wipe();
+        console.log('🗑️  All data destroyed');
+      } else {
+        const { adminEmail, adminPassword } = await seedDatabase();
+        console.log('\n──────────────────────────────');
+        console.log('  Admin login for the panel:');
+        console.log(`  Email:    ${adminEmail}`);
+        console.log(`  Password: ${adminPassword}`);
+        console.log('──────────────────────────────\n');
+      }
+    } catch (err) {
+      console.error(err);
+      process.exitCode = 1;
+    } finally {
+      await prisma.$disconnect();
+      process.exit(process.exitCode || 0);
+    }
+  })();
+}
