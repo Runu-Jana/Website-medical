@@ -92,23 +92,25 @@ export default function HeroSlider() {
 
       {/* Content aligned to the page container */}
       <div className="container-x relative">
-        <div className="max-w-md py-16 sm:max-w-lg sm:py-24 lg:py-32">
+        <div className="max-w-md py-8 sm:max-w-lg sm:py-24 lg:py-32">
           {slide.badge && (
-            <span className="inline-block rounded-md bg-red-500 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
+            <span className="inline-block rounded-md bg-red-500 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white sm:px-3 sm:py-1 sm:text-xs">
               {slide.badge}
             </span>
           )}
-          <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] text-dark sm:text-5xl lg:text-6xl">
+          <h1 className="mt-3 text-2xl font-extrabold leading-[1.1] text-dark sm:mt-5 sm:text-5xl sm:leading-[1.05] lg:text-6xl">
             {slide.title}
           </h1>
           {slide.subtitle && (
-            <p className="mt-4 text-lg font-medium text-slate-700">{slide.subtitle}</p>
+            <p className="mt-2 text-sm font-medium text-slate-700 sm:mt-4 sm:text-lg">
+              {slide.subtitle}
+            </p>
           )}
           <Link
             to={slide.link || '/shop'}
-            className="mt-7 inline-flex items-center gap-2.5 rounded-full bg-white py-3 pl-3 pr-7 text-sm font-bold uppercase tracking-wide text-dark shadow-card transition hover:shadow-lift"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-white py-2 pl-2 pr-5 text-xs font-bold uppercase tracking-wide text-dark shadow-card transition hover:shadow-lift sm:mt-7 sm:gap-2.5 sm:py-3 sm:pl-3 sm:pr-7 sm:text-sm"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white sm:h-7 sm:w-7">
               <FaArrowRight size={12} />
             </span>
             {slide.buttonText || 'Shop Now'}
