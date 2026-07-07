@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import Navbar from './Navbar'
 import Footer from './Footer'
+import MobileBottomNav from './MobileBottomNav'
 
 export default function Layout() {
   const { pathname } = useLocation()
@@ -16,6 +17,9 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
+      {/* Spacer so the fixed mobile bar never covers the footer */}
+      <div className="h-16 md:hidden" />
+      <MobileBottomNav />
     </div>
   )
 }
