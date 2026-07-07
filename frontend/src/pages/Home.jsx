@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../lib/api'
 import HeroSlider from '../components/HeroSlider'
+import TrustBar from '../components/TrustBar'
 import FeatureStrip from '../components/FeatureStrip'
 import SectionHeading from '../components/SectionHeading'
 import CategoryCard from '../components/CategoryCard'
@@ -74,6 +75,7 @@ export default function Home() {
   return (
     <div className="pb-4">
       <HeroSlider />
+      <TrustBar />
       <FeatureStrip />
 
       {/* Categories */}
