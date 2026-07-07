@@ -34,7 +34,6 @@ const navLinks = [
     ],
   },
   { to: '/blog', label: 'Blog' },
-  { to: '/shop?keyword=medicine', label: 'Medicine' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
 ]
@@ -86,20 +85,26 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 bg-white shadow-sm">
-      {/* Announcement bar */}
+      {/* Announcement bar — moving marquee */}
       <div className="bg-dark text-white">
-        <div className="container-x flex h-9 items-center justify-between text-xs">
-          <span className="hidden sm:block">
-            Free shipping on all orders over <strong>₹1000</strong>
-          </span>
-          <div className="flex items-center gap-4">
+        <div className="container-x flex h-9 items-center gap-4 text-xs">
+          <div className="marquee flex-1 overflow-hidden">
+            <div className="marquee-track marquee-ltr">
+              {[0, 1].map((dup) => (
+                <div key={dup} className="flex shrink-0 items-center gap-10 pr-10">
+                  <span>🚚 Free shipping on all orders over <strong>₹1000</strong></span>
+                  <span>💊 100% genuine, licensed pharmacy</span>
+                  <span>⚡ Fast delivery across India</span>
+                  <span>🔒 Secure payments · Easy returns</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="hidden shrink-0 items-center gap-4 sm:flex">
             <a href={telLink()} className="flex items-center gap-1.5 hover:text-accent">
               <FaPhoneAlt size={11} /> {siteConfig.phone}
             </a>
-            <a
-              href={mailLink()}
-              className="hidden items-center gap-1.5 hover:text-accent sm:flex"
-            >
+            <a href={mailLink()} className="flex items-center gap-1.5 hover:text-accent">
               <FaEnvelope size={11} /> {siteConfig.email}
             </a>
           </div>

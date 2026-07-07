@@ -5,6 +5,7 @@ import HeroSlider from '../components/HeroSlider'
 import TrustBar from '../components/TrustBar'
 import FeatureStrip from '../components/FeatureStrip'
 import SectionHeading from '../components/SectionHeading'
+import CategoryCard from '../components/CategoryCard'
 import CategoryCircles from '../components/CategoryCircles'
 import HealthCorner from '../components/HealthCorner'
 import ProductCarousel from '../components/ProductCarousel'
@@ -91,7 +92,15 @@ export default function Home() {
             link="/shop"
             linkText="All Categories"
           />
-          <CategoryCircles categories={categories.slice(0, 14)} />
+          {/* Mobile: compact swipeable circles. Desktop: larger card grid. */}
+          <div className="lg:hidden">
+            <CategoryCircles categories={categories.slice(0, 14)} />
+          </div>
+          <div className="hidden gap-4 lg:grid lg:grid-cols-6">
+            {categories.slice(0, 12).map((c) => (
+              <CategoryCard key={c._id} category={c} />
+            ))}
+          </div>
         </section>
       )}
 
