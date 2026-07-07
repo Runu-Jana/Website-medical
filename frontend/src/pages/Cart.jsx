@@ -100,8 +100,18 @@ export default function Cart() {
                 <dt className="text-slate-500">Items Price</dt>
                 <dd className="font-semibold">{formatPrice(totals.subtotal)}</dd>
               </div>
+              {totals.memberDiscount > 0 && (
+                <div className="flex justify-between text-primary">
+                  <dt className="flex items-center gap-1 font-medium">
+                    👑 Health Club discount
+                  </dt>
+                  <dd className="font-semibold">−{formatPrice(totals.memberDiscount)}</dd>
+                </div>
+              )}
               <div className="flex justify-between">
-                <dt className="text-slate-500">Shipping</dt>
+                <dt className="text-slate-500">
+                  Shipping{totals.isMember && totals.shipping === 0 ? ' (Member)' : ''}
+                </dt>
                 <dd className="font-semibold">
                   {totals.shipping === 0 ? (
                     <span className="text-accent">Free</span>
@@ -124,6 +134,15 @@ export default function Cart() {
               <div className="mt-4 rounded-xl bg-emerald-50 px-4 py-2.5 text-center text-sm font-bold text-emerald-700">
                 🎉 You'll save {formatPrice(totalSavings)} on this order
               </div>
+            )}
+            {!totals.isMember && (
+              <Link
+                to="/health-club"
+                className="mt-4 flex items-center justify-between gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/10"
+              >
+                <span>👑 Join the Health Club for FREE delivery + 5% off</span>
+                <span className="shrink-0">→</span>
+              </Link>
             )}
             <button onClick={() => navigate('/checkout')} className="btn-primary mt-5 w-full">
               Proceed to Checkout

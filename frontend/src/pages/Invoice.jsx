@@ -63,7 +63,8 @@ export default function Invoice() {
     return { ...i, inclusive, rate, taxable, gst }
   })
   const shipping = Number(order.shippingPrice || 0)
-  const grandTotal = Number(order.totalPrice ?? taxableTotal + gstTotal + shipping)
+  const memberDiscount = Number(order.discountPrice || 0)
+  const grandTotal = Number(order.totalPrice ?? taxableTotal + gstTotal + shipping - memberDiscount)
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 print:py-0">
@@ -167,6 +168,12 @@ export default function Invoice() {
               <div className="flex justify-between text-slate-400">
                 <dt>GST</dt>
                 <dd>Inclusive</dd>
+              </div>
+            )}
+            {memberDiscount > 0 && (
+              <div className="flex justify-between text-primary">
+                <dt>Health Club discount</dt>
+                <dd>−{money(memberDiscount)}</dd>
               </div>
             )}
             <div className="flex justify-between">

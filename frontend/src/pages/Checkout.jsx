@@ -291,8 +291,16 @@ export default function Checkout() {
                 <dt className="text-slate-500">Subtotal</dt>
                 <dd className="font-semibold">{formatPrice(totals.subtotal)}</dd>
               </div>
+              {totals.memberDiscount > 0 && (
+                <div className="flex justify-between text-primary">
+                  <dt className="font-medium">👑 Health Club discount</dt>
+                  <dd className="font-semibold">−{formatPrice(totals.memberDiscount)}</dd>
+                </div>
+              )}
               <div className="flex justify-between">
-                <dt className="text-slate-500">Shipping</dt>
+                <dt className="text-slate-500">
+                  Shipping{totals.isMember && totals.shipping === 0 ? ' (Member)' : ''}
+                </dt>
                 <dd className="font-semibold">
                   {totals.shipping === 0 ? (
                     <span className="text-accent">Free</span>

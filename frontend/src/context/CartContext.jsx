@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import api from '../lib/api'
 import { useAuth } from './AuthContext'
 import { useToast } from './ToastContext'
-import { calcShipping } from '../lib/helpers'
+import { calcShipping, MEMBER_DISCOUNT_PERCENT } from '../lib/helpers'
 
 const CartContext = createContext(null)
 
@@ -132,9 +132,18 @@ export function CartProvider({ children }) {
 
   const totals = useMemo(() => {
     const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0)
-    const shipping = items.length ? calcShipping(subtotal) : 0
-    return { subtotal, shipping, total: subtotal + shipping }
-  }, [items])
+    const isMember = !!user?.isMember
+    // Members: free delivery + % off items (mirrors the server-side calc).
+    const memberDiscount = isMember ? Math.round(subtotal * (MEMBER_DISCOUNT_PERCENT / 100)) : 0
+    const shipping = !items.length ? 0 : isMember ? 0 : calcShipping(subtotal)
+    return {
+      subtotal,
+      shipping,
+      memberDiscount,
+      isMember,
+      total: subtotal - memberDiscount + shipping,
+    }
+  }, [items, user])
 
   const itemCount = useMemo(() => items.reduce((sum, i) => sum + i.qty, 0), [items])
 

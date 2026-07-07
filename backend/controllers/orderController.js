@@ -8,6 +8,9 @@ import {
 } from '../lib/notify.js';
 import { scheduleRefillsForOrder } from '../lib/refill.js';
 
+// DCare Health Club member discount (percent off items).
+export const MEMBER_DISCOUNT_PERCENT = 5;
+
 // @route POST /api/orders  (customer or guest checkout)
 export const createOrder = async (req, res) => {
   const { items, shippingAddress, paymentMethod } = req.body;
@@ -16,9 +19,12 @@ export const createOrder = async (req, res) => {
   }
 
   const itemsPrice = items.reduce((a, i) => a + i.price * i.qty, 0);
-  const shippingPrice = itemsPrice > 1000 ? 0 : 60;
+  // Health Club perks: free delivery + 5% off (computed server-side, never trusted from client).
+  const isMember = !!req.user?.isMember;
+  const discountPrice = isMember ? Math.round(itemsPrice * (MEMBER_DISCOUNT_PERCENT / 100)) : 0;
+  const shippingPrice = isMember ? 0 : itemsPrice > 1000 ? 0 : 60;
   const taxPrice = 0;
-  const totalPrice = itemsPrice + shippingPrice + taxPrice;
+  const totalPrice = itemsPrice - discountPrice + shippingPrice + taxPrice;
 
   const order = await prisma.order.create({
     data: {
@@ -28,6 +34,7 @@ export const createOrder = async (req, res) => {
       paymentMethod: paymentMethod || 'Cash on Delivery',
       itemsPrice,
       shippingPrice,
+      discountPrice,
       taxPrice,
       totalPrice,
     },

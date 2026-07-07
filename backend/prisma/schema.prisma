@@ -136,6 +136,7 @@ model Order {
   razorpayPaymentId String?
   itemsPrice        Float     @default(0)
   shippingPrice     Float     @default(0)
+  discountPrice     Float     @default(0)
   taxPrice          Float     @default(0)
   totalPrice        Float     @default(0)
   isPaid            Boolean   @default(false)
