@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { FaCheckCircle, FaShoppingCart } from 'react-icons/fa'
+import { useNavigate, useLocation } from 'react-router-dom'
 import api from '../lib/api'
 import { useAuth } from './AuthContext'
+import { useToast } from './ToastContext'
 import { calcShipping } from '../lib/helpers'
 
 const CartContext = createContext(null)
@@ -28,22 +29,12 @@ const mergeCarts = (a, b) => {
 
 export function CartProvider({ children }) {
   const { user } = useAuth()
+  const { showToast } = useToast()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [items, setItems] = useState(loadLocal)
-  const [toast, setToast] = useState(null) // { name, thumbnail } for the "added to cart" popup
   const prevUser = useRef(null)
   const saveTimer = useRef(null)
-  const toastTimer = useRef(null)
-
-  // Show the "added to cart" popup, auto-dismissing after a moment.
-  const showAddedToast = (product) => {
-    setToast({
-      name: product.name,
-      thumbnail: product.thumbnail || (product.images && product.images[0]) || '',
-    })
-    clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToast(null), 2600)
-  }
-  useEffect(() => () => clearTimeout(toastTimer.current), [])
 
   // Guest cart persists to localStorage.
   useEffect(() => {
@@ -82,9 +73,27 @@ export function CartProvider({ children }) {
     return () => clearTimeout(saveTimer.current)
   }, [items, user])
 
+  // Sign-in required before adding anything. Returns true if allowed.
+  const requireAuth = () => {
+    if (user) return true
+    showToast({
+      title: 'Please sign in',
+      subtitle: 'Sign in or create an account to continue.',
+      tone: 'info',
+    })
+    navigate('/login', { state: { from: location.pathname + location.search } })
+    return false
+  }
+
   const addToCart = (product, qty = 1) => {
+    if (!requireAuth()) return false
     const id = product._id || product.product
-    showAddedToast(product)
+    showToast({
+      title: 'Added to cart',
+      subtitle: product.name,
+      thumbnail: product.thumbnail || (product.images && product.images[0]) || '',
+      tone: 'cart',
+    })
     setItems((prev) => {
       const existing = prev.find((i) => i._id === id)
       const stock = product.countInStock ?? 99
@@ -106,6 +115,7 @@ export function CartProvider({ children }) {
         },
       ]
     })
+    return true
   }
 
   const updateQty = (id, qty) => {
@@ -132,54 +142,7 @@ export function CartProvider({ children }) {
       value={{ items, addToCart, updateQty, removeFromCart, clearCart, totals, itemCount }}
     >
       {children}
-      <CartToast toast={toast} onClose={() => setToast(null)} />
     </CartContext.Provider>
-  )
-}
-
-// Small "Added to cart" popup shown whenever addToCart runs.
-function CartToast({ toast, onClose }) {
-  return (
-    <div
-      className="pointer-events-none fixed inset-x-0 top-4 z-[100] flex justify-center px-4 sm:inset-x-auto sm:right-5 sm:top-24 sm:justify-end"
-      aria-live="polite"
-    >
-      <div
-        className={`pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-2xl border border-primary/20 bg-white p-3 pr-4 shadow-lift transition-all duration-300 ${
-          toast ? 'translate-y-0 opacity-100' : '-translate-y-3 opacity-0'
-        }`}
-        role="status"
-      >
-        {toast && (
-          <>
-            {toast.thumbnail ? (
-              <img
-                src={toast.thumbnail}
-                alt=""
-                className="h-11 w-11 shrink-0 rounded-lg border border-bordergray object-cover"
-              />
-            ) : (
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <FaShoppingCart size={18} />
-              </span>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="flex items-center gap-1.5 text-sm font-bold text-primary">
-                <FaCheckCircle size={14} /> Added to cart
-              </p>
-              <p className="truncate text-xs text-slate-500">{toast.name}</p>
-            </div>
-            <button
-              onClick={onClose}
-              aria-label="Dismiss"
-              className="shrink-0 text-slate-300 transition hover:text-slate-500"
-            >
-              ✕
-            </button>
-          </>
-        )}
-      </div>
-    </div>
   )
 }
 

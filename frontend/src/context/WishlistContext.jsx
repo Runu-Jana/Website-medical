@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import api from '../lib/api'
 import { useAuth } from './AuthContext'
+import { useToast } from './ToastContext'
 
 const WishlistContext = createContext(null)
 
@@ -31,6 +33,9 @@ const slim = (p) => ({
 
 export function WishlistProvider({ children }) {
   const { user } = useAuth()
+  const { showToast } = useToast()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [items, setItems] = useState(loadLocal)
   const prevUser = useRef(null)
   const saveTimer = useRef(null)
@@ -71,12 +76,31 @@ export function WishlistProvider({ children }) {
   }, [items, user])
 
   const isWishlisted = (id) => items.some((p) => p._id === id)
-  const toggle = (product) =>
-    setItems((prev) =>
-      prev.some((p) => p._id === product._id)
-        ? prev.filter((p) => p._id !== product._id)
-        : [...prev, slim(product)]
-    )
+  const toggle = (product) => {
+    // Sign-in required before saving to the wishlist.
+    if (!user) {
+      showToast({
+        title: 'Please sign in',
+        subtitle: 'Sign in or create an account to save favourites.',
+        tone: 'info',
+      })
+      navigate('/login', { state: { from: location.pathname + location.search } })
+      return
+    }
+    const already = items.some((p) => p._id === product._id)
+    if (already) {
+      setItems((prev) => prev.filter((p) => p._id !== product._id))
+      showToast({ title: 'Removed from wishlist', subtitle: product.name, tone: 'info' })
+    } else {
+      setItems((prev) => [...prev, slim(product)])
+      showToast({
+        title: 'Added to wishlist',
+        subtitle: product.name,
+        thumbnail: product.thumbnail || (product.images && product.images[0]) || '',
+        tone: 'wishlist',
+      })
+    }
+  }
   const remove = (id) => setItems((prev) => prev.filter((p) => p._id !== id))
 
   return (

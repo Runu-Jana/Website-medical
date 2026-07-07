@@ -33,8 +33,7 @@ export default function QuickViewModal({ product, onClose }) {
   const viewing = stableNumber(product._id + 'v', 12, 60)
 
   const buyNow = () => {
-    addToCart(product, qty)
-    navigate('/cart')
+    if (addToCart(product, qty)) navigate('/cart')
   }
 
   return (

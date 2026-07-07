@@ -89,8 +89,7 @@ export default function ProductDetail() {
     product.dosageForm
 
   const handleBuyNow = () => {
-    addToCart(product, qty)
-    navigate('/cart')
+    if (addToCart(product, qty)) navigate('/cart')
   }
 
   const submitReview = async (e) => {

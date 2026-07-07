@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { FaHeartbeat } from 'react-icons/fa'
 
 export default function Register() {
   const { register } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [form, setForm] = useState({ name: '', email: '', password: '', phone: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -18,7 +19,7 @@ export default function Register() {
     setLoading(true)
     try {
       await register(form)
-      navigate('/account')
+      navigate(location.state?.from || '/account')
     } catch (err) {
       setError(err.response?.data?.message || 'Could not create account.')
     } finally {
@@ -80,7 +81,11 @@ export default function Register() {
 
         <p className="mt-5 text-center text-sm text-slate-500">
           Already have an account?{' '}
-          <Link to="/login" className="font-semibold text-primary hover:underline">
+          <Link
+            to="/login"
+            state={location.state}
+            className="font-semibold text-primary hover:underline"
+          >
             Sign in
           </Link>
         </p>

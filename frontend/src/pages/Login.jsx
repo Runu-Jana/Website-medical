@@ -227,7 +227,11 @@ export default function Login() {
 
         <p className="mt-5 text-center text-sm text-slate-500">
           Don't have an account?{' '}
-          <Link to="/register" className="font-semibold text-primary hover:underline">
+          <Link
+            to="/register"
+            state={location.state}
+            className="font-semibold text-primary hover:underline"
+          >
             Create one
           </Link>
         </p>
