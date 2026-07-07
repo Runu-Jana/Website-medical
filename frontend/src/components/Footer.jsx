@@ -71,6 +71,11 @@ export default function Footer() {
                 </li>
               )
             )}
+            <li>
+              <Link to="/brands" className="hover:text-primary">
+                Shop by Brand
+              </Link>
+            </li>
           </ul>
         </div>
 

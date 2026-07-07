@@ -30,6 +30,7 @@ const navLinks = [
     dropdown: [
       { to: '/shop', label: 'All Products' },
       { to: '/shop?view=categories', label: 'Shop by Category', submenu: 'categories' },
+      { to: '/brands', label: 'Shop by Brand' },
       { to: '/shop?deal=true', label: "Today's Deals" },
     ],
   },
