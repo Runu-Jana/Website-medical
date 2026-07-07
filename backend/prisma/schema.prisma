@@ -22,6 +22,8 @@ model User {
   trustedDevices   Json?
   loginCount       Int       @default(0)
   lastLoginAt      DateTime?
+  isMember         Boolean   @default(false)
+  memberSince      DateTime?
   resetCodeHash    String?
   resetCodeExpires DateTime?
   orders           Order[]

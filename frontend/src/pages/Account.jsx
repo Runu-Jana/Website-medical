@@ -12,6 +12,7 @@ import {
   FaMapMarkerAlt,
   FaPrescriptionBottleAlt,
   FaTimes,
+  FaCrown,
 } from 'react-icons/fa'
 
 export default function Account() {
@@ -91,6 +92,21 @@ export default function Account() {
             <h3 className="mt-3 text-lg font-bold">{user?.name}</h3>
             <p className="text-sm text-slate-500">{user?.email}</p>
             {user?.phone && <p className="text-sm text-slate-500">{user.phone}</p>}
+            {user?.isMember ? (
+              <Link
+                to="/health-club"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700"
+              >
+                <FaCrown size={11} /> Health Club Member
+              </Link>
+            ) : (
+              <Link
+                to="/health-club"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary hover:bg-primary/20"
+              >
+                <FaCrown size={11} /> Join Health Club
+              </Link>
+            )}
             <button onClick={handleLogout} className="btn-outline mt-5 w-full">
               <FaSignOutAlt /> Logout
             </button>
