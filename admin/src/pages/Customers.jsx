@@ -22,7 +22,7 @@ export default function Customers() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/users', { params: { keyword: search, page, limit: 12 } });
+      const { data } = await api.get('/users', { params: { keyword: search, page, limit: 15 } });
       setData({
         customers: data.customers || [],
         page: data.page || 1,
@@ -114,7 +114,7 @@ export default function Customers() {
             </table>
           </div>
         )}
-        {!loading && data.customers.length > 0 && (
+        {!loading && data.pages > 1 && (
           <div className="border-t border-slate-100">
             <Pagination page={data.page} pages={data.pages} total={data.total} onChange={setPage} />
           </div>
