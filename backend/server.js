@@ -27,9 +27,12 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import refillRoutes from './routes/refillRoutes.js';
+import { startRefillScheduler } from './lib/refill.js';
 
 connectDB().then(() => autoSeedIfEmpty());
 console.log(`✉️  Email notifications: ${mailerEnabled ? 'enabled' : 'disabled (set SMTP_* in .env)'}`);
+startRefillScheduler();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -102,6 +105,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/admins', adminRoutes);
+app.use('/api/refills', refillRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

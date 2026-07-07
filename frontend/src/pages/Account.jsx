@@ -5,13 +5,21 @@ import { useAuth } from '../context/AuthContext'
 import Spinner from '../components/Spinner'
 import { formatPrice } from '../lib/helpers'
 import AddressAutocomplete from '../components/AddressAutocomplete'
-import { FaSignOutAlt, FaUserCircle, FaBoxOpen, FaMapMarkerAlt } from 'react-icons/fa'
+import {
+  FaSignOutAlt,
+  FaUserCircle,
+  FaBoxOpen,
+  FaMapMarkerAlt,
+  FaPrescriptionBottleAlt,
+  FaTimes,
+} from 'react-icons/fa'
 
 export default function Account() {
   const { user, logout, updateUser } = useAuth()
   const navigate = useNavigate()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [refills, setRefills] = useState([])
 
   const [addr, setAddr] = useState({
     line1: user?.address?.line1 || '',
@@ -45,15 +53,32 @@ export default function Account() {
       .then(({ data }) => active && setOrders(Array.isArray(data) ? data : data.orders || []))
       .catch(() => active && setOrders([]))
       .finally(() => active && setLoading(false))
+    api
+      .get('/me/refills')
+      .then(({ data }) => active && setRefills(Array.isArray(data) ? data : []))
+      .catch(() => active && setRefills([]))
     return () => {
       active = false
     }
   }, [])
 
+  const updateRefill = async (id, body) => {
+    try {
+      await api.patch(`/me/refills/${id}`, body)
+      const { data } = await api.get('/me/refills')
+      setRefills(Array.isArray(data) ? data : [])
+    } catch {
+      /* ignore */
+    }
+  }
+
   const handleLogout = () => {
     logout()
     navigate('/')
   }
+
+  // Only show reminders that are still upcoming/active.
+  const activeRefills = refills.filter((r) => r.status !== 'cancelled')
 
   return (
     <div className="container-x py-8">
@@ -126,6 +151,67 @@ export default function Account() {
               </button>
             </form>
           </div>
+
+          {/* Refill reminders */}
+          {activeRefills.length > 0 && (
+            <div className="card mt-6 p-6">
+              <h3 className="mb-1 flex items-center gap-2 text-lg font-bold">
+                <FaPrescriptionBottleAlt className="text-primary" /> Refill Reminders
+              </h3>
+              <p className="mb-4 text-xs text-slate-400">
+                We'll email you when it's time to reorder.
+              </p>
+              <div className="space-y-3">
+                {activeRefills.map((r) => {
+                  const due = new Date(r.dueDate)
+                  const overdue = r.status === 'sent' || due <= new Date()
+                  return (
+                    <div key={r._id} className="rounded-xl border border-bordergray p-3">
+                      <div className="flex items-start gap-3">
+                        {r.thumbnail ? (
+                          <img
+                            src={r.thumbnail}
+                            alt=""
+                            className="h-10 w-10 shrink-0 rounded-lg border border-bordergray object-cover"
+                          />
+                        ) : null}
+                        <div className="min-w-0 flex-1">
+                          <p className="line-clamp-1 text-sm font-semibold text-dark">
+                            {r.productName}
+                          </p>
+                          <p className={`text-xs ${overdue ? 'font-semibold text-accent' : 'text-slate-500'}`}>
+                            {overdue ? 'Due now' : `Refill by ${due.toLocaleDateString()}`}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => updateRefill(r._id, { action: 'cancel' })}
+                          className="p-1 text-slate-300 hover:text-red-500"
+                          aria-label="Cancel reminder"
+                          title="Cancel reminder"
+                        >
+                          <FaTimes size={13} />
+                        </button>
+                      </div>
+                      <div className="mt-2 flex gap-2">
+                        <Link
+                          to={`/product/${r.productSlug || r.productId}`}
+                          className="flex-1 rounded-lg bg-primary px-3 py-1.5 text-center text-xs font-semibold text-white hover:bg-primaryDark"
+                        >
+                          Reorder
+                        </Link>
+                        <button
+                          onClick={() => updateRefill(r._id, { action: 'snooze', days: 7 })}
+                          className="rounded-lg border border-bordergray px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary"
+                        >
+                          Snooze 7d
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Orders */}

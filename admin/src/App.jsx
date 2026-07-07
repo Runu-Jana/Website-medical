@@ -13,6 +13,7 @@ import Posts from './pages/Posts.jsx';
 import Prescriptions from './pages/Prescriptions.jsx';
 import Orders from './pages/Orders.jsx';
 import Customers from './pages/Customers.jsx';
+import Refills from './pages/Refills.jsx';
 import Messages from './pages/Messages.jsx';
 import Admins from './pages/Admins.jsx';
 import NotFound from './pages/NotFound.jsx';
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/prescriptions" element={<Prescriptions />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/customers" element={<Customers />} />
+        <Route path="/refills" element={<Refills />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/admins" element={<Admins />} />
       </Route>

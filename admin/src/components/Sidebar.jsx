@@ -12,6 +12,7 @@ import {
   FiMail,
   FiShield,
   FiActivity,
+  FiRefreshCw,
   FiX,
 } from 'react-icons/fi';
 
@@ -25,6 +26,7 @@ const links = [
   { to: '/prescriptions', label: 'Prescriptions', icon: FiUpload },
   { to: '/orders', label: 'Orders', icon: FiShoppingCart },
   { to: '/customers', label: 'Customers', icon: FiUsers },
+  { to: '/refills', label: 'Refills', icon: FiRefreshCw },
   { to: '/messages', label: 'Messages', icon: FiMail },
   { to: '/admins', label: 'Admins', icon: FiShield },
 ];

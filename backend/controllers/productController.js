@@ -175,6 +175,7 @@ export const createProduct = async (req, res) => {
       discountAmount: Number(b.discountAmount) || 0,
       minStock: Number(b.minStock) || 0,
       packSize: b.packSize || '',
+      refillDays: Number(b.refillDays) || 0,
       saltComposition: b.saltComposition || '',
       strength: b.strength || '',
       dosageForm: b.dosageForm || '',
@@ -219,7 +220,7 @@ export const updateProduct = async (req, res) => {
   if (b.price !== undefined) data.price = Number(b.price);
   if (b.oldPrice !== undefined) data.oldPrice = Number(b.oldPrice);
   if (b.countInStock !== undefined) data.countInStock = Number(b.countInStock);
-  ['gstPercent', 'purchasePrice', 'discountAmount', 'minStock'].forEach((f) => {
+  ['gstPercent', 'purchasePrice', 'discountAmount', 'minStock', 'refillDays'].forEach((f) => {
     if (b[f] !== undefined) data[f] = Number(b[f]) || 0;
   });
   if (b.images !== undefined) data.images = Array.isArray(b.images) ? b.images : [];

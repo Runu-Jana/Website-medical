@@ -6,6 +6,7 @@ import {
   notifyOrderStatus,
   LOW_STOCK_THRESHOLD,
 } from '../lib/notify.js';
+import { scheduleRefillsForOrder } from '../lib/refill.js';
 
 // @route POST /api/orders  (customer or guest checkout)
 export const createOrder = async (req, res) => {
@@ -141,5 +142,10 @@ export const updateOrderStatus = async (req, res) => {
   // Email the customer about the status change (if it actually changed).
   if (status && status !== order.status && order.user?.email) {
     notifyOrderStatus({ order: updated, customerEmail: order.user.email }).catch(() => {});
+  }
+
+  // On first delivery, schedule refill reminders for refillable items.
+  if (status === 'delivered' && order.status !== 'delivered') {
+    scheduleRefillsForOrder(updated).catch(() => {});
   }
 };

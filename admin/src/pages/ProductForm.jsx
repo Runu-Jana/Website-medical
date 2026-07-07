@@ -38,6 +38,7 @@ const emptyForm = {
   discountAmount: '',
   minStock: '',
   packSize: '',
+  refillDays: '',
   saltComposition: '',
   strength: '',
   dosageForm: '',
@@ -203,6 +204,7 @@ export default function ProductForm() {
               discountAmount: product.discountAmount ?? '',
               minStock: product.minStock ?? '',
               packSize: product.packSize || '',
+              refillDays: product.refillDays ?? '',
               saltComposition: product.saltComposition || '',
               strength: product.strength || '',
               dosageForm: product.dosageForm || '',
@@ -304,6 +306,7 @@ export default function ProductForm() {
       discountAmount: form.discountAmount === '' ? 0 : Number(form.discountAmount),
       minStock: form.minStock === '' ? 0 : Number(form.minStock),
       packSize: form.packSize,
+      refillDays: Number(form.refillDays) || 0,
       saltComposition: form.saltComposition,
       strength: form.strength,
       dosageForm: form.dosageForm,
@@ -445,6 +448,7 @@ export default function ProductForm() {
               <Field label="Stock Quantity" type="number" value={form.countInStock} onChange={(v) => set('countInStock', v)} placeholder="0" />
               <Field label="Minimum Stock" type="number" value={form.minStock} onChange={(v) => set('minStock', v)} placeholder="e.g. 20" />
               <Field label="Pack Size" value={form.packSize} onChange={(v) => set('packSize', v)} placeholder="e.g. 15 tablets" />
+              <Field label="Refill After (days)" type="number" value={form.refillDays} onChange={(v) => set('refillDays', v)} placeholder="0 = default 30" />
             </div>
           </div>
 
