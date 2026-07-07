@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import {
-  FaSearch,
   FaShoppingCart,
   FaRegHeart,
   FaUser,
@@ -19,6 +18,8 @@ import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { useAuth } from '../context/AuthContext'
 import api from '../lib/api'
+import SearchBar from './SearchBar'
+import QuickServices from './QuickServices'
 import { siteConfig, telLink, mailLink } from '../config/site'
 
 const navLinks = [
@@ -32,16 +33,6 @@ const navLinks = [
       { to: '/shop?deal=true', label: "Today's Deals" },
     ],
   },
-  {
-    label: 'Pages',
-    dropdown: [
-      { to: '/prescription', label: 'Upload Prescription' },
-      { to: '/about', label: 'About Us' },
-      { to: '/contact', label: 'Contact' },
-      { to: '/account', label: 'My Account' },
-      { to: '/cart', label: 'Cart' },
-    ],
-  },
   { to: '/blog', label: 'Blog' },
   { to: '/shop?keyword=medicine', label: 'Medicine' },
   { to: '/about', label: 'About' },
@@ -49,7 +40,6 @@ const navLinks = [
 ]
 
 export default function Navbar() {
-  const navigate = useNavigate()
   const location = useLocation()
   const { itemCount } = useCart()
   const { count: wishlistCount } = useWishlist()
@@ -71,7 +61,6 @@ export default function Navbar() {
     return location.pathname === to || location.pathname.startsWith(`${to}/`)
   }
   const { user } = useAuth()
-  const [keyword, setKeyword] = useState('')
   const [mobileOpen, setMobileOpen] = useState(false)
   const [catOpen, setCatOpen] = useState(false)
   const [categories, setCategories] = useState([])
@@ -91,12 +80,6 @@ export default function Navbar() {
     document.addEventListener('mousedown', onClick)
     return () => document.removeEventListener('mousedown', onClick)
   }, [])
-
-  const onSearch = (e) => {
-    e.preventDefault()
-    navigate(`/shop?keyword=${encodeURIComponent(keyword.trim())}`)
-    setMobileOpen(false)
-  }
 
   // The search bar is meaningless on the auth pages — hide it there for a cleaner UI.
   const hideSearch = ['/login', '/register', '/forgot-password'].includes(location.pathname)
@@ -136,22 +119,9 @@ export default function Navbar() {
           </Link>
 
           {!hideSearch && (
-            <form onSubmit={onSearch} className="hidden flex-1 md:block">
-              <div className="flex items-center rounded-xl border border-bordergray focus-within:border-primary">
-                <input
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                  placeholder="Search by product or category..."
-                  className="w-full rounded-l-xl bg-transparent px-4 py-2.5 text-sm outline-none"
-                />
-                <button
-                  type="submit"
-                  className="flex h-11 items-center gap-2 rounded-r-xl bg-primary px-5 text-sm font-semibold text-white hover:bg-primaryDark"
-                >
-                  <FaSearch /> <span className="hidden lg:inline">Search</span>
-                </button>
-              </div>
-            </form>
+            <div className="hidden flex-1 md:block">
+              <SearchBar variant="desktop" />
+            </div>
           )}
 
           <div className="ml-auto flex items-center gap-1 sm:gap-3">
@@ -231,21 +201,14 @@ export default function Navbar() {
 
         {/* mobile search */}
         {!hideSearch && (
-          <form onSubmit={onSearch} className="container-x pb-3 md:hidden">
-            <div className="flex items-center rounded-xl border border-bordergray">
-              <input
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                placeholder="Search products..."
-                className="w-full rounded-l-xl bg-transparent px-4 py-2.5 text-sm outline-none"
-              />
-              <button type="submit" className="px-4 text-primary">
-                <FaSearch />
-              </button>
-            </div>
-          </form>
+          <div className="container-x pb-3 md:hidden">
+            <SearchBar variant="mobile" onNavigate={() => setMobileOpen(false)} />
+          </div>
         )}
       </div>
+
+      {/* Quick services strip */}
+      <QuickServices onNavigate={() => setMobileOpen(false)} />
 
       {/* Main nav */}
       <nav className="hidden border-b border-bordergray bg-white lg:block">

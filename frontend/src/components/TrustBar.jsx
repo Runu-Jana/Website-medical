@@ -7,30 +7,29 @@ import {
 } from 'react-icons/fa'
 
 const items = [
-  { icon: FaCheckCircle, label: 'Genuine Medicines' },
-  { icon: FaShippingFast, label: 'Fast Delivery' },
-  { icon: FaLock, label: 'Secure Payments' },
-  { icon: FaHeadset, label: '24×7 Support' },
-  { icon: FaCertificate, label: 'Licensed Pharmacy' },
+  { icon: FaCheckCircle, label: 'Genuine Medicines', color: 'bg-emerald-50 text-emerald-600' },
+  { icon: FaShippingFast, label: 'Fast Delivery', color: 'bg-sky-50 text-sky-600' },
+  { icon: FaLock, label: 'Secure Payments', color: 'bg-indigo-50 text-indigo-600' },
+  { icon: FaHeadset, label: '24×7 Support', color: 'bg-amber-50 text-amber-600' },
+  { icon: FaCertificate, label: 'Licensed Pharmacy', color: 'bg-rose-50 text-rose-600' },
 ]
 
 export default function TrustBar() {
   return (
-    <div className="border-b border-bordergray bg-white">
-      <div className="container-x">
-        {/* Horizontal scroll on small screens, spread evenly on larger ones */}
-        <ul className="flex snap-x gap-3 overflow-x-auto py-3 sm:justify-between sm:gap-4 sm:overflow-visible sm:py-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="container-x mt-6">
+      <div className="card px-3 py-5 sm:px-6">
+        <ul className="flex gap-4 overflow-x-auto sm:justify-around sm:gap-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {items.map((it) => (
             <li
               key={it.label}
-              className="flex shrink-0 snap-start items-center gap-2 rounded-xl bg-primary/5 px-3 py-2 sm:bg-transparent sm:px-0 sm:py-0"
+              className="flex min-w-[84px] flex-col items-center gap-2 text-center sm:min-w-0"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <it.icon size={15} />
+              <span
+                className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl ring-4 ring-white ${it.color}`}
+              >
+                <it.icon />
               </span>
-              <span className="whitespace-nowrap text-xs font-semibold text-dark sm:text-sm">
-                {it.label}
-              </span>
+              <span className="text-xs font-semibold text-dark sm:text-sm">{it.label}</span>
             </li>
           ))}
         </ul>
