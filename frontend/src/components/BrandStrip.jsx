@@ -31,7 +31,7 @@ export default function BrandStrip({ brands }) {
           <h2 className="text-2xl font-extrabold text-dark">Featured Brands</h2>
         </div>
         <Link
-          to="/shop"
+          to="/brands"
           className="flex items-center gap-1 rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white"
         >
           See all <FaChevronRight size={11} />

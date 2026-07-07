@@ -13,6 +13,7 @@ import About from './pages/About'
 import Contact from './pages/Contact'
 import Blog from './pages/Blog'
 import BlogPost from './pages/BlogPost'
+import Brands from './pages/Brands'
 import Wishlist from './pages/Wishlist'
 import PrescriptionUpload from './pages/PrescriptionUpload'
 import LegalPage from './pages/LegalPage'
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
+        <Route path="/brands" element={<Brands />} />
         <Route path="/privacy-policy" element={<LegalPage docKey="privacy-policy" />} />
         <Route path="/terms" element={<LegalPage docKey="terms" />} />
         <Route path="/refund-policy" element={<LegalPage docKey="refund-policy" />} />
