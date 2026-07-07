@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { FiSearch, FiUsers, FiMail, FiPhone, FiShoppingBag } from 'react-icons/fi';
+import { FiSearch, FiUsers, FiMail, FiPhone, FiShoppingBag, FiX } from 'react-icons/fi';
 import api from '../lib/api.js';
 import { useToast } from '../context/ToastContext.jsx';
 import Loader from '../components/Loader.jsx';
@@ -18,11 +18,16 @@ export default function Customers() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(null);
   const [detail, setDetail] = useState(null);
+  const [filters, setFilters] = useState({ from: '', to: '', payment: '' });
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/users', { params: { keyword: search, page, limit: 15 } });
+      const params = { keyword: search, page, limit: 15 };
+      if (filters.from) params.from = filters.from;
+      if (filters.to) params.to = filters.to;
+      if (filters.payment) params.payment = filters.payment;
+      const { data } = await api.get('/users', { params });
       setData({
         customers: data.customers || [],
         page: data.page || 1,
@@ -34,7 +39,7 @@ export default function Customers() {
     } finally {
       setLoading(false);
     }
-  }, [search, page, toast]);
+  }, [search, page, filters, toast]);
 
   useEffect(() => {
     load();
@@ -76,6 +81,69 @@ export default function Customers() {
         </form>
       </div>
 
+      {/* Filters */}
+      <div className="card flex flex-wrap items-end gap-4 p-4">
+        <div>
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Joined from
+          </label>
+          <input
+            type="date"
+            value={filters.from}
+            max={filters.to || undefined}
+            onChange={(e) => {
+              setPage(1);
+              setFilters((f) => ({ ...f, from: e.target.value }));
+            }}
+            className="input"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Joined to
+          </label>
+          <input
+            type="date"
+            value={filters.to}
+            min={filters.from || undefined}
+            onChange={(e) => {
+              setPage(1);
+              setFilters((f) => ({ ...f, to: e.target.value }));
+            }}
+            className="input"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Payment mode
+          </label>
+          <select
+            value={filters.payment}
+            onChange={(e) => {
+              setPage(1);
+              setFilters((f) => ({ ...f, payment: e.target.value }));
+            }}
+            className="input"
+          >
+            <option value="">All</option>
+            <option value="prepaid">Prepaid (online)</option>
+            <option value="cod">Cash on Delivery</option>
+          </select>
+        </div>
+        {(filters.from || filters.to || filters.payment) && (
+          <button
+            type="button"
+            onClick={() => {
+              setPage(1);
+              setFilters({ from: '', to: '', payment: '' });
+            }}
+            className="btn-ghost h-[42px] gap-2"
+          >
+            <FiX /> Clear filters
+          </button>
+        )}
+      </div>
+
       <div className="card">
         {loading ? (
           <Loader label="Loading customers..." />
@@ -89,6 +157,7 @@ export default function Customers() {
                   <th className="px-4 py-3 font-semibold">Customer</th>
                   <th className="px-4 py-3 font-semibold">Contact</th>
                   <th className="px-4 py-3 font-semibold">Orders</th>
+                  <th className="px-4 py-3 font-semibold">Payment Mode</th>
                   <th className="px-4 py-3 font-semibold">Total Spent</th>
                   <th className="px-4 py-3 font-semibold">Joined</th>
                 </tr>
@@ -106,6 +175,9 @@ export default function Customers() {
                       <p className="text-xs text-slate-400">{c.phone || ''}</p>
                     </td>
                     <td className="px-4 py-3 font-semibold text-slate-700">{c.orderCount}</td>
+                    <td className="px-4 py-3">
+                      <PaymentModeBadge mode={c.paymentMode} />
+                    </td>
                     <td className="px-4 py-3 font-semibold text-slate-700">{formatCurrency(c.totalSpent)}</td>
                     <td className="px-4 py-3 text-slate-500">{formatDate(c.createdAt)}</td>
                   </tr>
@@ -162,5 +234,24 @@ export default function Customers() {
         )}
       </Modal>
     </div>
+  );
+}
+
+const MODE_STYLES = {
+  Prepaid: 'bg-emerald-100 text-emerald-700',
+  COD: 'bg-amber-100 text-amber-700',
+  Both: 'bg-indigo-100 text-indigo-700',
+};
+
+function PaymentModeBadge({ mode }) {
+  if (!mode || mode === '—') return <span className="text-slate-400">—</span>;
+  return (
+    <span
+      className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${
+        MODE_STYLES[mode] || 'bg-slate-100 text-slate-600'
+      }`}
+    >
+      {mode}
+    </span>
   );
 }
