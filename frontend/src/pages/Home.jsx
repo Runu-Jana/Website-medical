@@ -7,6 +7,7 @@ import FeatureStrip from '../components/FeatureStrip'
 import SectionHeading from '../components/SectionHeading'
 import CategoryCard from '../components/CategoryCard'
 import CategoryCircles from '../components/CategoryCircles'
+import BrandStrip from '../components/BrandStrip'
 import HealthCorner from '../components/HealthCorner'
 import ProductCarousel from '../components/ProductCarousel'
 import ProductSkeleton from '../components/ProductSkeleton'
@@ -15,7 +16,6 @@ import NewLaunches from '../components/NewLaunches'
 import BlogTeaser from '../components/BlogTeaser'
 import Testimonials from '../components/Testimonials'
 import CountdownTimer from '../components/CountdownTimer'
-import { imgFallback } from '../lib/helpers'
 import { FaArrowRight } from 'react-icons/fa'
 
 export default function Home() {
@@ -199,31 +199,7 @@ export default function Home() {
       <BlogTeaser />
 
       {/* Brands */}
-      {brands.length > 0 && (
-        <section className="container-x mt-14">
-          <SectionHeading subtitle="Trusted" title="Our Brands" />
-          <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-6">
-            {brands.map((b) => (
-              <Link
-                key={b._id}
-                to={`/shop?brand=${b._id}`}
-                className="card flex h-24 items-center justify-center p-4 hover:border-primary"
-              >
-                {b.logo ? (
-                  <img
-                    src={b.logo}
-                    onError={imgFallback}
-                    alt={b.name}
-                    className="max-h-12 max-w-full object-contain"
-                  />
-                ) : (
-                  <span className="text-sm font-bold text-slate-500">{b.name}</span>
-                )}
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      <BrandStrip brands={brands} />
 
       {/* Newsletter */}
       <section className="container-x mt-14">
