@@ -107,6 +107,7 @@ export function CartProvider({ children }) {
           name: product.name,
           thumbnail: product.thumbnail || (product.images && product.images[0]) || '',
           price: product.price,
+          oldPrice: product.oldPrice || 0,
           qty: Math.min(stock, qty),
           unit: product.unit || '',
           countInStock: stock,

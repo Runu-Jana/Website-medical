@@ -8,6 +8,12 @@ export default function Cart() {
   const navigate = useNavigate()
   const { items, updateQty, removeFromCart, totals } = useCart()
 
+  // Total saved vs MRP across the cart.
+  const totalSavings = items.reduce(
+    (sum, i) => sum + (i.oldPrice > i.price ? (i.oldPrice - i.price) * i.qty : 0),
+    0
+  )
+
   if (items.length === 0) {
     return (
       <div className="container-x py-20 text-center">
@@ -51,7 +57,14 @@ export default function Cart() {
                 >
                   {item.name}
                 </Link>
-                <p className="mt-1 text-sm text-primary">{formatPrice(item.price)}</p>
+                <p className="mt-1 flex items-center gap-2 text-sm">
+                  <span className="font-semibold text-primary">{formatPrice(item.price)}</span>
+                  {item.oldPrice > item.price && (
+                    <span className="text-xs text-slate-400 line-through">
+                      {formatPrice(item.oldPrice)}
+                    </span>
+                  )}
+                </p>
                 {item.unit && <p className="text-xs text-slate-400">per {item.unit}</p>}
               </div>
               <div className="flex flex-col items-end gap-2">
@@ -107,6 +120,11 @@ export default function Cart() {
                 <dd className="font-bold text-primary">{formatPrice(totals.total)}</dd>
               </div>
             </dl>
+            {totalSavings > 0 && (
+              <div className="mt-4 rounded-xl bg-emerald-50 px-4 py-2.5 text-center text-sm font-bold text-emerald-700">
+                🎉 You'll save {formatPrice(totalSavings)} on this order
+              </div>
+            )}
             <button onClick={() => navigate('/checkout')} className="btn-primary mt-5 w-full">
               Proceed to Checkout
             </button>

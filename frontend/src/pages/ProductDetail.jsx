@@ -8,7 +8,8 @@ import ProductCard from '../components/ProductCard'
 import SectionHeading from '../components/SectionHeading'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
-import { formatPrice, imgFallback, PLACEHOLDER_IMG } from '../lib/helpers'
+import DeliveryPromise from '../components/DeliveryPromise'
+import { formatPrice, imgFallback, PLACEHOLDER_IMG, savingsAmount } from '../lib/helpers'
 import {
   FaCartPlus,
   FaBolt,
@@ -192,6 +193,15 @@ export default function ProductDetail() {
                 </span>
               </>
             )}
+          </div>
+          <p className="mt-1 text-xs text-slate-400">Inclusive of all taxes</p>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+            {savingsAmount(product) > 0 && (
+              <span className="rounded-lg bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
+                You save {formatPrice(savingsAmount(product))}
+              </span>
+            )}
+            {!outOfStock && <DeliveryPromise />}
           </div>
 
           {product.shortDescription && (
@@ -487,6 +497,30 @@ export default function ProductDetail() {
             ))}
           </div>
         </section>
+      )}
+
+      {/* Sticky mobile add-to-cart bar (sits above the bottom nav) */}
+      {!outOfStock && (
+        <>
+          <div className="fixed inset-x-0 bottom-16 z-40 flex items-center gap-3 border-t border-bordergray bg-white px-3 py-2.5 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] md:hidden">
+            <div className="leading-tight">
+              <p className="text-lg font-bold text-primary">{formatPrice(product.price)}</p>
+              {savingsAmount(product) > 0 && (
+                <p className="text-[11px] font-semibold text-emerald-600">
+                  Save {formatPrice(savingsAmount(product))}
+                </p>
+              )}
+            </div>
+            <button onClick={() => addToCart(product, qty)} className="btn-primary flex-1">
+              <FaCartPlus /> Add
+            </button>
+            <button onClick={handleBuyNow} className="btn-accent flex-1">
+              <FaBolt /> Buy Now
+            </button>
+          </div>
+          {/* Spacer so the sticky bar doesn't cover page content */}
+          <div className="h-16 md:hidden" />
+        </>
       )}
     </div>
   )

@@ -33,6 +33,20 @@ export function imgFallback(e) {
   e.currentTarget.src = PLACEHOLDER_IMG
 }
 
+// Absolute amount saved vs MRP (0 when there's no discount).
+export function savingsAmount(product) {
+  const old = Number(product?.oldPrice || 0)
+  const price = Number(product?.price || 0)
+  return old > price ? old - price : 0
+}
+
+// Friendly delivery date, e.g. "Sat, 12 Jul" (default 2 days out).
+export function deliveryByLabel(daysFromNow = 2) {
+  const d = new Date()
+  d.setDate(d.getDate() + daysFromNow)
+  return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
 // Tiny localStorage-backed lists for wishlist / compare (no backend needed).
 export function getList(key) {
   try {

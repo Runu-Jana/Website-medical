@@ -12,7 +12,8 @@ import RatingStars from './RatingStars'
 import QuickViewModal from './QuickViewModal'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
-import { formatPrice, productImage, imgFallback, isInList, toggleInList } from '../lib/helpers'
+import DeliveryPromise from './DeliveryPromise'
+import { formatPrice, productImage, imgFallback, isInList, toggleInList, savingsAmount } from '../lib/helpers'
 
 function HoverIcon({ label, active, onClick, children }) {
   return (
@@ -139,6 +140,12 @@ export default function ProductCard({ product, list = false }) {
               </span>
             )}
           </div>
+          {savingsAmount(product) > 0 && (
+            <p className="mt-1 text-xs font-semibold text-emerald-600">
+              You save {formatPrice(savingsAmount(product))}
+            </p>
+          )}
+          {!outOfStock && <DeliveryPromise className="mt-1.5" />}
 
           <button
             type="button"
