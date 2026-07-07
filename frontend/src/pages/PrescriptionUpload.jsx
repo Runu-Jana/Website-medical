@@ -18,10 +18,26 @@ import {
 
 
 const quickActions = [
-  { icon: FaPrescriptionBottleAlt, label: 'Request Medicine', to: '/shop' },
-  { icon: FaQuestionCircle, label: 'Ask Question', to: '/contact' },
-  { icon: FaUserMd, label: 'Doctor Appointment', to: '/contact' },
-  { icon: FaFlask, label: 'Lab Tests', to: '/shop?keyword=lab' },
+  {
+    icon: FaPrescriptionBottleAlt,
+    label: 'Request Medicine',
+    placeholder: 'Which medicine do you need? Add name, strength and quantity…',
+  },
+  {
+    icon: FaQuestionCircle,
+    label: 'Ask Question',
+    placeholder: 'What would you like to ask our pharmacist?',
+  },
+  {
+    icon: FaUserMd,
+    label: 'Doctor Appointment',
+    placeholder: 'Tell us your concern and a preferred day/time…',
+  },
+  {
+    icon: FaFlask,
+    label: 'Lab Tests',
+    placeholder: 'Which test(s) do you need? We’ll arrange a sample pickup…',
+  },
 ]
 
 export default function PrescriptionUpload() {
@@ -39,6 +55,48 @@ export default function PrescriptionUpload() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
+
+  // Quick-action request modal ("Request Medicine", "Ask Question", …)
+  const [action, setAction] = useState(null) // the active quickAction object
+  const [req, setReq] = useState({ name: '', phone: '', message: '' })
+  const [reqBusy, setReqBusy] = useState(false)
+  const [reqError, setReqError] = useState('')
+  const [reqDone, setReqDone] = useState(false)
+
+  const openAction = (a) => {
+    setAction(a)
+    setReqDone(false)
+    setReqError('')
+    setReq({
+      name: user?.name && user.name !== 'Customer' ? user.name : '',
+      phone: user?.phone || '',
+      message: '',
+    })
+  }
+
+  const submitAction = async (e) => {
+    e.preventDefault()
+    setReqError('')
+    if (!req.message.trim()) {
+      setReqError('Please tell us a little about what you need.')
+      return
+    }
+    setReqBusy(true)
+    try {
+      // Reuse the contact channel so the admin gets a bell notification + email.
+      await api.post('/contact', {
+        name: req.name,
+        phone: req.phone,
+        subject: action.label,
+        message: `[${action.label}] ${req.message}`,
+      })
+      setReqDone(true)
+    } catch (err) {
+      setReqError(err.response?.data?.message || 'Could not send your request. Please try again.')
+    } finally {
+      setReqBusy(false)
+    }
+  }
 
   const pickFile = async (f) => {
     if (!f) return
@@ -226,16 +284,17 @@ export default function PrescriptionUpload() {
             <h3 className="mb-4 font-bold text-dark">Other services</h3>
             <div className="grid grid-cols-2 gap-3">
               {quickActions.map((a) => (
-                <Link
+                <button
                   key={a.label}
-                  to={a.to}
+                  type="button"
+                  onClick={() => openAction(a)}
                   className="flex flex-col items-center gap-2 rounded-xl border border-bordergray p-4 text-center transition hover:border-primary hover:shadow-card"
                 >
                   <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <a.icon size={20} />
                   </span>
                   <span className="text-sm font-semibold text-dark">{a.label}</span>
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -271,6 +330,89 @@ export default function PrescriptionUpload() {
           </div>
         </div>
       </div>
+
+      {/* Quick-action request modal */}
+      {action && (
+        <div
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setAction(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lift"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <action.icon size={20} />
+                </span>
+                <h3 className="text-lg font-bold text-dark">{action.label}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAction(null)}
+                aria-label="Close"
+                className="text-slate-400 transition hover:text-slate-600"
+              >
+                <FaTimes size={18} />
+              </button>
+            </div>
+
+            {reqDone ? (
+              <div className="flex flex-col items-center rounded-2xl bg-primary/5 py-10 text-center">
+                <FaCheckCircle className="text-primary" size={44} />
+                <p className="mt-3 text-lg font-bold text-dark">Request sent!</p>
+                <p className="mt-1 max-w-xs text-sm text-slate-500">
+                  Our team has been notified and will contact you shortly.
+                </p>
+                <button onClick={() => setAction(null)} className="btn-primary mt-5">
+                  Done
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={submitAction} className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Your name</label>
+                    <input
+                      value={req.name}
+                      onChange={(e) => setReq({ ...req, name: e.target.value })}
+                      className="input-base"
+                      placeholder="Full name"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Phone</label>
+                    <input
+                      value={req.phone}
+                      onChange={(e) => setReq({ ...req, phone: e.target.value })}
+                      className="input-base"
+                      placeholder="So we can reach you"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Details</label>
+                  <textarea
+                    rows={4}
+                    value={req.message}
+                    onChange={(e) => setReq({ ...req, message: e.target.value })}
+                    className="input-base resize-y"
+                    placeholder={action.placeholder}
+                    autoFocus
+                  />
+                </div>
+
+                {reqError && <p className="text-sm text-red-500">{reqError}</p>}
+
+                <button type="submit" disabled={reqBusy} className="btn-primary w-full">
+                  {reqBusy ? 'Sending…' : 'Send request'} <FaArrowRight size={13} />
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

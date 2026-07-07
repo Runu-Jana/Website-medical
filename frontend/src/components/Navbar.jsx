@@ -98,6 +98,9 @@ export default function Navbar() {
     setMobileOpen(false)
   }
 
+  // The search bar is meaningless on the auth pages — hide it there for a cleaner UI.
+  const hideSearch = ['/login', '/register', '/forgot-password'].includes(location.pathname)
+
   return (
     <header className="sticky top-0 z-40 bg-white shadow-sm">
       {/* Announcement bar */}
@@ -132,22 +135,24 @@ export default function Navbar() {
             </span>
           </Link>
 
-          <form onSubmit={onSearch} className="hidden flex-1 md:block">
-            <div className="flex items-center rounded-xl border border-bordergray focus-within:border-primary">
-              <input
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                placeholder="Search by product or category..."
-                className="w-full rounded-l-xl bg-transparent px-4 py-2.5 text-sm outline-none"
-              />
-              <button
-                type="submit"
-                className="flex h-11 items-center gap-2 rounded-r-xl bg-primary px-5 text-sm font-semibold text-white hover:bg-primaryDark"
-              >
-                <FaSearch /> <span className="hidden lg:inline">Search</span>
-              </button>
-            </div>
-          </form>
+          {!hideSearch && (
+            <form onSubmit={onSearch} className="hidden flex-1 md:block">
+              <div className="flex items-center rounded-xl border border-bordergray focus-within:border-primary">
+                <input
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  placeholder="Search by product or category..."
+                  className="w-full rounded-l-xl bg-transparent px-4 py-2.5 text-sm outline-none"
+                />
+                <button
+                  type="submit"
+                  className="flex h-11 items-center gap-2 rounded-r-xl bg-primary px-5 text-sm font-semibold text-white hover:bg-primaryDark"
+                >
+                  <FaSearch /> <span className="hidden lg:inline">Search</span>
+                </button>
+              </div>
+            </form>
+          )}
 
           <div className="ml-auto flex items-center gap-1 sm:gap-3">
             {user && user.address?.city ? (
@@ -225,19 +230,21 @@ export default function Navbar() {
         </div>
 
         {/* mobile search */}
-        <form onSubmit={onSearch} className="container-x pb-3 md:hidden">
-          <div className="flex items-center rounded-xl border border-bordergray">
-            <input
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              placeholder="Search products..."
-              className="w-full rounded-l-xl bg-transparent px-4 py-2.5 text-sm outline-none"
-            />
-            <button type="submit" className="px-4 text-primary">
-              <FaSearch />
-            </button>
-          </div>
-        </form>
+        {!hideSearch && (
+          <form onSubmit={onSearch} className="container-x pb-3 md:hidden">
+            <div className="flex items-center rounded-xl border border-bordergray">
+              <input
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="Search products..."
+                className="w-full rounded-l-xl bg-transparent px-4 py-2.5 text-sm outline-none"
+              />
+              <button type="submit" className="px-4 text-primary">
+                <FaSearch />
+              </button>
+            </div>
+          </form>
+        )}
       </div>
 
       {/* Main nav */}
