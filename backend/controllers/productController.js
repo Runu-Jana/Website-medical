@@ -29,7 +29,7 @@ export const getPriceRange = async (req, res) => {
 export const getProducts = async (req, res) => {
   const {
     keyword, category, brand, minPrice, maxPrice, sort,
-    featured, bestseller, deal, isNew, page = 1, limit = 12,
+    featured, bestseller, deal, isNew, salt, exclude, page = 1, limit = 12,
   } = req.query;
 
   const where = { status: 'active' };
@@ -43,6 +43,9 @@ export const getProducts = async (req, res) => {
     });
   }
   if (category) AND.push({ categories: { some: { id: category } } });
+  // Substitutes: same salt composition, optionally excluding the current product.
+  if (salt) AND.push({ saltComposition: { contains: salt, mode: 'insensitive' } });
+  if (exclude) AND.push({ id: { not: exclude } });
   if (AND.length) where.AND = AND;
   if (brand) where.brandId = brand;
   if (featured === 'true') where.isFeatured = true;

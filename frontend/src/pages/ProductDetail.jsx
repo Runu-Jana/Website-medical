@@ -5,6 +5,7 @@ import Spinner from '../components/Spinner'
 import RatingStars from '../components/RatingStars'
 import QuantitySelector from '../components/QuantitySelector'
 import ProductCard from '../components/ProductCard'
+import ProductCarousel from '../components/ProductCarousel'
 import SectionHeading from '../components/SectionHeading'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
@@ -27,6 +28,7 @@ export default function ProductDetail() {
 
   const [product, setProduct] = useState(null)
   const [related, setRelated] = useState([])
+  const [substitutes, setSubstitutes] = useState([])
   const [loading, setLoading] = useState(true)
   const [qty, setQty] = useState(1)
   const [activeImg, setActiveImg] = useState(0)
@@ -51,6 +53,16 @@ export default function ProductDetail() {
         if (!active) return
         setProduct(data.product)
         setRelated(data.related || [])
+        // Substitutes: other products with the same salt composition.
+        const salt = data.product?.saltComposition?.trim()
+        if (salt) {
+          api
+            .get('/products', { params: { salt, exclude: data.product._id, limit: 8 } })
+            .then(({ data: sub }) => active && setSubstitutes(sub.products || []))
+            .catch(() => active && setSubstitutes([]))
+        } else {
+          setSubstitutes([])
+        }
       })
       .catch(() => active && setProduct(null))
       .finally(() => active && setLoading(false))
@@ -486,6 +498,21 @@ export default function ProductDetail() {
           )}
         </div>
       </div>
+
+      {/* Substitutes — same salt composition */}
+      {substitutes.length > 0 && (
+        <section className="mt-12">
+          <SectionHeading
+            subtitle="Same composition"
+            title="Substitutes & Alternatives"
+          />
+          <p className="-mt-2 mb-4 text-sm text-slate-500">
+            Products with the same salt{product.saltComposition ? ` (${product.saltComposition})` : ''}.
+            Please consult your doctor before switching.
+          </p>
+          <ProductCarousel products={substitutes} />
+        </section>
+      )}
 
       {/* Related */}
       {related.length > 0 && (

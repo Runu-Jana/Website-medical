@@ -6,6 +6,7 @@ import TrustBar from '../components/TrustBar'
 import FeatureStrip from '../components/FeatureStrip'
 import SectionHeading from '../components/SectionHeading'
 import CategoryCircles from '../components/CategoryCircles'
+import HealthCorner from '../components/HealthCorner'
 import ProductCarousel from '../components/ProductCarousel'
 import ProductSkeleton from '../components/ProductSkeleton'
 import ProductCard from '../components/ProductCard'
@@ -125,6 +126,9 @@ export default function Home() {
         />
         <ProductCarousel products={featured} />
       </section>
+
+      {/* Health Corner — shop by concern */}
+      <HealthCorner />
 
       {/* Promo banners */}
       <section className="container-x mt-14 grid gap-4 sm:grid-cols-2">
