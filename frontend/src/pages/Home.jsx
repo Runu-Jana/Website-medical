@@ -5,14 +5,14 @@ import HeroSlider from '../components/HeroSlider'
 import TrustBar from '../components/TrustBar'
 import FeatureStrip from '../components/FeatureStrip'
 import SectionHeading from '../components/SectionHeading'
-import CategoryCard from '../components/CategoryCard'
-import ProductGrid from '../components/ProductGrid'
+import CategoryCircles from '../components/CategoryCircles'
+import ProductCarousel from '../components/ProductCarousel'
+import ProductSkeleton from '../components/ProductSkeleton'
 import ProductCard from '../components/ProductCard'
 import NewLaunches from '../components/NewLaunches'
 import BlogTeaser from '../components/BlogTeaser'
 import Testimonials from '../components/Testimonials'
 import CountdownTimer from '../components/CountdownTimer'
-import Spinner from '../components/Spinner'
 import { imgFallback } from '../lib/helpers'
 import { FaArrowRight } from 'react-icons/fa'
 
@@ -65,7 +65,10 @@ export default function Home() {
     return (
       <>
         <HeroSlider />
-        <Spinner className="py-24" />
+        <TrustBar />
+        <section className="container-x mt-10">
+          <ProductSkeleton count={8} />
+        </section>
       </>
     )
   }
@@ -87,11 +90,7 @@ export default function Home() {
             link="/shop"
             linkText="All Categories"
           />
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            {categories.slice(0, 12).map((c) => (
-              <CategoryCard key={c._id} category={c} />
-            ))}
-          </div>
+          <CategoryCircles categories={categories.slice(0, 14)} />
         </section>
       )}
 
@@ -124,7 +123,7 @@ export default function Home() {
           title="Featured Products"
           link="/shop?featured=true"
         />
-        <ProductGrid products={featured} />
+        <ProductCarousel products={featured} />
       </section>
 
       {/* Promo banners */}

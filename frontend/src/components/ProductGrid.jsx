@@ -1,5 +1,5 @@
 import ProductCard from './ProductCard'
-import Spinner from './Spinner'
+import ProductSkeleton from './ProductSkeleton'
 
 export default function ProductGrid({
   products,
@@ -8,7 +8,7 @@ export default function ProductGrid({
   view = 'grid',
   empty = 'No products found.',
 }) {
-  if (loading) return <Spinner />
+  if (loading) return <ProductSkeleton count={cols === 4 ? 8 : 6} cols={cols} />
   if (!products || products.length === 0) {
     return (
       <div className="card flex flex-col items-center justify-center py-16 text-center">
