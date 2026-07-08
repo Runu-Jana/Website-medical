@@ -28,9 +28,9 @@ export const notifyNewMember = async (user) => {
   if (adminEmail) {
     await sendMail({
       to: adminEmail,
-      subject: 'New member joined DCare',
+      subject: 'New member joined DBL Life Care',
       text: `A new member just signed up on your store.\n\nName: ${user.name || 'Customer'}\nContact: ${who}\nJoined: ${new Date().toLocaleString()}`,
-      html: `<h2 style="margin:0 0 8px">New member joined DCare</h2>
+      html: `<h2 style="margin:0 0 8px">New member joined DBL Life Care</h2>
              <p>A new member just signed up on your store.</p>
              <ul>
                <li><b>Name:</b> ${user.name || 'Customer'}</li>
@@ -57,12 +57,12 @@ export const notifyOrderStatus = async ({ order, customerEmail }) => {
   const msg = STATUS_MSG[order.status] || `is now "${order.status}"`;
   await sendMail({
     to: customerEmail,
-    subject: `Update on your DCare order #${num}`,
+    subject: `Update on your DBL Life Care order #${num}`,
     text: `Your order #${num} ${msg}.`,
     html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#0f172a">
              <h2 style="color:#0e9f8e;margin:0 0 8px">Order #${num} update</h2>
              <p style="color:#475569">Your order <b>${msg}</b>.</p>
-             <p style="font-size:12px;color:#94a3b8;margin-top:20px">— Team DCare</p>
+             <p style="font-size:12px;color:#94a3b8;margin-top:20px">— Team DBL Life Care</p>
            </div>`,
   });
 };
@@ -97,7 +97,7 @@ export const notifyOrderPlaced = async ({ order, items = [], customerEmail }) =>
   if (customerEmail) {
     await sendMail({
       to: customerEmail,
-      subject: `Your DCare order #${num} is confirmed`,
+      subject: `Your DBL Life Care order #${num} is confirmed`,
       text: `Thank you for your order #${num}.\n\n${textLines}\n\nTotal: ${rupee(order.totalPrice)}\nPayment: ${order.paymentMethod}\nShip to: ${addr}\n\nWe'll notify you as your order progresses.`,
       html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#0f172a">
                <h2 style="color:#0e9f8e;margin:0 0 4px">Thank you for your order!</h2>
@@ -105,7 +105,7 @@ export const notifyOrderPlaced = async ({ order, items = [], customerEmail }) =>
                ${itemsTable}
                <p style="text-align:right;font-size:16px;margin:12px 0"><b>Total: ${rupee(order.totalPrice)}</b></p>
                <p style="font-size:13px;color:#475569;margin:0"><b>Payment:</b> ${order.paymentMethod}<br/><b>Ship to:</b> ${addr}</p>
-               <p style="font-size:12px;color:#94a3b8;margin-top:20px">We'll email you as your order progresses. — Team DCare</p>
+               <p style="font-size:12px;color:#94a3b8;margin-top:20px">We'll email you as your order progresses. — Team DBL Life Care</p>
              </div>`,
     });
   }

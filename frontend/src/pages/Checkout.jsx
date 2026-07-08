@@ -94,7 +94,7 @@ export default function Checkout() {
       order_id: pay.id,
       amount: pay.amount,
       currency: pay.currency,
-      name: 'DCare',
+      name: 'DBL Life Care',
       description: 'Order payment',
       prefill: { name: form.fullName, contact: form.phone },
       theme: { color: '#0e9f8e' },

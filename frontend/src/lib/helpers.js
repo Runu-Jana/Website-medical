@@ -74,7 +74,7 @@ export function stableNumber(seed = '', min = 0, max = 100) {
 
 export const FREE_SHIPPING_THRESHOLD = 1000
 export const SHIPPING_FEE = 60
-// DCare Health Club: percent off items for members (matches backend).
+// DBL Life Care Health Club: percent off items for members (matches backend).
 export const MEMBER_DISCOUNT_PERCENT = 5
 
 export function calcShipping(subtotal) {

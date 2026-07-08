@@ -125,7 +125,7 @@ export default function Footer() {
 
       <div className="border-t border-white/10">
         <div className="container-x flex flex-col items-center justify-between gap-2 py-5 text-xs text-slate-400 sm:flex-row">
-          <span>© {new Date().getFullYear()} DCare. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} DBL Life Care. All rights reserved.</span>
           <span>Designed for a healthier tomorrow.</span>
         </div>
       </div>

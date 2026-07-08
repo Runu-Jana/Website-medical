@@ -23,7 +23,7 @@ export const siteConfig = {
   email: 'support@dcare.com',
 
   // Optional greeting pre-filled in the customer's WhatsApp chat box.
-  whatsappMessage: 'Hi DCare, I need help with ',
+  whatsappMessage: 'Hi DBL Life Care, I need help with ',
 
   // Social profile URLs. Leave blank to hide that icon in the footer.
   socials: {

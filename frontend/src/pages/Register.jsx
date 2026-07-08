@@ -35,7 +35,7 @@ export default function Register() {
             <FaHeartbeat size={24} />
           </span>
           <h1 className="mt-3 text-2xl font-bold">Create Account</h1>
-          <p className="text-sm text-slate-500">Join DCare today</p>
+          <p className="text-sm text-slate-500">Join DBL Life Care today</p>
         </div>
 
         {error && (

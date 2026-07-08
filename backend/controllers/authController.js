@@ -89,11 +89,11 @@ export const adminForgotPassword = async (req, res) => {
 
   await sendMail({
     to: user.email,
-    subject: 'Your DCare admin password reset code',
+    subject: 'Your DBL Life Care admin password reset code',
     text: `Your password reset code is ${code}. It expires in 15 minutes. If you didn't request this, ignore this email.`,
     html: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto">
              <h2 style="color:#0e9f8e">Password reset</h2>
-             <p>Use this code to reset your DCare admin password:</p>
+             <p>Use this code to reset your DBL Life Care admin password:</p>
              <p style="font-size:28px;font-weight:800;letter-spacing:4px">${code}</p>
              <p style="color:#64748b;font-size:13px">Expires in 15 minutes. If you didn't request this, ignore this email.</p>
            </div>`,

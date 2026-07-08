@@ -15,7 +15,7 @@ const testimonials = [
   {
     name: 'Anuj Kumar',
     date: 'March 12, 2025',
-    text: 'DCare is the best application for ordering medicines and lab tests. I have been using it for the last 5 years. The customer support is also good.',
+    text: 'DBL Life Care is the best application for ordering medicines and lab tests. I have been using it for the last 5 years. The customer support is also good.',
   },
   {
     name: 'Meha Jain',
@@ -25,7 +25,7 @@ const testimonials = [
   {
     name: 'Rahul Verma',
     date: 'May 20, 2025',
-    text: 'Genuine products and on-time delivery every single time. The reminders for refilling my regular medicines are a lifesaver. Highly recommend DCare to everyone.',
+    text: 'Genuine products and on-time delivery every single time. The reminders for refilling my regular medicines are a lifesaver. Highly recommend DBL Life Care to everyone.',
   },
 ]
 

@@ -2,7 +2,7 @@ import prisma from '../prisma/client.js';
 import { serializeUser } from '../prisma/serialize.js';
 import { createNotification } from '../lib/notify.js';
 
-// @route POST /api/me/membership  (customer) — join the DCare Health Club
+// @route POST /api/me/membership  (customer) — join the DBL Life Care Health Club
 export const joinMembership = async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
   if (!user) return res.status(404).json({ message: 'User not found' });
@@ -22,7 +22,7 @@ export const joinMembership = async (req, res) => {
   createNotification({
     type: 'user',
     title: 'New Health Club member',
-    message: `${updated.name || 'A customer'} joined the DCare Health Club`,
+    message: `${updated.name || 'A customer'} joined the DBL Life Care Health Club`,
     link: '/customers',
     meta: { userId: updated.id },
   }).catch(() => {});

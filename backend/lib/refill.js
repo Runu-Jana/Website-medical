@@ -78,7 +78,7 @@ const sendReminder = async (r, email) => {
              <p style="color:#475569">Your <b>${r.productName}</b> may be running low. Reorder in a tap to avoid a gap in your treatment.</p>
              ${r.thumbnail ? `<img src="${r.thumbnail}" alt="" width="120" style="border-radius:10px;margin:10px 0"/>` : ''}
              <p style="margin:16px 0">${cta}</p>
-             <p style="font-size:12px;color:#94a3b8">You're receiving this because you ordered this item from DCare. — Team DCare</p>
+             <p style="font-size:12px;color:#94a3b8">You're receiving this because you ordered this item from DBL Life Care. — Team DBL Life Care</p>
            </div>`,
   });
 };

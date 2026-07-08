@@ -8,7 +8,7 @@ import {
 } from '../lib/notify.js';
 import { scheduleRefillsForOrder } from '../lib/refill.js';
 
-// DCare Health Club member discount (percent off items).
+// DBL Life Care Health Club member discount (percent off items).
 export const MEMBER_DISCOUNT_PERCENT = 5;
 
 // @route POST /api/orders  (customer or guest checkout)

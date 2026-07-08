@@ -67,7 +67,7 @@ export default function BlogPost() {
         </h1>
         <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-slate-400">
           <span className="flex items-center gap-1.5">
-            <FaUser /> {post.author || 'DCare Team'}
+            <FaUser /> {post.author || 'DBL Life Care Team'}
           </span>
           <span className="flex items-center gap-1.5">
             <FaRegCalendarAlt /> {formatDate(post.createdAt)}

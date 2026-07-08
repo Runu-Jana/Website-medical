@@ -34,7 +34,7 @@ export default function Login() {
 
   const goAfterLogin = (data) => {
     const who = data.user?.name && data.user.name !== 'Customer' ? `, ${data.user.name}` : ''
-    setWelcome(data.returning ? `Welcome back${who}! 👋` : `Welcome to DCare${who}! 🎉`)
+    setWelcome(data.returning ? `Welcome back${who}! 👋` : `Welcome to DBL Life Care${who}! 🎉`)
     setTimeout(() => navigate(location.state?.from || '/account'), 1200)
   }
 
@@ -110,7 +110,7 @@ export default function Login() {
             <FaHeartbeat size={24} />
           </span>
           <h1 className="mt-3 text-2xl font-bold">Welcome Back</h1>
-          <p className="text-sm text-slate-500">Sign in to your DCare account</p>
+          <p className="text-sm text-slate-500">Sign in to your DBL Life Care account</p>
         </div>
 
         {/* Method toggle */}

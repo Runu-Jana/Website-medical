@@ -71,7 +71,7 @@ const benefits = [
 
 const faqs = [
   {
-    q: 'How much does the DCare Health Club cost?',
+    q: 'How much does the DBL Life Care Health Club cost?',
     a: 'Joining is free right now during our launch — activate your membership and start enjoying member benefits instantly.',
   },
   {
@@ -119,7 +119,7 @@ export default function HealthClub() {
         <div className="container-x relative grid gap-8 py-14 sm:py-20 lg:grid-cols-2 lg:items-center">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider backdrop-blur">
-              <FaCrown className="text-amber-300" /> DCare Health Club
+              <FaCrown className="text-amber-300" /> DBL Life Care Health Club
             </span>
             <h1 className="mt-5 text-3xl font-extrabold leading-tight sm:text-5xl">
               One membership.
@@ -158,7 +158,7 @@ export default function HealthClub() {
               <div className="rounded-[22px] bg-white p-6 text-dark">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 font-extrabold text-primary">
-                    <FaHeartbeat /> DCare Club
+                    <FaHeartbeat /> DBL Life Care Club
                   </span>
                   <FaCrown className="text-amber-400" size={22} />
                 </div>
@@ -268,8 +268,8 @@ export default function HealthClub() {
           </h2>
           <p className="max-w-md text-sm text-white/90">
             {isMember
-              ? 'Your DCare Health Club benefits are active. Manage your membership anytime from your account.'
-              : 'Join the DCare Health Club for free and unlock every benefit instantly.'}
+              ? 'Your DBL Life Care Health Club benefits are active. Manage your membership anytime from your account.'
+              : 'Join the DBL Life Care Health Club for free and unlock every benefit instantly.'}
           </p>
           {isMember ? (
             <Link
