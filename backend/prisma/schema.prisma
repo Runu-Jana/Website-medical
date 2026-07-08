@@ -148,6 +148,7 @@ model Order {
   isDelivered       Boolean   @default(false)
   deliveredAt       DateTime?
   status            String    @default("pending")
+  fulfillmentStatus String    @default("") // packed | verified | ready | dispatched
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 

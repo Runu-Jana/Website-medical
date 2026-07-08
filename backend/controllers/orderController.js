@@ -137,6 +137,8 @@ export const updateOrderStatus = async (req, res) => {
   const { status } = req.body;
   const data = {};
   if (status) data.status = status;
+  // Fulfillment stage (packed | verified | ready | dispatched) — independent of lifecycle status.
+  if (req.body.fulfillmentStatus !== undefined) data.fulfillmentStatus = req.body.fulfillmentStatus;
   if (status === 'delivered') {
     data.isDelivered = true;
     data.deliveredAt = new Date();

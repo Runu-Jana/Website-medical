@@ -11,6 +11,15 @@ import { formatCurrency, formatDateTime } from '../lib/format.js';
 
 const STATUSES = ['', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
+// Fulfillment stages (separate from the lifecycle status above).
+const FULFILLMENT = [
+  { value: '', label: '— Not set —' },
+  { value: 'packed', label: 'Order Packed' },
+  { value: 'verified', label: 'Order Verified' },
+  { value: 'ready', label: 'Ready for Dispatch' },
+  { value: 'dispatched', label: 'Order Dispatched' },
+];
+
 const resolveImg = (u) => {
   if (!u) return '';
   if (u.startsWith('http')) return u;
@@ -61,6 +70,22 @@ export default function Orders() {
       toast.error(err.response?.data?.message || 'Update failed');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  // Inline update of the fulfillment stage from the table row.
+  const updateFulfillment = async (orderId, value) => {
+    // Optimistic UI update.
+    setData((d) => ({
+      ...d,
+      orders: d.orders.map((o) => (o._id === orderId ? { ...o, fulfillmentStatus: value } : o)),
+    }));
+    try {
+      await api.put(`/orders/${orderId}/status`, { fulfillmentStatus: value });
+      toast.success('Order status updated');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Update failed');
+      load(); // revert to server truth on failure
     }
   };
 
@@ -128,6 +153,7 @@ export default function Orders() {
                   <th className="px-4 py-3 font-semibold">Total</th>
                   <th className="px-4 py-3 font-semibold">Paid</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold">Order Status</th>
                   <th className="px-4 py-3 font-semibold">Date</th>
                   <th className="px-4 py-3 text-right font-semibold">Actions</th>
                 </tr>
@@ -148,6 +174,23 @@ export default function Orders() {
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={o.status} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={o.fulfillmentStatus || ''}
+                        onChange={(e) => updateFulfillment(o._id, e.target.value)}
+                        className={`rounded-lg border px-2 py-1.5 text-xs font-medium outline-none focus:border-primary ${
+                          o.fulfillmentStatus
+                            ? 'border-primary/40 bg-primary/5 text-primary'
+                            : 'border-slate-300 text-slate-500'
+                        }`}
+                      >
+                        {FULFILLMENT.map((f) => (
+                          <option key={f.value || 'none'} value={f.value}>
+                            {f.label}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td className="px-4 py-3 text-slate-500">{formatDateTime(o.createdAt)}</td>
                     <td className="px-4 py-3">
