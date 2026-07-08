@@ -107,11 +107,78 @@ export const getOrder = async (req, res) => {
 
 // ---- Admin ----
 
+// Convert a single Airtable-style filter condition into a Prisma clause.
+const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+const endOfDay = (d) => { const x = new Date(d); x.setHours(23, 59, 59, 999); return x; };
+
+const buildCondition = ({ field, operator, value }) => {
+  switch (field) {
+    case 'status':
+    case 'fulfillmentStatus':
+      if (operator === 'is') return { [field]: value };
+      if (operator === 'isNot') return { [field]: { not: value } };
+      if (operator === 'isEmpty') return { [field]: '' };
+      if (operator === 'isNotEmpty') return { [field]: { not: '' } };
+      return null;
+    case 'isPaid':
+      return { isPaid: value === 'paid' || value === true || value === 'true' };
+    case 'paymentMethod':
+      if (operator === 'is') return { paymentMethod: value };
+      if (operator === 'contains') return { paymentMethod: { contains: value, mode: 'insensitive' } };
+      return null;
+    case 'totalPrice': {
+      const n = Number(value);
+      if (Number.isNaN(n)) return null;
+      const map = { eq: 'equals', ne: 'not', gt: 'gt', lt: 'lt', gte: 'gte', lte: 'lte' };
+      return map[operator] ? { totalPrice: { [map[operator]]: n } } : null;
+    }
+    case 'orderNumber':
+      if (operator === 'contains') return { orderNumber: { contains: value, mode: 'insensitive' } };
+      if (operator === 'is') return { orderNumber: value };
+      return null;
+    case 'customer': {
+      if (operator === 'isEmpty') return { userId: null };
+      if (operator === 'isNotEmpty') return { userId: { not: null } };
+      const v = String(value || '');
+      const inner =
+        operator === 'is'
+          ? { OR: [{ name: v }, { email: v }] }
+          : { OR: [{ name: { contains: v, mode: 'insensitive' } }, { email: { contains: v, mode: 'insensitive' } }] };
+      return { user: inner };
+    }
+    case 'createdAt': {
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return null;
+      if (operator === 'onOrAfter') return { createdAt: { gte: startOfDay(d) } };
+      if (operator === 'onOrBefore') return { createdAt: { lte: endOfDay(d) } };
+      if (operator === 'is') return { createdAt: { gte: startOfDay(d), lte: endOfDay(d) } };
+      return null;
+    }
+    default:
+      return null;
+  }
+};
+
 // @route GET /api/orders  (admin)
 export const getOrders = async (req, res) => {
-  const { status, page = 1, limit = 15 } = req.query;
-  const where = {};
+  const { status, filters, page = 1, limit = 15 } = req.query;
+  let where = {};
   if (status) where.status = status;
+
+  // Advanced Airtable-style filters (JSON): { conjunction, conditions:[{field,operator,value}] }
+  if (filters) {
+    try {
+      const parsed = typeof filters === 'string' ? JSON.parse(filters) : filters;
+      const clauses = (parsed.conditions || []).map(buildCondition).filter(Boolean);
+      if (clauses.length) {
+        const key = parsed.conjunction === 'or' ? 'OR' : 'AND';
+        where = { AND: [where, { [key]: clauses }] };
+      }
+    } catch {
+      /* ignore malformed filters */
+    }
+  }
+
   const pageNum = Math.max(1, Number(page));
   const perPage = Number(limit);
   const [orders, total] = await Promise.all([

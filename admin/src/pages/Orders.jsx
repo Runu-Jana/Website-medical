@@ -7,6 +7,7 @@ import EmptyState from '../components/EmptyState.jsx';
 import Pagination from '../components/Pagination.jsx';
 import StatusBadge from '../components/StatusBadge.jsx';
 import Modal from '../components/Modal.jsx';
+import OrderFilters, { isComplete } from '../components/OrderFilters.jsx';
 import { formatCurrency, formatDateTime } from '../lib/format.js';
 
 const STATUSES = ['', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'];
@@ -31,6 +32,7 @@ export default function Orders() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ orders: [], page: 1, pages: 1, total: 0 });
   const [status, setStatus] = useState('');
+  const [filters, setFilters] = useState({ conjunction: 'and', conditions: [] });
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(null);
   const [updating, setUpdating] = useState(false);
@@ -40,7 +42,12 @@ export default function Orders() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/orders', { params: { status, page, limit: 10 } });
+      const params = { status, page, limit: 10 };
+      const active = filters.conditions.filter(isComplete);
+      if (active.length) {
+        params.filters = JSON.stringify({ conjunction: filters.conjunction, conditions: active });
+      }
+      const { data } = await api.get('/orders', { params });
       setData({
         orders: data.orders || [],
         page: data.page || 1,
@@ -52,7 +59,7 @@ export default function Orders() {
     } finally {
       setLoading(false);
     }
-  }, [status, page, toast]);
+  }, [status, filters, page, toast]);
 
   useEffect(() => {
     load();
@@ -120,7 +127,6 @@ export default function Orders() {
           <p className="text-sm text-slate-500">{data.total} orders</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-500">Filter:</span>
           <select
             value={status}
             onChange={(e) => {
@@ -135,6 +141,13 @@ export default function Orders() {
               </option>
             ))}
           </select>
+          <OrderFilters
+            value={filters}
+            onChange={(next) => {
+              setPage(1);
+              setFilters(next);
+            }}
+          />
         </div>
       </div>
 
