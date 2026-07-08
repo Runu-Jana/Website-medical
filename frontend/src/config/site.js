@@ -4,6 +4,11 @@
 //  the top bar, the footer and the Contact page.
 // ─────────────────────────────────────────────────────────────────────────
 export const siteConfig = {
+  // Brand logo image (place the file in `frontend/public/`, e.g. public/logo.png).
+  // Used in the header and footer. Swap the file to rebrand — no code change.
+  logo: '/logo.png',
+  brandName: 'DBL Life Care',
+
   // WhatsApp number in FULL international format, DIGITS ONLY — country code
   // + number, with NO "+", spaces or dashes.
   //   India  +91 98765 43210   ->  '919876543210'

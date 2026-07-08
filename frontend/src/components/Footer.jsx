@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import {
-  FaHeartbeat,
   FaFacebookF,
   FaTwitter,
   FaInstagram,
@@ -28,13 +27,8 @@ export default function Footer() {
     <footer className="mt-16 bg-dark text-slate-300">
       <div className="container-x grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <Link to="/" className="flex items-center gap-2">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white">
-              <FaHeartbeat size={22} />
-            </span>
-            <span className="text-2xl font-extrabold text-white">
-              D<span className="text-primary">Care</span>
-            </span>
+          <Link to="/" className="inline-flex items-center rounded-xl bg-white p-3">
+            <img src={siteConfig.logo} alt={siteConfig.brandName} className="h-12 w-auto" />
           </Link>
           <p className="mt-4 text-sm leading-relaxed text-slate-400">
             Your trusted online pharmacy and medical store. Genuine products, fast delivery

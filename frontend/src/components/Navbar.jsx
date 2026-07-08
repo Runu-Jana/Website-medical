@@ -10,7 +10,6 @@ import {
   FaTimes,
   FaChevronDown,
   FaChevronRight,
-  FaHeartbeat,
   FaPills,
   FaMapMarkerAlt,
 } from 'react-icons/fa'
@@ -115,13 +114,12 @@ export default function Navbar() {
       {/* Header */}
       <div className="border-b border-bordergray">
         <div className="container-x flex h-20 items-center gap-4">
-          <Link to="/" className="flex shrink-0 items-center gap-2">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white">
-              <FaHeartbeat size={22} />
-            </span>
-            <span className="text-3xl font-extrabold text-dark">
-              D<span className="text-primary">Care</span>
-            </span>
+          <Link to="/" className="flex shrink-0 items-center">
+            <img
+              src={siteConfig.logo}
+              alt={siteConfig.brandName}
+              className="h-11 w-auto sm:h-14"
+            />
           </Link>
 
           {!hideSearch && (
