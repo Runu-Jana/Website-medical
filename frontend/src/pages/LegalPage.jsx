@@ -222,8 +222,12 @@ export default function LegalPage({ docKey }) {
             {BIZ.legalName}
             <br />
             {BIZ.address}
-            <br />
-            GSTIN: {BIZ.gstin}
+            {BIZ.gstin && (
+              <>
+                <br />
+                GSTIN: {BIZ.gstin}
+              </>
+            )}
           </p>
           <p className="mt-3 text-sm text-slate-600">
             Email: <a href={`mailto:${siteConfig.email}`} className="text-primary">{siteConfig.email}</a>

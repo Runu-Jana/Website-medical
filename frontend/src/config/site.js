@@ -20,7 +20,7 @@ export const siteConfig = {
   phone: '+91 79739 44144',
 
   // Support email.
-  email: 'support@dcare.com',
+  email: 'geetagurukulindia@gmail.com',
 
   // Optional greeting pre-filled in the customer's WhatsApp chat box.
   whatsappMessage: 'Hi DBL Life Care, I need help with ',

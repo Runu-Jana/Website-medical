@@ -87,8 +87,12 @@ export default function Invoice() {
               {business.legalName}
               <br />
               {business.address}
-              <br />
-              GSTIN: {business.gstin}
+              {business.gstin && (
+                <>
+                  <br />
+                  GSTIN: {business.gstin}
+                </>
+              )}
             </p>
           </div>
           <div className="text-right">
