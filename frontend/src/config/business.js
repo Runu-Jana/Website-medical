@@ -4,9 +4,9 @@
 export const business = {
   brand: 'DBL Life Care',
   legalName: 'Dr. Bhoumik Laboratories Pvt. Ltd.',
-  address: '[Your Registered Business Address, City, State, PIN]',
+  address: '190/29, Alpha International City, Karnal-132001 (Haryana), India',
   gstin: '[Your GSTIN]',
-  stateName: '[Your State]',
-  jurisdiction: '[City, State]',
+  stateName: 'Haryana',
+  jurisdiction: 'Karnal, Haryana',
   effective: '5 July 2026',
 }
