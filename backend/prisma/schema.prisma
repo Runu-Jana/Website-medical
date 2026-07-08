@@ -174,6 +174,16 @@ model RefillReminder {
   @@index([userId])
 }
 
+model SavedView {
+  id        String   @id @default(uuid())
+  name      String
+  scope     String   @default("orders") // which admin page this view belongs to
+  config    Json // { status, filters: { conjunction, conditions } }
+  createdAt DateTime @default(now())
+
+  @@index([scope])
+}
+
 model Banner {
   id         String   @id @default(uuid())
   title      String

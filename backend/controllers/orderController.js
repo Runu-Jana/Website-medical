@@ -179,6 +179,17 @@ export const getOrders = async (req, res) => {
     }
   }
 
+  // Export mode: return every matching order (capped) for CSV download.
+  if (req.query.all === 'true') {
+    const orders = await prisma.order.findMany({
+      where,
+      include: { user: { select: { id: true, name: true, email: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 5000,
+    });
+    return res.json({ orders: orders.map(serializeOrder), total: orders.length });
+  }
+
   const pageNum = Math.max(1, Number(page));
   const perPage = Number(limit);
   const [orders, total] = await Promise.all([

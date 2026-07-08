@@ -8,7 +8,22 @@ import Pagination from '../components/Pagination.jsx';
 import StatusBadge from '../components/StatusBadge.jsx';
 import Modal from '../components/Modal.jsx';
 import OrderFilters, { isComplete } from '../components/OrderFilters.jsx';
+import SavedViews from '../components/SavedViews.jsx';
 import { formatCurrency, formatDateTime } from '../lib/format.js';
+import { FiDownload } from 'react-icons/fi';
+
+const FULFILLMENT_LABELS = {
+  packed: 'Order Packed',
+  verified: 'Order Verified',
+  ready: 'Ready for Dispatch',
+  dispatched: 'Order Dispatched',
+};
+
+// Minimal CSV cell escaping.
+const csvCell = (v) => {
+  const s = v == null ? '' : String(v);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
 
 const STATUSES = ['', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
@@ -64,6 +79,52 @@ export default function Orders() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const [exporting, setExporting] = useState(false);
+
+  // Download the current filtered result set as CSV (all matching rows).
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const params = { status, all: 'true' };
+      const active = filters.conditions.filter(isComplete);
+      if (active.length) {
+        params.filters = JSON.stringify({ conjunction: filters.conjunction, conditions: active });
+      }
+      const { data } = await api.get('/orders', { params });
+      const orders = data.orders || [];
+      const headers = [
+        'Order #', 'Customer', 'Email', 'Total', 'Paid',
+        'Status', 'Order Status', 'Payment Method', 'Date',
+      ];
+      const lines = [headers.join(',')];
+      orders.forEach((o) => {
+        lines.push([
+          o.orderNumber || o._id?.slice(-6),
+          o.user?.name || 'Guest',
+          o.user?.email || '',
+          o.totalPrice,
+          o.isPaid ? 'Paid' : 'Unpaid',
+          o.status,
+          FULFILLMENT_LABELS[o.fulfillmentStatus] || '',
+          o.paymentMethod,
+          o.createdAt ? new Date(o.createdAt).toLocaleString() : '',
+        ].map(csvCell).join(','));
+      });
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Exported ${orders.length} order(s)`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const updateStatus = async (newStatus) => {
     if (!selected) return;
@@ -148,6 +209,26 @@ export default function Orders() {
               setFilters(next);
             }}
           />
+          <SavedViews
+            scope="orders"
+            current={{ status, filters }}
+            onApply={(cfg) => {
+              setPage(1);
+              setStatus(cfg.status || '');
+              setFilters(
+                cfg.filters && Array.isArray(cfg.filters.conditions)
+                  ? cfg.filters
+                  : { conjunction: 'and', conditions: [] }
+              );
+            }}
+          />
+          <button
+            onClick={exportCsv}
+            disabled={exporting}
+            className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+          >
+            <FiDownload size={15} /> {exporting ? 'Exporting…' : 'Export CSV'}
+          </button>
         </div>
       </div>
 

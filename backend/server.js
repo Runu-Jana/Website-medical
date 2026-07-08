@@ -28,6 +28,7 @@ import userRoutes from './routes/userRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import refillRoutes from './routes/refillRoutes.js';
+import viewRoutes from './routes/viewRoutes.js';
 import { startRefillScheduler } from './lib/refill.js';
 
 connectDB().then(() => autoSeedIfEmpty());
@@ -106,6 +107,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/admins', adminRoutes);
 app.use('/api/refills', refillRoutes);
+app.use('/api/views', viewRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
