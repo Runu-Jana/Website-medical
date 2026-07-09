@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { FaTrashAlt, FaArrowLeft, FaShoppingCart } from 'react-icons/fa'
 import { useCart } from '../context/CartContext'
 import QuantitySelector from '../components/QuantitySelector'
+import CartMilestone from '../components/CartMilestone'
 import { formatPrice, imgFallback, PLACEHOLDER_IMG } from '../lib/helpers'
 
 export default function Cart() {
@@ -34,6 +35,12 @@ export default function Cart() {
   return (
     <div className="container-x py-8">
       <h1 className="mb-6 text-2xl font-bold">Shopping Cart</h1>
+
+      {/* Free-delivery / free-gift progress */}
+      <div className="mb-6">
+        <CartMilestone subtotal={totals.subtotal} isMember={totals.isMember} />
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Items */}
         <div className="space-y-3 lg:col-span-2">

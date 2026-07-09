@@ -3,7 +3,12 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import api from '../lib/api'
 import { useAuth } from './AuthContext'
 import { useToast } from './ToastContext'
-import { calcShipping, MEMBER_DISCOUNT_PERCENT } from '../lib/helpers'
+import {
+  calcShipping,
+  MEMBER_DISCOUNT_PERCENT,
+  FREE_SHIPPING_THRESHOLD,
+  FREE_GIFT_THRESHOLD,
+} from '../lib/helpers'
 
 const CartContext = createContext(null)
 
@@ -146,6 +151,32 @@ export function CartProvider({ children }) {
   }, [items, user])
 
   const itemCount = useMemo(() => items.reduce((sum, i) => sum + i.qty, 0), [items])
+
+  // Celebrate when the cart crosses a reward milestone (upward only).
+  const prevSubtotal = useRef(totals.subtotal)
+  useEffect(() => {
+    const prev = prevSubtotal.current
+    const now = totals.subtotal
+    const isMember = !!user?.isMember
+    if (now > prev) {
+      if (prev < FREE_GIFT_THRESHOLD && now >= FREE_GIFT_THRESHOLD) {
+        showToast({
+          title: 'Free gift unlocked! 🎁',
+          subtitle: 'A free product is on us at checkout.',
+          tone: 'success',
+          duration: 3400,
+        })
+      } else if (!isMember && prev < FREE_SHIPPING_THRESHOLD && now >= FREE_SHIPPING_THRESHOLD) {
+        showToast({
+          title: 'Free delivery unlocked! 🎉',
+          subtitle: `Add ₹${(FREE_GIFT_THRESHOLD - now).toLocaleString('en-IN')} more to get a free gift.`,
+          tone: 'success',
+          duration: 3400,
+        })
+      }
+    }
+    prevSubtotal.current = now
+  }, [totals.subtotal, user])
 
   return (
     <CartContext.Provider

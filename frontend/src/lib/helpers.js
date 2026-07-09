@@ -74,6 +74,8 @@ export function stableNumber(seed = '', min = 0, max = 100) {
 
 export const FREE_SHIPPING_THRESHOLD = 1000
 export const SHIPPING_FEE = 60
+// Spend this much to unlock a free gift (the next milestone after free delivery).
+export const FREE_GIFT_THRESHOLD = 1500
 // DBL Life Care Health Club: percent off items for members (matches backend).
 export const MEMBER_DISCOUNT_PERCENT = 5
 
