@@ -31,6 +31,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import refillRoutes from './routes/refillRoutes.js';
 import viewRoutes from './routes/viewRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import couponRoutes from './routes/couponRoutes.js';
 import { startRefillScheduler } from './lib/refill.js';
 
 connectDB().then(() => autoSeedIfEmpty());
@@ -112,6 +113,7 @@ app.use('/api/admins', adminRoutes);
 app.use('/api/refills', refillRoutes);
 app.use('/api/views', viewRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/coupons', couponRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -38,6 +38,7 @@ export function CartProvider({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [items, setItems] = useState(loadLocal)
+  const [coupon, setCoupon] = useState(null) // { code, discount, description }
   const prevUser = useRef(null)
   const saveTimer = useRef(null)
 
@@ -133,7 +134,63 @@ export function CartProvider({ children }) {
   }
 
   const removeFromCart = (id) => setItems((prev) => prev.filter((i) => i._id !== id))
-  const clearCart = () => setItems([])
+  const clearCart = () => {
+    setItems([])
+    setCoupon(null)
+  }
+
+  // Validate a coupon code against the current cart. Returns { ok, message }.
+  const applyCoupon = async (code) => {
+    const clean = (code || '').trim()
+    if (!clean) return { ok: false, message: 'Enter a coupon code.' }
+    try {
+      const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0)
+      const { data } = await api.post('/coupons/validate', {
+        code: clean,
+        subtotal,
+        items: items.map((i) => ({ productId: i._id, price: i.price, qty: i.qty })),
+      })
+      if (data.valid) {
+        setCoupon({ code: data.code, discount: data.discount, description: data.description })
+        return { ok: true, message: `Coupon ${data.code} applied.` }
+      }
+      return { ok: false, message: data.message || 'Coupon could not be applied.' }
+    } catch (err) {
+      return { ok: false, message: err.response?.data?.message || 'Coupon could not be applied.' }
+    }
+  }
+  const removeCoupon = () => setCoupon(null)
+
+  // Re-check an applied coupon whenever the cart changes (discount may shift, or
+  // it may no longer qualify). Silently drops the coupon if it becomes invalid.
+  const couponCodeRef = useRef(null)
+  couponCodeRef.current = coupon?.code || null
+  useEffect(() => {
+    const code = couponCodeRef.current
+    if (!code) return
+    if (!items.length) {
+      setCoupon(null)
+      return
+    }
+    let active = true
+    const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0)
+    api
+      .post('/coupons/validate', {
+        code,
+        subtotal,
+        items: items.map((i) => ({ productId: i._id, price: i.price, qty: i.qty })),
+      })
+      .then(({ data }) => {
+        if (!active) return
+        if (data.valid) setCoupon({ code: data.code, discount: data.discount, description: data.description })
+        else setCoupon(null)
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items])
 
   const totals = useMemo(() => {
     const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0)
@@ -141,14 +198,18 @@ export function CartProvider({ children }) {
     // Members: free delivery + % off items (mirrors the server-side calc).
     const memberDiscount = isMember ? Math.round(subtotal * (MEMBER_DISCOUNT_PERCENT / 100)) : 0
     const shipping = !items.length ? 0 : isMember ? 0 : calcShipping(subtotal)
+    // Coupons stack on top of member/deal discounts (store policy).
+    const couponDiscount = coupon ? Math.min(coupon.discount || 0, subtotal - memberDiscount) : 0
     return {
       subtotal,
       shipping,
       memberDiscount,
+      couponDiscount,
+      couponCode: coupon?.code || '',
       isMember,
-      total: subtotal - memberDiscount + shipping,
+      total: Math.max(0, subtotal - memberDiscount - couponDiscount + shipping),
     }
-  }, [items, user])
+  }, [items, user, coupon])
 
   const itemCount = useMemo(() => items.reduce((sum, i) => sum + i.qty, 0), [items])
 
@@ -180,7 +241,18 @@ export function CartProvider({ children }) {
 
   return (
     <CartContext.Provider
-      value={{ items, addToCart, updateQty, removeFromCart, clearCart, totals, itemCount }}
+      value={{
+        items,
+        addToCart,
+        updateQty,
+        removeFromCart,
+        clearCart,
+        totals,
+        itemCount,
+        coupon,
+        applyCoupon,
+        removeCoupon,
+      }}
     >
       {children}
     </CartContext.Provider>

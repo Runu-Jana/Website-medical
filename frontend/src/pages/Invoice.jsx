@@ -64,7 +64,10 @@ export default function Invoice() {
   })
   const shipping = Number(order.shippingPrice || 0)
   const memberDiscount = Number(order.discountPrice || 0)
-  const grandTotal = Number(order.totalPrice ?? taxableTotal + gstTotal + shipping - memberDiscount)
+  const couponDiscount = Number(order.couponDiscount || 0)
+  const grandTotal = Number(
+    order.totalPrice ?? taxableTotal + gstTotal + shipping - memberDiscount - couponDiscount
+  )
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 print:py-0">
@@ -178,6 +181,12 @@ export default function Invoice() {
               <div className="flex justify-between text-primary">
                 <dt>Health Club discount</dt>
                 <dd>−{money(memberDiscount)}</dd>
+              </div>
+            )}
+            {couponDiscount > 0 && (
+              <div className="flex justify-between text-emerald-600">
+                <dt>Coupon{order.couponCode ? ` (${order.couponCode})` : ''}</dt>
+                <dd>−{money(couponDiscount)}</dd>
               </div>
             )}
             <div className="flex justify-between">

@@ -7,13 +7,18 @@ import {
   LOW_STOCK_THRESHOLD,
 } from '../lib/notify.js';
 import { scheduleRefillsForOrder } from '../lib/refill.js';
+import {
+  findRedeemableCoupon,
+  computeCouponDiscount,
+  userRedemptionCount,
+} from '../lib/coupons.js';
 
 // DBL Life Care Health Club member discount (percent off items).
 export const MEMBER_DISCOUNT_PERCENT = 5;
 
 // @route POST /api/orders  (customer or guest checkout)
 export const createOrder = async (req, res) => {
-  const { items, shippingAddress, paymentMethod } = req.body;
+  const { items, shippingAddress, paymentMethod, couponCode } = req.body;
   if (!items || items.length === 0) {
     return res.status(400).json({ message: 'No order items' });
   }
@@ -22,9 +27,36 @@ export const createOrder = async (req, res) => {
   // Health Club perks: free delivery + 5% off (computed server-side, never trusted from client).
   const isMember = !!req.user?.isMember;
   const discountPrice = isMember ? Math.round(itemsPrice * (MEMBER_DISCOUNT_PERCENT / 100)) : 0;
+
+  // Coupon — validated & priced server-side so the client can't fake a discount.
+  // Coupons stack with member/deal discounts (store policy).
+  let couponDiscount = 0;
+  let appliedCoupon = null;
+  if (couponCode) {
+    const { coupon } = await findRedeemableCoupon(couponCode);
+    if (coupon) {
+      let allowed = true;
+      if (coupon.perUserLimit > 0 && req.user?.id) {
+        const used = await userRedemptionCount(coupon.id, req.user.id);
+        if (used >= coupon.perUserLimit) allowed = false;
+      }
+      if (allowed) {
+        const cartItems = items.map((i) => ({ productId: i.product, price: i.price, qty: i.qty }));
+        const { discount } = await computeCouponDiscount(coupon, cartItems, itemsPrice);
+        if (discount > 0) {
+          couponDiscount = discount;
+          appliedCoupon = coupon;
+        }
+      }
+    }
+  }
+
   const shippingPrice = isMember ? 0 : itemsPrice > 1000 ? 0 : 60;
   const taxPrice = 0;
-  const totalPrice = itemsPrice - discountPrice + shippingPrice + taxPrice;
+  const totalPrice = Math.max(
+    0,
+    itemsPrice - discountPrice - couponDiscount + shippingPrice + taxPrice
+  );
 
   const order = await prisma.order.create({
     data: {
@@ -35,10 +67,31 @@ export const createOrder = async (req, res) => {
       itemsPrice,
       shippingPrice,
       discountPrice,
+      couponCode: appliedCoupon?.code || '',
+      couponDiscount,
       taxPrice,
       totalPrice,
     },
   });
+
+  // Record the redemption and bump usage (after the order exists).
+  if (appliedCoupon) {
+    Promise.all([
+      prisma.coupon.update({
+        where: { id: appliedCoupon.id },
+        data: { usedCount: { increment: 1 } },
+      }),
+      prisma.couponRedemption.create({
+        data: {
+          couponId: appliedCoupon.id,
+          code: appliedCoupon.code,
+          userId: req.user?.id || null,
+          orderId: order.id,
+          amount: couponDiscount,
+        },
+      }),
+    ]).catch(() => {});
+  }
 
   // Update sold counts + stock for known products (ignore unknown ids).
   const updated = await Promise.all(

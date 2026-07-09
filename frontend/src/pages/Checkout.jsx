@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { formatPrice, imgFallback, PLACEHOLDER_IMG } from '../lib/helpers'
 import AddressAutocomplete from '../components/AddressAutocomplete'
+import CouponInput from '../components/CouponInput'
 import { FaMoneyBillWave, FaCreditCard } from 'react-icons/fa'
 
 const COD = { id: 'Cash on Delivery', label: 'Cash on Delivery', icon: FaMoneyBillWave }
@@ -77,6 +78,7 @@ export default function Checkout() {
     })),
     shippingAddress: { ...form },
     paymentMethod,
+    couponCode: totals.couponCode || undefined,
   })
 
   const payOnline = async (payload) => {
@@ -297,6 +299,12 @@ export default function Checkout() {
                   <dd className="font-semibold">−{formatPrice(totals.memberDiscount)}</dd>
                 </div>
               )}
+              {totals.couponDiscount > 0 && (
+                <div className="flex justify-between text-emerald-600">
+                  <dt className="font-medium">🏷️ Coupon ({totals.couponCode})</dt>
+                  <dd className="font-semibold">−{formatPrice(totals.couponDiscount)}</dd>
+                </div>
+              )}
               <div className="flex justify-between">
                 <dt className="text-slate-500">
                   Shipping{totals.isMember && totals.shipping === 0 ? ' (Member)' : ''}
@@ -308,6 +316,9 @@ export default function Checkout() {
                     formatPrice(totals.shipping)
                   )}
                 </dd>
+              </div>
+              <div className="border-t border-bordergray pt-2">
+                <CouponInput />
               </div>
               <div className="flex justify-between border-t border-bordergray pt-2 text-base">
                 <dt className="font-bold">Total</dt>

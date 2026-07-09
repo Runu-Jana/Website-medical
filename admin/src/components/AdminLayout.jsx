@@ -14,6 +14,7 @@ const SECTIONS = {
   posts: 'Blog',
   prescriptions: 'Prescriptions',
   orders: 'Orders',
+  offers: 'Offers & Coupons',
   customers: 'Customers',
   messages: 'Messages',
   admins: 'Admins',

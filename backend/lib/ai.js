@@ -196,3 +196,70 @@ export const generateProductDetails = async ({ name = '', category = '', imageUr
     : [];
   return parsed;
 };
+
+// JSON shape for an AI-drafted promotional offer.
+const OFFER_SCHEMA = {
+  type: 'object',
+  properties: {
+    code: {
+      type: 'string',
+      description: 'Short uppercase promo code, letters+digits only, 4-12 chars, e.g. "MONSOON20".',
+    },
+    description: {
+      type: 'string',
+      description: 'One-line customer-facing description of the offer, e.g. "20% off immunity essentials this monsoon".',
+    },
+    type: { type: 'string', enum: ['percent', 'fixed'], description: 'percent or fixed ₹ off.' },
+    value: { type: 'number', description: 'The discount amount: percent (e.g. 20) or rupees (e.g. 100).' },
+    maxDiscount: {
+      type: 'number',
+      description: 'Cap in ₹ for percent coupons (0 if none). Keep sensible for margins.',
+    },
+    minOrder: { type: 'number', description: 'Minimum cart value in ₹ to qualify (0 for none).' },
+    headline: {
+      type: 'string',
+      description: 'Punchy homepage headline for the promo panel, e.g. "Monsoon Immunity Sale".',
+    },
+  },
+  required: ['code', 'description', 'type', 'value', 'maxDiscount', 'minOrder', 'headline'],
+  additionalProperties: false,
+};
+
+/**
+ * Draft a promotional offer (code + discount + copy) from a short brief.
+ * @param {{ brief?: string }} input
+ */
+export const generateOfferSuggestion = async ({ brief = '' } = {}) => {
+  if (!aiEnabled) {
+    const err = new Error('AI is not configured. Set ANTHROPIC_API_KEY in the backend .env.');
+    err.status = 503;
+    throw err;
+  }
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1200,
+    system:
+      'You are a growth-marketing expert for an Indian online medical & pharmacy store (DBL Life Care). ' +
+      'Draft a single, sensible promotional coupon that would drive sales without destroying margins. ' +
+      'Discounts for a pharmacy are usually modest (5-25% or ₹50-₹300). Codes must be uppercase, memorable, ' +
+      'and letters/digits only. Return realistic, ready-to-use values.',
+    output_config: { format: { type: 'json_schema', schema: OFFER_SCHEMA } },
+    messages: [
+      {
+        role: 'user',
+        content:
+          (brief && brief.trim()
+            ? `Brief for the offer: ${brief.trim()}`
+            : 'Suggest a strong general-purpose promotional offer for the store.') +
+          '\nReturn one coupon.',
+      },
+    ],
+  });
+  const textBlock = response.content.find((b) => b.type === 'text');
+  if (!textBlock) throw new Error('AI returned no content.');
+  try {
+    return JSON.parse(textBlock.text);
+  } catch {
+    throw new Error('AI returned malformed JSON.');
+  }
+};

@@ -3,6 +3,7 @@ import { FaTrashAlt, FaArrowLeft, FaShoppingCart } from 'react-icons/fa'
 import { useCart } from '../context/CartContext'
 import QuantitySelector from '../components/QuantitySelector'
 import CartMilestone from '../components/CartMilestone'
+import CouponInput from '../components/CouponInput'
 import { formatPrice, imgFallback, PLACEHOLDER_IMG } from '../lib/helpers'
 
 export default function Cart() {
@@ -115,6 +116,14 @@ export default function Cart() {
                   <dd className="font-semibold">−{formatPrice(totals.memberDiscount)}</dd>
                 </div>
               )}
+              {totals.couponDiscount > 0 && (
+                <div className="flex justify-between text-emerald-600">
+                  <dt className="flex items-center gap-1 font-medium">
+                    🏷️ Coupon ({totals.couponCode})
+                  </dt>
+                  <dd className="font-semibold">−{formatPrice(totals.couponDiscount)}</dd>
+                </div>
+              )}
               <div className="flex justify-between">
                 <dt className="text-slate-500">
                   Shipping{totals.isMember && totals.shipping === 0 ? ' (Member)' : ''}
@@ -132,6 +141,9 @@ export default function Cart() {
                   Add {formatPrice(1000 - totals.subtotal)} more for free shipping.
                 </p>
               )}
+              <div className="border-t border-bordergray pt-3">
+                <CouponInput />
+              </div>
               <div className="flex justify-between border-t border-bordergray pt-3 text-base">
                 <dt className="font-bold">Total</dt>
                 <dd className="font-bold text-primary">{formatPrice(totals.total)}</dd>

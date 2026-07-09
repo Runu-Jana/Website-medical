@@ -25,13 +25,14 @@ export default function Home() {
   const [bestsellers, setBestsellers] = useState([])
   const [newArrivals, setNewArrivals] = useState([])
   const [brands, setBrands] = useState([])
+  const [coupons, setCoupons] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let active = true
     const fetchAll = async () => {
       try {
-        const [cats, deal, feat, best, news, latest, brnds] = await Promise.all([
+        const [cats, deal, feat, best, news, latest, brnds, cpns] = await Promise.all([
           api.get('/categories'),
           api.get('/products', { params: { deal: true, limit: 4 } }),
           api.get('/products', { params: { featured: true, limit: 8 } }),
@@ -39,6 +40,7 @@ export default function Home() {
           api.get('/products', { params: { isNew: true, limit: 8 } }),
           api.get('/products', { params: { sort: 'newest', limit: 8 } }),
           api.get('/brands'),
+          api.get('/coupons/active').catch(() => ({ data: [] })),
         ])
         if (!active) return
         // Fall back to the latest products when a flagged list is empty,
@@ -51,6 +53,7 @@ export default function Home() {
         setBestsellers(orFallback(best.data.products))
         setNewArrivals(orFallback(news.data.products))
         setBrands(Array.isArray(brnds.data) ? brnds.data : [])
+        setCoupons(Array.isArray(cpns.data) ? cpns.data : [])
       } catch {
         /* keep empty states */
       } finally {
@@ -76,6 +79,29 @@ export default function Home() {
   }
 
   const dealProduct = deals[0]
+
+  // Turn an admin coupon into a promo-panel offer, falling back to a default.
+  const offerFrom = (coupon, fallback) => {
+    if (!coupon) return fallback
+    return {
+      discount: coupon.type === 'percent' ? `${Math.round(coupon.value)}%` : `₹${Math.round(coupon.value)}`,
+      subtitle: coupon.description || fallback.subtitle,
+      coupon: coupon.code,
+      bg: fallback.bg,
+    }
+  }
+  const newLaunchOffer = offerFrom(coupons[0], {
+    discount: '15%',
+    subtitle: 'For new member sign up\nat the first time',
+    coupon: 'COUPON15',
+    bg: 'bg-[#dcf3e4]',
+  })
+  const bestsellerOffer = offerFrom(coupons[1] || coupons[0], {
+    discount: '20%',
+    subtitle: 'On your favourite\nbest-selling products',
+    coupon: 'BESTSELLER20',
+    bg: 'bg-[#e6eefc]',
+  })
 
   return (
     <div className="pb-4">
@@ -174,29 +200,13 @@ export default function Home() {
       {/* New launches */}
       <section className="container-x mt-14">
         <h2 className="mb-6 text-3xl font-extrabold text-dark">New Launches</h2>
-        <NewLaunches
-          products={newArrivals}
-          offer={{
-            discount: '15%',
-            subtitle: 'For new member sign up\nat the first time',
-            coupon: 'COUPON15',
-            bg: 'bg-[#dcf3e4]',
-          }}
-        />
+        <NewLaunches products={newArrivals} offer={newLaunchOffer} />
       </section>
 
       {/* Best sellers (promo row) */}
       <section className="container-x mt-14">
         <h2 className="mb-6 text-3xl font-extrabold text-dark">Best Sellers</h2>
-        <NewLaunches
-          products={bestsellers}
-          offer={{
-            discount: '20%',
-            subtitle: 'On your favourite\nbest-selling products',
-            coupon: 'BESTSELLER20',
-            bg: 'bg-[#e6eefc]',
-          }}
-        />
+        <NewLaunches products={bestsellers} offer={bestsellerOffer} />
       </section>
 
       {/* Blog teaser */}

@@ -139,6 +139,8 @@ model Order {
   itemsPrice        Float     @default(0)
   shippingPrice     Float     @default(0)
   discountPrice     Float     @default(0)
+  couponCode        String    @default("")
+  couponDiscount    Float     @default(0)
   taxPrice          Float     @default(0)
   totalPrice        Float     @default(0)
   isPaid            Boolean   @default(false)
@@ -173,6 +175,44 @@ model RefillReminder {
   updatedAt   DateTime  @updatedAt
 
   @@index([status, dueDate])
+  @@index([userId])
+}
+
+model Coupon {
+  id           String    @id @default(uuid())
+  code         String    @unique
+  description  String    @default("")
+  type         String    @default("percent") // percent | fixed
+  value        Float     @default(0) // percent (e.g. 10) or fixed ₹ amount
+  maxDiscount  Float     @default(0) // cap for percent coupons (0 = no cap)
+  minOrder     Float     @default(0) // minimum cart subtotal to qualify
+  scope        String    @default("all") // all | products | categories
+  productIds   String[] // when scope = products
+  categoryIds  String[] // when scope = categories
+  usageLimit   Int       @default(0) // total redemptions allowed (0 = unlimited)
+  usedCount    Int       @default(0)
+  perUserLimit Int       @default(0) // per-customer redemptions (0 = unlimited)
+  startsAt     DateTime?
+  endsAt       DateTime?
+  active       Boolean   @default(true)
+  showOnHome   Boolean   @default(false) // surface on the storefront homepage
+  stackable    Boolean   @default(true) // combine with member/deal discounts
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([active])
+}
+
+model CouponRedemption {
+  id        String   @id @default(uuid())
+  couponId  String
+  code      String   @default("")
+  userId    String?
+  orderId   String?
+  amount    Float    @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([couponId])
   @@index([userId])
 }
 

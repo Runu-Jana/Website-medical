@@ -20,9 +20,16 @@ export const getPaymentConfig = (req, res) => {
 // @route POST /api/payments/order  — create a Razorpay order (amount in rupees)
 export const createPaymentOrder = async (req, res) => {
   if (!razorpayEnabled) return res.status(400).json({ message: 'Online payment is not configured' });
-  const amount = Math.round(Number(req.body.amount) * 100); // rupees → paise
-  if (!amount || amount < 100) return res.status(400).json({ message: 'Invalid amount' });
   const orderId = req.body.orderId || '';
+  // Trust the server-computed order total (incl. coupons/member discounts) over
+  // any client-supplied amount, so the charge can't be tampered with.
+  let rupees = Number(req.body.amount);
+  if (orderId) {
+    const ourOrder = await prisma.order.findUnique({ where: { id: orderId } }).catch(() => null);
+    if (ourOrder) rupees = ourOrder.totalPrice;
+  }
+  const amount = Math.round(rupees * 100); // rupees → paise
+  if (!amount || amount < 100) return res.status(400).json({ message: 'Invalid amount' });
   try {
     const order = await razorpay.orders.create({
       amount,
