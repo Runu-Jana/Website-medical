@@ -141,29 +141,33 @@ export default function Home() {
 
       {/* Promo banners */}
       <section className="container-x mt-14 grid gap-4 sm:grid-cols-2">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primaryDark p-8 text-white">
+        <div className="relative flex flex-col overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primaryDark p-8 text-white">
           <h3 className="text-2xl font-bold">Vitamins & Supplements</h3>
           <p className="mt-2 max-w-xs text-sm text-white/90">
             Boost your immunity with up to 30% off select supplements.
           </p>
-          <Link
-            to="/shop"
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-primary"
-          >
-            Shop Now <FaArrowRight />
-          </Link>
+          <div className="mt-auto pt-5">
+            <Link
+              to="/shop"
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-primary"
+            >
+              Shop Now <FaArrowRight />
+            </Link>
+          </div>
         </div>
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-accent to-emerald-700 p-8 text-white">
+        <div className="relative flex flex-col overflow-hidden rounded-2xl bg-gradient-to-r from-accent to-emerald-700 p-8 text-white">
           <h3 className="text-2xl font-bold">Medical Devices</h3>
           <p className="mt-2 max-w-xs text-sm text-white/90">
             Reliable monitors and equipment for home health care.
           </p>
-          <Link
-            to="/shop"
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-accent"
-          >
-            Explore <FaArrowRight />
-          </Link>
+          <div className="mt-auto pt-5">
+            <Link
+              to="/shop"
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-accent"
+            >
+              Explore <FaArrowRight />
+            </Link>
+          </div>
         </div>
       </section>
 

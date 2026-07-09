@@ -147,15 +147,17 @@ export default function ProductCard({ product, list = false }) {
           )}
           {!outOfStock && <DeliveryPromise className="mt-1.5" />}
 
-          <button
-            type="button"
-            disabled={outOfStock}
-            onClick={() => addToCart(product)}
-            className={`btn-primary mt-3 w-full ${list ? 'sm:w-48' : ''}`}
-          >
-            <FaCartPlus />
-            {outOfStock ? 'Out of Stock' : 'Add to Cart'}
-          </button>
+          <div className="mt-auto pt-3">
+            <button
+              type="button"
+              disabled={outOfStock}
+              onClick={() => addToCart(product)}
+              className={`btn-primary w-full ${list ? 'sm:w-48' : ''}`}
+            >
+              <FaCartPlus />
+              {outOfStock ? 'Out of Stock' : 'Add to Cart'}
+            </button>
+          </div>
         </div>
       </div>
 
