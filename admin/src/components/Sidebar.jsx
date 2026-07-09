@@ -12,6 +12,7 @@ import {
   FiPercent,
   FiUsers,
   FiMail,
+  FiMessageCircle,
   FiShield,
   FiActivity,
   FiRefreshCw,
@@ -32,6 +33,7 @@ const links = [
   { to: '/customers', label: 'Customers', icon: FiUsers },
   { to: '/refills', label: 'Refills', icon: FiRefreshCw },
   { to: '/messages', label: 'Messages', icon: FiMail },
+  { to: '/support-chats', label: 'Support Chats', icon: FiMessageCircle },
   { to: '/admins', label: 'Admins', icon: FiShield },
 ];
 

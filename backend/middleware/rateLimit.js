@@ -22,3 +22,8 @@ export const contactLimiter = rateLimit(
 export const reviewLimiter = rateLimit(
   opts(60 * 60 * 1000, 20, 'Too many reviews. Please try again later.')
 );
+
+// Support chat: caps AI usage/cost per client without hurting a real chat.
+export const supportLimiter = rateLimit(
+  opts(10 * 60 * 1000, 30, 'You are sending messages too quickly. Please wait a moment.')
+);

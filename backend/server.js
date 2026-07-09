@@ -33,6 +33,7 @@ import viewRoutes from './routes/viewRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
 import popupRoutes from './routes/popupRoutes.js';
+import supportRoutes from './routes/supportRoutes.js';
 import { ensureDefaultPopup } from './config/ensureDefaults.js';
 import { startRefillScheduler } from './lib/refill.js';
 
@@ -119,6 +120,7 @@ app.use('/api/views', viewRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/popups', popupRoutes);
+app.use('/api/support', supportRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

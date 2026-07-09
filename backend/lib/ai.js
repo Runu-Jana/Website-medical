@@ -7,6 +7,8 @@ const { ANTHROPIC_API_KEY } = process.env;
 export const aiEnabled = !!ANTHROPIC_API_KEY;
 
 const MODEL = 'claude-opus-4-8';
+// Support chat is high-volume and customer-facing — use the fast, low-cost model.
+const SUPPORT_MODEL = 'claude-haiku-4-5';
 
 const client = aiEnabled ? new Anthropic({ apiKey: ANTHROPIC_API_KEY }) : null;
 
@@ -262,4 +264,91 @@ export const generateOfferSuggestion = async ({ brief = '' } = {}) => {
   } catch {
     throw new Error('AI returned malformed JSON.');
   }
+};
+
+// Structured reply for the storefront support assistant.
+const SUPPORT_SCHEMA = {
+  type: 'object',
+  properties: {
+    reply: {
+      type: 'string',
+      description: 'The helpful, friendly answer to show the customer (plain text, no markdown symbols).',
+    },
+    escalate: {
+      type: 'boolean',
+      description:
+        'True if the query needs a human (complaint, refund/return request, payment dispute, prescription verification, anything you cannot answer confidently, or the customer asks for a person).',
+    },
+    escalationReason: {
+      type: 'string',
+      description: 'Short internal note on why it should reach a human (empty when escalate is false).',
+    },
+  },
+  required: ['reply', 'escalate', 'escalationReason'],
+  additionalProperties: false,
+};
+
+const SUPPORT_SYSTEM = `You are "Care Assistant", the friendly customer-support assistant for DBL Life Care, an Indian online medical & pharmacy store (operated by Dr. Bhoumik Laboratories Pvt. Ltd.).
+
+Your job: answer customer questions about products, orders, delivery, payments, offers, prescriptions and store policies, using ONLY the store information provided to you in the context. Be warm, concise and helpful.
+
+STRICT MEDICAL SAFETY RULES (this is a pharmacy — non-negotiable):
+- You are NOT a doctor. Never diagnose conditions, never prescribe, and never tell a customer to start, stop, combine, or change the dose of any medicine.
+- For any symptom or "what should I take" question, give only general, safe information and clearly advise them to consult a qualified doctor or pharmacist. When appropriate, suggest they use the store's "Upload Prescription" option.
+- Never recommend or promise to sell prescription-only medicines without a valid prescription.
+- For emergencies, tell them to contact a doctor or emergency services immediately.
+
+GROUNDING RULES:
+- Only state product names, prices, stock and offers that appear in the provided context. If something isn't in the context, say you're not sure and offer to connect them with the team — do NOT invent details.
+- For order-status questions from a customer who is not logged in, ask them to log in so you can look up their order securely.
+- Keep answers short (a few sentences). Use plain text only — no markdown, asterisks or headings.
+
+ESCALATION:
+- Set escalate=true for complaints, refund/return requests, wrong/damaged items, payment failures, prescription verification, or anything you cannot answer confidently from the context, or when the customer asks to talk to a human. Still give a polite holding reply telling them the team will follow up.`;
+
+/**
+ * Answer a storefront support conversation.
+ * @param {{ messages: Array<{role:'user'|'assistant', content:string}>, context: string }} input
+ * @returns {Promise<{reply:string, escalate:boolean, escalationReason:string}>}
+ */
+export const answerSupportQuery = async ({ messages = [], context = '' }) => {
+  if (!aiEnabled) {
+    const err = new Error('AI is not configured. Set ANTHROPIC_API_KEY in the backend .env.');
+    err.status = 503;
+    throw err;
+  }
+  const trimmed = messages
+    .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && m.content)
+    .slice(-12) // keep the last few turns to bound cost
+    .map((m) => ({ role: m.role, content: String(m.content).slice(0, 2000) }));
+  if (!trimmed.length || trimmed[trimmed.length - 1].role !== 'user') {
+    const err = new Error('No customer message to answer.');
+    err.status = 400;
+    throw err;
+  }
+
+  const response = await client.messages.create({
+    model: SUPPORT_MODEL,
+    max_tokens: 700,
+    system: [
+      { type: 'text', text: SUPPORT_SYSTEM },
+      { type: 'text', text: `STORE CONTEXT (the only facts you may rely on):\n${context}` },
+    ],
+    output_config: { format: { type: 'json_schema', schema: SUPPORT_SCHEMA } },
+    messages: trimmed,
+  });
+
+  const textBlock = response.content.find((b) => b.type === 'text');
+  if (!textBlock) throw new Error('AI returned no content.');
+  let parsed;
+  try {
+    parsed = JSON.parse(textBlock.text);
+  } catch {
+    throw new Error('AI returned malformed JSON.');
+  }
+  return {
+    reply: String(parsed.reply || '').trim() || "I'm sorry, I couldn't process that. Let me connect you with our team.",
+    escalate: !!parsed.escalate,
+    escalationReason: String(parsed.escalationReason || '').trim(),
+  };
 };

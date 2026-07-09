@@ -4,6 +4,7 @@ import Navbar from './Navbar'
 import Footer from './Footer'
 import MobileBottomNav from './MobileBottomNav'
 import PopupBanner from './PopupBanner'
+import SupportChat from './SupportChat'
 
 export default function Layout() {
   const { pathname } = useLocation()
@@ -23,6 +24,8 @@ export default function Layout() {
       <MobileBottomNav />
       {/* Welcome / offer popup (managed in Admin → Popups) */}
       <PopupBanner />
+      {/* AI customer-support widget (shown only when the AI key is configured) */}
+      <SupportChat />
     </div>
   )
 }

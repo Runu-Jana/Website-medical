@@ -18,6 +18,7 @@ const SECTIONS = {
   offers: 'Offers & Coupons',
   customers: 'Customers',
   messages: 'Messages',
+  'support-chats': 'Support Chats',
   admins: 'Admins',
 };
 

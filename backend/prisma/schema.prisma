@@ -241,6 +241,20 @@ model Banner {
   updatedAt  DateTime @updatedAt
 }
 
+model SupportChat {
+  id        String   @id @default(uuid())
+  userId    String?
+  name      String   @default("")
+  contact   String   @default("") // email/phone the customer gave (for follow-up)
+  messages  Json // [{ role, content, at }]
+  escalated Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([escalated])
+  @@index([createdAt])
+}
+
 model PopupBanner {
   id         String   @id @default(uuid())
   title      String   @default("")
