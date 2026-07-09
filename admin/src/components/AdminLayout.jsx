@@ -11,6 +11,7 @@ const SECTIONS = {
   categories: 'Categories',
   brands: 'Brands',
   banners: 'Banners',
+  popups: 'Popup Banners',
   posts: 'Blog',
   prescriptions: 'Prescriptions',
   orders: 'Orders',

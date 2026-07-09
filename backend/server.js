@@ -32,9 +32,13 @@ import refillRoutes from './routes/refillRoutes.js';
 import viewRoutes from './routes/viewRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
+import popupRoutes from './routes/popupRoutes.js';
+import { ensureDefaultPopup } from './config/ensureDefaults.js';
 import { startRefillScheduler } from './lib/refill.js';
 
-connectDB().then(() => autoSeedIfEmpty());
+connectDB()
+  .then(() => autoSeedIfEmpty())
+  .then(() => ensureDefaultPopup());
 console.log(`✉️  Email notifications: ${mailerEnabled ? 'enabled' : 'disabled (set SMTP_* in .env)'}`);
 console.log(`🤖 AI product details: ${aiEnabled ? 'enabled' : 'disabled (set ANTHROPIC_API_KEY in .env)'}`);
 startRefillScheduler();
@@ -114,6 +118,7 @@ app.use('/api/refills', refillRoutes);
 app.use('/api/views', viewRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/coupons', couponRoutes);
+app.use('/api/popups', popupRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

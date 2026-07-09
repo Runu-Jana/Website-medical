@@ -108,3 +108,35 @@
 .marquee:hover .marquee-track {
   animation-play-state: paused;
 }
+
+/* Popup banner — backdrop fade + upward slide-in */
+@keyframes popup-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes popup-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(60px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.popup-backdrop {
+  animation: popup-backdrop-in 0.25s ease-out both;
+}
+.popup-card {
+  animation: popup-slide-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .popup-backdrop,
+  .popup-card {
+    animation: none;
+  }
+}

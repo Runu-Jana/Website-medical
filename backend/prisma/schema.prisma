@@ -241,6 +241,24 @@ model Banner {
   updatedAt  DateTime @updatedAt
 }
 
+model PopupBanner {
+  id         String   @id @default(uuid())
+  title      String   @default("")
+  subtitle   String   @default("")
+  badge      String   @default("")
+  image      String   @default("")
+  bgColor    String   @default("#0e9f8e")
+  buttonText String   @default("Shop Now")
+  link       String   @default("/shop")
+  order      Int      @default(0)
+  active     Boolean  @default(true)
+  frequency  String   @default("session") // session | daily | always
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([active])
+}
+
 model Prescription {
   id        String   @id @default(uuid())
   name      String   @default("")

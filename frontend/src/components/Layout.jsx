@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import MobileBottomNav from './MobileBottomNav'
+import PopupBanner from './PopupBanner'
 
 export default function Layout() {
   const { pathname } = useLocation()
@@ -20,6 +21,8 @@ export default function Layout() {
       {/* Spacer so the fixed mobile bar never covers the footer */}
       <div className="h-16 md:hidden" />
       <MobileBottomNav />
+      {/* Welcome / offer popup (managed in Admin → Popups) */}
+      <PopupBanner />
     </div>
   )
 }
