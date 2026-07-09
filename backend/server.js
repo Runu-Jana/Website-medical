@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import { autoSeedIfEmpty } from './config/autoSeed.js';
 import { mailerEnabled } from './lib/mailer.js';
+import { aiEnabled } from './lib/ai.js';
 import { authLimiter } from './middleware/rateLimit.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
@@ -29,10 +30,12 @@ import contactRoutes from './routes/contactRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import refillRoutes from './routes/refillRoutes.js';
 import viewRoutes from './routes/viewRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
 import { startRefillScheduler } from './lib/refill.js';
 
 connectDB().then(() => autoSeedIfEmpty());
 console.log(`✉️  Email notifications: ${mailerEnabled ? 'enabled' : 'disabled (set SMTP_* in .env)'}`);
+console.log(`🤖 AI product details: ${aiEnabled ? 'enabled' : 'disabled (set ANTHROPIC_API_KEY in .env)'}`);
 startRefillScheduler();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -108,6 +111,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/admins', adminRoutes);
 app.use('/api/refills', refillRoutes);
 app.use('/api/views', viewRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { FiArrowLeft, FiSave, FiTrash2, FiX } from 'react-icons/fi';
+import { FiArrowLeft, FiSave, FiTrash2, FiX, FiZap, FiPlus } from 'react-icons/fi';
 import api from '../lib/api.js';
 import { useToast } from '../context/ToastContext.jsx';
 import Loader from '../components/Loader.jsx';
@@ -47,6 +47,8 @@ const emptyForm = {
   sideEffects: '',
   directions: '',
   storage: '',
+  dosAndDonts: '',
+  faqs: [],
   // SEO
   seoTitle: '',
   metaDescription: '',
@@ -121,6 +123,8 @@ export default function ProductForm() {
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   // Snapshot of the last-saved/loaded state, to detect unsaved changes.
   const initialRef = useRef(JSON.stringify(emptyForm));
@@ -150,6 +154,56 @@ export default function ProductForm() {
   const removeVariant = (i) =>
     setForm((f) => ({ ...f, variants: f.variants.filter((_, idx) => idx !== i) }));
 
+  // FAQ editor helpers
+  const addFaq = () =>
+    setForm((f) => ({ ...f, faqs: [...(f.faqs || []), { question: '', answer: '' }] }));
+  const updateFaq = (i, key, value) =>
+    setForm((f) => ({
+      ...f,
+      faqs: (f.faqs || []).map((q, idx) => (idx === i ? { ...q, [key]: value } : q)),
+    }));
+  const removeFaq = (i) =>
+    setForm((f) => ({ ...f, faqs: (f.faqs || []).filter((_, idx) => idx !== i) }));
+
+  // Read the product's carton image(s) with AI and fill in the details + FAQs.
+  const generateWithAI = async () => {
+    if (!form.images?.length) {
+      toast.error('Add at least one product image first — AI reads the carton.');
+      return;
+    }
+    const selectedCat = categories.find((c) => form.categories.includes(c._id));
+    setAiLoading(true);
+    try {
+      const { data } = await api.post('/ai/product-details', {
+        name: form.name,
+        category: selectedCat?.name || '',
+        imageUrls: form.images,
+      });
+      const d = data.data || {};
+      // Only overwrite a field when the AI returned something for it, so any
+      // details the admin already typed are preserved.
+      setForm((f) => {
+        const next = { ...f };
+        const keys = [
+          'shortDescription', 'saltComposition', 'strength', 'dosageForm', 'manufacturer',
+          'uses', 'benefits', 'directions', 'sideEffects', 'storage', 'dosAndDonts',
+        ];
+        keys.forEach((k) => {
+          if (d[k] && String(d[k]).trim()) next[k] = d[k];
+        });
+        if (Array.isArray(d.faqs) && d.faqs.length) {
+          next.faqs = d.faqs.map((q) => ({ question: q.question || '', answer: q.answer || '' }));
+        }
+        return next;
+      });
+      toast.success('AI filled in the details — please review before saving.');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'AI generation failed.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   useEffect(() => {
     let active = true;
     const load = async () => {
@@ -158,6 +212,11 @@ export default function ProductForm() {
         if (!active) return;
         setCategories(cats.data || []);
         setBrands(brs.data || []);
+        // Whether the AI carton-reader is available (backend has ANTHROPIC_API_KEY).
+        api
+          .get('/ai/status')
+          .then(({ data }) => active && setAiEnabled(!!data.enabled))
+          .catch(() => {});
 
         if (isEdit) {
           const { data } = await api.get(`/products/${id}`);
@@ -213,6 +272,10 @@ export default function ProductForm() {
               sideEffects: product.sideEffects || '',
               directions: product.directions || '',
               storage: product.storage || '',
+              dosAndDonts: product.dosAndDonts || '',
+              faqs: Array.isArray(product.faqs)
+                ? product.faqs.map((f) => ({ question: f.question || '', answer: f.answer || '' }))
+                : [],
               seoTitle: product.seoTitle || '',
               metaDescription: product.metaDescription || '',
               metaKeywords: product.metaKeywords || '',
@@ -315,6 +378,10 @@ export default function ProductForm() {
       sideEffects: form.sideEffects,
       directions: form.directions,
       storage: form.storage,
+      dosAndDonts: form.dosAndDonts,
+      faqs: (form.faqs || [])
+        .map((f) => ({ question: (f.question || '').trim(), answer: (f.answer || '').trim() }))
+        .filter((f) => f.question && f.answer),
       // SEO
       seoTitle: form.seoTitle,
       metaDescription: form.metaDescription,
@@ -361,6 +428,18 @@ export default function ProductForm() {
             <p className="text-sm text-slate-500">Fill in the product details below.</p>
           </div>
         </div>
+        {aiEnabled && (
+          <button
+            type="button"
+            onClick={generateWithAI}
+            disabled={aiLoading}
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 disabled:opacity-60"
+            title="Read the product's carton image with AI and auto-fill the details & FAQs"
+          >
+            <FiZap size={16} />
+            {aiLoading ? 'Reading carton…' : 'Generate with AI'}
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
@@ -472,7 +551,64 @@ export default function ProductForm() {
               <Area label="Side Effects" value={form.sideEffects} onChange={(v) => set('sideEffects', v)} placeholder="Rare: nausea, rash..." />
               <Area label="Directions to Use" value={form.directions} onChange={(v) => set('directions', v)} placeholder="1 tablet every 6 hours or as directed..." />
               <Area label="Storage Instructions" value={form.storage} onChange={(v) => set('storage', v)} placeholder="Store below 30°C, away from sunlight..." />
+              <Area label="Do's & Don'ts" value={form.dosAndDonts} onChange={(v) => set('dosAndDonts', v)} placeholder={"Do: Take with food\nDon't: Consume alcohol while on this medicine"} rows={4} />
             </div>
+          </div>
+
+          <div className="card p-5">
+            <div className="mb-1 flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-slate-800">FAQs</h3>
+                <p className="text-xs text-slate-500">
+                  Shown on the product page. {aiEnabled ? 'Use “Generate with AI” to auto-create these from the carton.' : ''}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={addFaq}
+                className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+              >
+                <FiPlus size={15} /> Add FAQ
+              </button>
+            </div>
+            {(!form.faqs || form.faqs.length === 0) ? (
+              <p className="mt-3 rounded-lg border border-dashed border-slate-200 px-3 py-4 text-center text-sm text-slate-500">
+                No FAQs yet. Add them manually or generate with AI.
+              </p>
+            ) : (
+              <div className="mt-3 space-y-3">
+                {form.faqs.map((q, i) => (
+                  <div key={i} className="rounded-lg border border-slate-200 p-3">
+                    <div className="flex items-start gap-2">
+                      <span className="mt-2 text-xs font-bold text-slate-400">Q{i + 1}</span>
+                      <div className="flex-1 space-y-2">
+                        <input
+                          value={q.question}
+                          onChange={(e) => updateFaq(i, 'question', e.target.value)}
+                          className="input"
+                          placeholder="Question, e.g. Is this medicine safe during pregnancy?"
+                        />
+                        <textarea
+                          rows={2}
+                          value={q.answer}
+                          onChange={(e) => updateFaq(i, 'answer', e.target.value)}
+                          className="input resize-y"
+                          placeholder="Answer..."
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeFaq(i)}
+                        className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-danger"
+                        title="Remove FAQ"
+                      >
+                        <FiTrash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="card p-5">

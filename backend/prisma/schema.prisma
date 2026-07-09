@@ -107,6 +107,8 @@ model Product {
   sideEffects     String @default("")
   directions      String @default("")
   storage         String @default("")
+  dosAndDonts     String @default("")
+  faqs            Json? // [{ question, answer }] — AI-generated or admin-authored
 
   // SEO
   seoTitle        String @default("")

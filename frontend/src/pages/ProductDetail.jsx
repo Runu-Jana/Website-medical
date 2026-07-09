@@ -18,7 +18,33 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaSearchPlus,
+  FaChevronDown,
 } from 'react-icons/fa'
+
+// Collapsible FAQ row for the product page.
+function FaqItem({ q, a }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="card overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left"
+      >
+        <span className="text-sm font-semibold text-dark">{q}</span>
+        <FaChevronDown
+          className={`shrink-0 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`}
+          size={14}
+        />
+      </button>
+      {open && (
+        <p className="whitespace-pre-line border-t border-bordergray px-4 py-3 text-sm leading-relaxed text-slate-600">
+          {a}
+        </p>
+      )}
+    </div>
+  )
+}
 
 export default function ProductDetail() {
   const { slug } = useParams()
@@ -93,6 +119,7 @@ export default function ProductDetail() {
     ['Benefits', product.benefits],
     ['Side Effects', product.sideEffects],
     ['Directions for Use', product.directions],
+    ["Do's & Don'ts", product.dosAndDonts],
     ['Storage', product.storage],
   ].filter(([, v]) => v)
   const hasMedInfo =
@@ -100,6 +127,9 @@ export default function ProductDetail() {
     product.saltComposition ||
     product.strength ||
     product.dosageForm
+  const faqs = Array.isArray(product.faqs)
+    ? product.faqs.filter((f) => f && f.question && f.answer)
+    : []
 
   const handleBuyNow = () => {
     if (addToCart(product, qty)) navigate('/cart')
@@ -342,6 +372,7 @@ export default function ProductDetail() {
             { id: 'description', label: 'Description' },
             ...(hasMedInfo ? [{ id: 'medicine', label: 'Medicine Details' }] : []),
             { id: 'info', label: 'Additional Info' },
+            ...(faqs.length ? [{ id: 'faqs', label: `FAQs (${faqs.length})` }] : []),
             { id: 'reviews', label: `Reviews (${product.numReviews || 0})` },
           ].map((t) => (
             <button
@@ -431,6 +462,14 @@ export default function ProductDetail() {
                   ))}
               </tbody>
             </table>
+          )}
+
+          {tab === 'faqs' && (
+            <div className="max-w-2xl space-y-3">
+              {faqs.map((f, i) => (
+                <FaqItem key={i} q={f.question} a={f.answer} />
+              ))}
+            </div>
           )}
 
           {tab === 'reviews' && (

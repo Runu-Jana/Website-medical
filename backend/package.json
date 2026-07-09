@@ -29,6 +29,7 @@
   "author": "Freelance Web Developer",
   "license": "MIT",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.1",
     "@prisma/client": "^5.18.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",

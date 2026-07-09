@@ -184,6 +184,8 @@ export const createProduct = async (req, res) => {
       sideEffects: b.sideEffects || '',
       directions: b.directions || '',
       storage: b.storage || '',
+      dosAndDonts: b.dosAndDonts || '',
+      faqs: Array.isArray(b.faqs) ? b.faqs : [],
       seoTitle: b.seoTitle || '',
       metaDescription: b.metaDescription || '',
       metaKeywords: b.metaKeywords || '',
@@ -212,11 +214,12 @@ export const updateProduct = async (req, res) => {
     // pharma / catalog / SEO / vendor strings
     'genericName', 'manufacturer', 'subCategory', 'hsnCode', 'packSize',
     'saltComposition', 'strength', 'dosageForm', 'uses', 'benefits', 'sideEffects',
-    'directions', 'storage', 'seoTitle', 'metaDescription', 'metaKeywords',
+    'directions', 'storage', 'dosAndDonts', 'seoTitle', 'metaDescription', 'metaKeywords',
     'vendorId', 'vendorName',
   ].forEach((f) => {
     if (b[f] !== undefined) data[f] = b[f];
   });
+  if (b.faqs !== undefined) data.faqs = Array.isArray(b.faqs) ? b.faqs : [];
   if (b.price !== undefined) data.price = Number(b.price);
   if (b.oldPrice !== undefined) data.oldPrice = Number(b.oldPrice);
   if (b.countInStock !== undefined) data.countInStock = Number(b.countInStock);
