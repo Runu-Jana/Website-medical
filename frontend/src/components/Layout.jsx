@@ -5,6 +5,7 @@ import Footer from './Footer'
 import MobileBottomNav from './MobileBottomNav'
 import PopupBanner from './PopupBanner'
 import SupportChat from './SupportChat'
+import BackToTop from './BackToTop'
 
 export default function Layout() {
   const { pathname } = useLocation()
@@ -26,6 +27,8 @@ export default function Layout() {
       <PopupBanner />
       {/* AI customer-support widget (shown only when the AI key is configured) */}
       <SupportChat />
+      {/* Scroll-to-top button */}
+      <BackToTop />
     </div>
   )
 }

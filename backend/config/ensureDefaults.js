@@ -27,3 +27,30 @@ export const ensureDefaultPopup = async () => {
     console.error('ensureDefaultPopup skipped:', err.message);
   }
 };
+
+// Seed a demo coupon the first time the table is empty, so a coupon banner is
+// visible on the storefront right away. Editable/removable in Admin → Offers.
+export const ensureDefaultCoupon = async () => {
+  try {
+    const count = await prisma.coupon.count();
+    if (count > 0) return;
+    await prisma.coupon.create({
+      data: {
+        code: 'WELCOME15',
+        description: 'Flat 15% OFF your first order',
+        type: 'percent',
+        value: 15,
+        maxDiscount: 300,
+        minOrder: 499,
+        scope: 'all',
+        active: true,
+        showOnHome: true,
+        stackable: true,
+        perUserLimit: 1,
+      },
+    });
+    console.log('🏷️  Seeded a demo coupon WELCOME15 (edit it in Admin → Offers).');
+  } catch (err) {
+    console.error('ensureDefaultCoupon skipped:', err.message);
+  }
+};

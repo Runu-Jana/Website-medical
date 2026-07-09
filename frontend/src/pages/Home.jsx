@@ -8,6 +8,7 @@ import SectionHeading from '../components/SectionHeading'
 import CategoryCard from '../components/CategoryCard'
 import CategoryCircles from '../components/CategoryCircles'
 import BrandStrip from '../components/BrandStrip'
+import CouponStrip from '../components/CouponStrip'
 import HealthCorner from '../components/HealthCorner'
 import ProductCarousel from '../components/ProductCarousel'
 import ProductSkeleton from '../components/ProductSkeleton'
@@ -107,6 +108,7 @@ export default function Home() {
     <div className="pb-4">
       <HeroSlider />
       <TrustBar />
+      <CouponStrip coupons={coupons} />
       <FeatureStrip />
 
       {/* Categories */}

@@ -34,12 +34,13 @@ import aiRoutes from './routes/aiRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
 import popupRoutes from './routes/popupRoutes.js';
 import supportRoutes from './routes/supportRoutes.js';
-import { ensureDefaultPopup } from './config/ensureDefaults.js';
+import { ensureDefaultPopup, ensureDefaultCoupon } from './config/ensureDefaults.js';
 import { startRefillScheduler } from './lib/refill.js';
 
 connectDB()
   .then(() => autoSeedIfEmpty())
-  .then(() => ensureDefaultPopup());
+  .then(() => ensureDefaultPopup())
+  .then(() => ensureDefaultCoupon());
 console.log(`✉️  Email notifications: ${mailerEnabled ? 'enabled' : 'disabled (set SMTP_* in .env)'}`);
 console.log(`🤖 AI product details: ${aiEnabled ? 'enabled' : 'disabled (set ANTHROPIC_API_KEY in .env)'}`);
 startRefillScheduler();
