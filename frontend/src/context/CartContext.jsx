@@ -39,6 +39,13 @@ export function CartProvider({ children }) {
   const location = useLocation()
   const [items, setItems] = useState(loadLocal)
   const [coupon, setCoupon] = useState(null) // { code, discount, description }
+  const [pendingCoupon, setPendingCoupon] = useState(() => {
+    try {
+      return localStorage.getItem('pendingCoupon') || null
+    } catch {
+      return null
+    }
+  })
   const prevUser = useRef(null)
   const saveTimer = useRef(null)
 
@@ -134,9 +141,37 @@ export function CartProvider({ children }) {
   }
 
   const removeFromCart = (id) => setItems((prev) => prev.filter((i) => i._id !== id))
+  const clearCoupon = () => {
+    try {
+      localStorage.removeItem('pendingCoupon')
+    } catch {
+      /* ignore */
+    }
+    setPendingCoupon(null)
+  }
   const clearCart = () => {
     setItems([])
     setCoupon(null)
+    clearCoupon()
+  }
+
+  // "Claim" a coupon from the popup/offer: remember it and auto-apply it as soon
+  // as the cart qualifies (so the customer never has to type it).
+  const claimCoupon = (code) => {
+    const clean = (code || '').trim().toUpperCase()
+    if (!clean) return
+    try {
+      localStorage.setItem('pendingCoupon', clean)
+    } catch {
+      /* ignore */
+    }
+    setPendingCoupon(clean)
+    showToast({
+      title: `Coupon ${clean} saved 🎟️`,
+      subtitle: 'It applies automatically at checkout once your cart qualifies.',
+      tone: 'success',
+      duration: 3200,
+    })
   }
 
   // Validate a coupon code against the current cart. Returns { ok, message }.
@@ -159,7 +194,44 @@ export function CartProvider({ children }) {
       return { ok: false, message: err.response?.data?.message || 'Coupon could not be applied.' }
     }
   }
-  const removeCoupon = () => setCoupon(null)
+  const removeCoupon = () => {
+    setCoupon(null)
+    clearCoupon() // don't let a claimed code re-apply after the user removes it
+  }
+
+  // Auto-apply a claimed (pending) coupon once the cart has items and qualifies.
+  useEffect(() => {
+    if (!pendingCoupon || coupon || !items.length) return
+    let active = true
+    const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0)
+    api
+      .post('/coupons/validate', {
+        code: pendingCoupon,
+        subtotal,
+        items: items.map((i) => ({ productId: i._id, price: i.price, qty: i.qty })),
+      })
+      .then(({ data }) => {
+        if (!active) return
+        if (data.valid) {
+          setCoupon({ code: data.code, discount: data.discount, description: data.description })
+          clearCoupon()
+          showToast({
+            title: `Coupon ${data.code} applied 🎉`,
+            subtitle: `You saved ₹${(data.discount || 0).toLocaleString('en-IN')}.`,
+            tone: 'success',
+            duration: 3200,
+          })
+        } else if (/invalid|expired|limit|already/i.test(data.message || '')) {
+          // Code itself is unusable — stop trying. (Min-order/scope: keep waiting.)
+          clearCoupon()
+        }
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, pendingCoupon, coupon])
 
   // Re-check an applied coupon whenever the cart changes (discount may shift, or
   // it may no longer qualify). Silently drops the coupon if it becomes invalid.
@@ -252,6 +324,8 @@ export function CartProvider({ children }) {
         coupon,
         applyCoupon,
         removeCoupon,
+        claimCoupon,
+        pendingCoupon,
       }}
     >
       {children}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { FaTimes, FaRegCopy, FaCheck } from 'react-icons/fa'
 import api from '../lib/api'
 import { imgFallback } from '../lib/helpers'
+import { useCart } from '../context/CartContext'
 
 // Find a coupon-looking code (uppercase, contains a digit) in free text, so a
 // popup that mentions a code in its subtitle still gets a copy button even if
@@ -43,6 +44,7 @@ const markDismissed = (popup) => {
 
 export default function PopupBanner() {
   const navigate = useNavigate()
+  const { claimCoupon } = useCart()
   const [popup, setPopup] = useState(null)
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -74,7 +76,12 @@ export default function PopupBanner() {
     setTimeout(() => setPopup(null), 250)
   }
 
+  // The coupon code to offer: the admin field, else one detected in the text.
+  const code = popup.couponCode || detectCode(popup.subtitle) || detectCode(popup.title)
+
   const go = () => {
+    // Auto-claim the offer so it applies at checkout without typing.
+    if (code) claimCoupon(code)
     markDismissed(popup)
     setOpen(false)
     const to = popup.link || '/shop'
@@ -84,9 +91,6 @@ export default function PopupBanner() {
       else navigate(to)
     }, 200)
   }
-
-  // The coupon code to offer: the admin field, else one detected in the text.
-  const code = popup.couponCode || detectCode(popup.subtitle) || detectCode(popup.title)
   const copyCode = async (e) => {
     e.stopPropagation()
     try {

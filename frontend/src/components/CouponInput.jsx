@@ -4,7 +4,7 @@ import { useCart } from '../context/CartContext'
 
 // Coupon entry + applied state, shared by the Cart and Checkout summaries.
 export default function CouponInput() {
-  const { coupon, applyCoupon, removeCoupon } = useCart()
+  const { coupon, applyCoupon, removeCoupon, pendingCoupon } = useCart()
   const [code, setCode] = useState('')
   const [msg, setMsg] = useState(null) // { ok, text }
   const [busy, setBusy] = useState(false)
@@ -39,6 +39,11 @@ export default function CouponInput() {
 
   return (
     <div>
+      {pendingCoupon && (
+        <p className="mb-2 rounded-lg bg-primary/5 px-3 py-2 text-xs font-medium text-primary">
+          🎟️ <b>{pendingCoupon}</b> will apply automatically once your cart qualifies.
+        </p>
+      )}
       <form onSubmit={submit} className="flex gap-2">
         <div className="relative flex-1">
           <FaTag className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
