@@ -55,16 +55,23 @@ export default function Footer() {
   return (
     <footer ref={footerRef} className="mt-16 bg-dark text-slate-300">
       <div className="container-x grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
-        <div {...reveal(0)}>
-          <Link to="/" className="inline-flex items-center rounded-xl bg-white p-3">
+        <div>
+          <Link
+            to="/"
+            className={`inline-flex items-center rounded-xl bg-white p-3 ${reveal(0).className}`}
+            style={{ '--order': 0 }}
+          >
             <img src={siteConfig.logo} alt={siteConfig.brandName} className="h-12 w-auto" />
           </Link>
-          <p className="mt-4 text-sm leading-relaxed text-slate-400">
+          <p
+            className={`mt-4 text-sm leading-relaxed text-slate-400 ${reveal(1).className}`}
+            style={{ '--order': 1 }}
+          >
             Your trusted online pharmacy and medical store. Genuine products, fast delivery
             and expert care — every day.
           </p>
           {socials.length > 0 && (
-            <div className="mt-5 flex gap-2">
+            <div className={`mt-5 flex gap-2 ${reveal(2).className}`} style={{ '--order': 2 }}>
               {socials.map(({ key, Icon, label }) => (
                 <a
                   key={key}
@@ -82,59 +89,64 @@ export default function Footer() {
           )}
         </div>
 
-        <div {...reveal(1)}>
-          <h4 className="mb-4 text-sm font-bold uppercase tracking-wide text-white">Categories</h4>
+        <div>
+          <h4 className={`mb-4 text-sm font-bold uppercase tracking-wide text-white ${reveal(0).className}`} style={{ '--order': 0 }}>
+            Categories
+          </h4>
           <ul className="space-y-2 text-sm">
-            {['Medicines', 'Vitamins', 'Personal Care', 'Medical Devices', 'Baby Care'].map(
-              (t) => (
-                <li key={t}>
-                  <Link to="/shop" className="hover:text-primary">
+            {['Medicines', 'Vitamins', 'Personal Care', 'Medical Devices', 'Baby Care', 'Shop by Brand'].map(
+              (t, i) => (
+                <li key={t} className={reveal(i + 1).className} style={{ '--order': i + 1 }}>
+                  <Link to={t === 'Shop by Brand' ? '/brands' : '/shop'} className="hover:text-primary">
                     {t}
                   </Link>
                 </li>
               )
             )}
-            <li>
-              <Link to="/brands" className="hover:text-primary">
-                Shop by Brand
-              </Link>
-            </li>
           </ul>
         </div>
 
-        <div {...reveal(2)}>
-          <h4 className="mb-4 text-sm font-bold uppercase tracking-wide text-white">
+        <div>
+          <h4 className={`mb-4 text-sm font-bold uppercase tracking-wide text-white ${reveal(0).className}`} style={{ '--order': 0 }}>
             Customer Service
           </h4>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/account" className="hover:text-primary">My Account</Link></li>
-            <li><Link to="/cart" className="hover:text-primary">My Cart</Link></li>
-            <li><Link to="/about" className="hover:text-primary">About Us</Link></li>
-            <li><Link to="/contact" className="hover:text-primary">Contact Us</Link></li>
-            <li><Link to="/privacy-policy" className="hover:text-primary">Privacy Policy</Link></li>
-            <li><Link to="/terms" className="hover:text-primary">Terms &amp; Conditions</Link></li>
-            <li><Link to="/refund-policy" className="hover:text-primary">Refund &amp; Return</Link></li>
-            <li><Link to="/shipping-policy" className="hover:text-primary">Shipping Policy</Link></li>
-            <li><Link to="/disclaimer" className="hover:text-primary">Medical Disclaimer</Link></li>
+            {[
+              ['/account', 'My Account'],
+              ['/cart', 'My Cart'],
+              ['/about', 'About Us'],
+              ['/contact', 'Contact Us'],
+              ['/privacy-policy', 'Privacy Policy'],
+              ['/terms', 'Terms & Conditions'],
+              ['/refund-policy', 'Refund & Return'],
+              ['/shipping-policy', 'Shipping Policy'],
+              ['/disclaimer', 'Medical Disclaimer'],
+            ].map(([to, label], i) => (
+              <li key={to} className={reveal(i + 1).className} style={{ '--order': i + 1 }}>
+                <Link to={to} className="hover:text-primary">{label}</Link>
+              </li>
+            ))}
           </ul>
         </div>
 
-        <div {...reveal(3)}>
-          <h4 className="mb-4 text-sm font-bold uppercase tracking-wide text-white">Contact</h4>
+        <div>
+          <h4 className={`mb-4 text-sm font-bold uppercase tracking-wide text-white ${reveal(0).className}`} style={{ '--order': 0 }}>
+            Contact
+          </h4>
           <ul className="space-y-3 text-sm">
-            <li className="flex items-start gap-2">
+            <li className={`flex items-start gap-2 ${reveal(1).className}`} style={{ '--order': 1 }}>
               <FaMapMarkerAlt className="mt-0.5 shrink-0 text-primary" /> {business.address}
             </li>
-            <li className="flex items-center gap-2">
+            <li className={`flex items-center gap-2 ${reveal(2).className}`} style={{ '--order': 2 }}>
               <FaPhoneAlt className="text-primary" />
               <a href={telLink()} className="hover:text-primary">{siteConfig.phone}</a>
             </li>
-            <li className="flex items-center gap-2">
+            <li className={`flex items-center gap-2 ${reveal(3).className}`} style={{ '--order': 3 }}>
               <FaEnvelope className="text-primary" />
               <a href={mailLink()} className="hover:text-primary">{siteConfig.email}</a>
             </li>
           </ul>
-          <div className="mt-5">
+          <div className={`mt-5 ${reveal(4).className}`} style={{ '--order': 4 }}>
             <p className="flex items-center gap-1.5 text-xs text-slate-400">
               <FaShieldAlt className="text-primary" /> Secured payments via Razorpay
             </p>
