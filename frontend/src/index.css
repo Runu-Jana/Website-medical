@@ -140,3 +140,35 @@
     animation: none;
   }
 }
+
+/* Footer reveal — text slides up from below on scroll into view.
+   Mirrors gleuhr.com / Shopify Dawn's "slideIn": translateY(2rem) → 0 with a
+   slow ease-out and a 90ms per-item stagger (--order) for a cascading rise. */
+@keyframes footerSlideIn {
+  0% {
+    transform: translateY(2rem);
+    opacity: 0.01;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.footer-reveal {
+  opacity: 0.01;
+  transform: translateY(2rem);
+  will-change: transform, opacity;
+}
+.footer-reveal.is-visible {
+  animation: footerSlideIn 0.7s cubic-bezier(0.13, 0.62, 0.27, 0.95) forwards;
+  animation-delay: calc(var(--order, 0) * 90ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .footer-reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .footer-reveal.is-visible {
+    animation: none;
+  }
+}

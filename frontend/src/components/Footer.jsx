@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   FaFacebookF,
@@ -23,10 +24,38 @@ const SOCIALS = [
 
 export default function Footer() {
   const socials = SOCIALS.filter((s) => siteConfig.socials?.[s.key])
+
+  // Reveal the footer once it scrolls into view (Dawn-style scroll trigger).
+  const footerRef = useRef(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const el = footerRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            setVisible(true)
+            io.disconnect()
+          }
+        })
+      },
+      { rootMargin: '0px 0px -50px 0px' }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+
+  // Helper: props for a staggered slide-up item.
+  const reveal = (order) => ({
+    className: `footer-reveal${visible ? ' is-visible' : ''}`,
+    style: { '--order': order },
+  })
+
   return (
-    <footer className="mt-16 bg-dark text-slate-300">
+    <footer ref={footerRef} className="mt-16 bg-dark text-slate-300">
       <div className="container-x grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
+        <div {...reveal(0)}>
           <Link to="/" className="inline-flex items-center rounded-xl bg-white p-3">
             <img src={siteConfig.logo} alt={siteConfig.brandName} className="h-12 w-auto" />
           </Link>
@@ -53,7 +82,7 @@ export default function Footer() {
           )}
         </div>
 
-        <div>
+        <div {...reveal(1)}>
           <h4 className="mb-4 text-sm font-bold uppercase tracking-wide text-white">Categories</h4>
           <ul className="space-y-2 text-sm">
             {['Medicines', 'Vitamins', 'Personal Care', 'Medical Devices', 'Baby Care'].map(
@@ -73,7 +102,7 @@ export default function Footer() {
           </ul>
         </div>
 
-        <div>
+        <div {...reveal(2)}>
           <h4 className="mb-4 text-sm font-bold uppercase tracking-wide text-white">
             Customer Service
           </h4>
@@ -90,7 +119,7 @@ export default function Footer() {
           </ul>
         </div>
 
-        <div>
+        <div {...reveal(3)}>
           <h4 className="mb-4 text-sm font-bold uppercase tracking-wide text-white">Contact</h4>
           <ul className="space-y-3 text-sm">
             <li className="flex items-start gap-2">
@@ -124,7 +153,12 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-white/10">
-        <div className="container-x flex flex-col items-center justify-between gap-2 py-5 text-xs text-slate-400 sm:flex-row">
+        <div
+          className={`container-x flex flex-col items-center justify-between gap-2 py-5 text-xs text-slate-400 sm:flex-row footer-reveal${
+            visible ? ' is-visible' : ''
+          }`}
+          style={{ '--order': 4 }}
+        >
           <span>© {new Date().getFullYear()} DBL Life Care. All rights reserved.</span>
           <span>Designed for a healthier tomorrow.</span>
         </div>
