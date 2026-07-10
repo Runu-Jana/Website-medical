@@ -21,6 +21,7 @@ const emptyForm = {
   bgColor: '#0e9f8e',
   buttonText: 'Shop Now',
   link: '/shop',
+  couponCode: '',
   order: 0,
   active: true,
   frequency: 'session',
@@ -105,6 +106,7 @@ export default function Popups() {
       bgColor: b.bgColor || '#0e9f8e',
       buttonText: b.buttonText || 'Shop Now',
       link: b.link || '/shop',
+      couponCode: b.couponCode || '',
       order: b.order ?? 0,
       active: b.active !== false,
       frequency: b.frequency || 'session',
@@ -362,6 +364,19 @@ export default function Popups() {
               <label className="label">Display Order</label>
               <input type="number" value={form.order} onChange={(e) => set('order', e.target.value)} className="input" placeholder="1" />
             </div>
+          </div>
+
+          <div>
+            <label className="label">Coupon Code (optional)</label>
+            <input
+              value={form.couponCode}
+              onChange={(e) => set('couponCode', e.target.value.toUpperCase())}
+              className="input uppercase"
+              placeholder="e.g. WELCOME15"
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              If set, the popup shows a “copy code” button. Create the matching coupon in Offers.
+            </p>
           </div>
 
           <label className="flex cursor-pointer items-center justify-between rounded-lg border border-slate-200 px-3 py-2.5">

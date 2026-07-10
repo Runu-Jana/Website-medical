@@ -9,6 +9,7 @@ const fields = [
   'bgColor',
   'buttonText',
   'link',
+  'couponCode',
   'order',
   'active',
   'frequency',

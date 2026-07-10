@@ -264,6 +264,7 @@ model PopupBanner {
   bgColor    String   @default("#0e9f8e")
   buttonText String   @default("Shop Now")
   link       String   @default("/shop")
+  couponCode String   @default("") // optional — shows a copy-to-clipboard chip
   order      Int      @default(0)
   active     Boolean  @default(true)
   frequency  String   @default("session") // session | daily | always

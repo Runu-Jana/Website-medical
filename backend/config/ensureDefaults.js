@@ -17,6 +17,7 @@ export const ensureDefaultPopup = async () => {
         bgColor: '#0e9f8e',
         buttonText: 'Shop Now',
         link: '/shop',
+        couponCode: 'WELCOME15',
         order: 0,
         active: true,
         frequency: 'session',

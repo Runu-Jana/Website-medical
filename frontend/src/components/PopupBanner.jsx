@@ -1,8 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaTimes } from 'react-icons/fa'
+import { FaTimes, FaRegCopy, FaCheck } from 'react-icons/fa'
 import api from '../lib/api'
 import { imgFallback } from '../lib/helpers'
+
+// Find a coupon-looking code (uppercase, contains a digit) in free text, so a
+// popup that mentions a code in its subtitle still gets a copy button even if
+// the admin didn't fill the dedicated field.
+const detectCode = (text = '') => {
+  const m = String(text).match(/\b(?=[A-Z0-9]*\d)[A-Z]{2,}[A-Z0-9]*\b/)
+  return m ? m[0] : ''
+}
 
 // Only show a popup once per its configured frequency.
 //   session → once per browser tab/session
@@ -37,6 +45,7 @@ export default function PopupBanner() {
   const navigate = useNavigate()
   const [popup, setPopup] = useState(null)
   const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -76,6 +85,33 @@ export default function PopupBanner() {
     }, 200)
   }
 
+  // The coupon code to offer: the admin field, else one detected in the text.
+  const code = popup.couponCode || detectCode(popup.subtitle) || detectCode(popup.title)
+  const copyCode = async (e) => {
+    e.stopPropagation()
+    try {
+      await navigator.clipboard.writeText(code)
+    } catch {
+      /* clipboard unavailable — ignore */
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1800)
+  }
+  const CopyChip = ({ dark }) => (
+    <button
+      onClick={copyCode}
+      className={`mt-4 inline-flex items-center gap-2 rounded-lg border border-dashed px-4 py-2 text-sm font-bold uppercase tracking-wider transition ${
+        dark
+          ? 'border-primary/40 bg-primary/5 text-primary hover:bg-primary/10'
+          : 'border-white/60 bg-white/15 text-white hover:bg-white/25'
+      }`}
+      title="Copy coupon code"
+    >
+      {copied ? <FaCheck /> : <FaRegCopy />}
+      {copied ? 'Copied!' : code}
+    </button>
+  )
+
   if (!open) {
     // Before the slide-in (and during the closing fade) keep an invisible,
     // click-through placeholder so it never blocks the page.
@@ -112,7 +148,7 @@ export default function PopupBanner() {
         </button>
 
         {hasImage ? (
-          <button onClick={go} className="block w-full text-left">
+          <div onClick={go} className="block w-full cursor-pointer text-left">
             <img
               src={popup.image}
               onError={imgFallback}
@@ -123,6 +159,11 @@ export default function PopupBanner() {
               <div className="p-4">
                 {popup.title && <h3 className="text-lg font-bold text-dark">{popup.title}</h3>}
                 {popup.subtitle && <p className="mt-1 text-sm text-slate-500">{popup.subtitle}</p>}
+                {code && (
+                  <div>
+                    <CopyChip dark />
+                  </div>
+                )}
                 {popup.buttonText && (
                   <span className="mt-3 inline-block rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white">
                     {popup.buttonText}
@@ -130,7 +171,7 @@ export default function PopupBanner() {
                 )}
               </div>
             )}
-          </button>
+          </div>
         ) : (
           // Text/gradient card when no image is set (used by the demo popup).
           <div
@@ -148,10 +189,11 @@ export default function PopupBanner() {
             {popup.subtitle && (
               <p className="mt-2 max-w-xs text-sm text-white/90">{popup.subtitle}</p>
             )}
+            {code && <CopyChip dark={false} />}
             {popup.buttonText && (
               <button
                 onClick={go}
-                className="mt-6 rounded-xl bg-white px-7 py-3 text-sm font-bold text-primary shadow-lg transition hover:opacity-90"
+                className="mt-4 rounded-xl bg-white px-7 py-3 text-sm font-bold text-primary shadow-lg transition hover:opacity-90"
               >
                 {popup.buttonText}
               </button>
