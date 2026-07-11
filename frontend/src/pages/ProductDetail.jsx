@@ -19,6 +19,7 @@ import {
   FaTimesCircle,
   FaSearchPlus,
   FaChevronDown,
+  FaStar,
 } from 'react-icons/fa'
 
 // Collapsible FAQ row for the product page.
@@ -64,6 +65,7 @@ export default function ProductDetail() {
   const [overviewOpen, setOverviewOpen] = useState(false)
 
   const [rating, setRating] = useState(5)
+  const [hoverRating, setHoverRating] = useState(0)
   const [comment, setComment] = useState('')
   const [reviewMsg, setReviewMsg] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -554,17 +556,28 @@ export default function ProductDetail() {
                   <form onSubmit={submitReview} className="space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-slate-600">Rating:</span>
-                      <select
-                        value={rating}
-                        onChange={(e) => setRating(Number(e.target.value))}
-                        className="input-base w-auto py-2"
-                      >
-                        {[5, 4, 3, 2, 1].map((n) => (
-                          <option key={n} value={n}>
-                            {n} Star{n > 1 ? 's' : ''}
-                          </option>
+                      <div className="flex items-center gap-1" onMouseLeave={() => setHoverRating(0)}>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() => setRating(n)}
+                            onMouseEnter={() => setHoverRating(n)}
+                            aria-label={`${n} star${n > 1 ? 's' : ''}`}
+                            className="p-0.5 transition-transform hover:scale-110"
+                          >
+                            <FaStar
+                              size={26}
+                              className={
+                                (hoverRating || rating) >= n ? 'text-yellow-400' : 'text-slate-300'
+                              }
+                            />
+                          </button>
                         ))}
-                      </select>
+                        <span className="ml-2 text-sm font-medium text-slate-500">
+                          {hoverRating || rating} of 5
+                        </span>
+                      </div>
                     </div>
                     <textarea
                       value={comment}
