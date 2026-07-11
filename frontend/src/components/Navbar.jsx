@@ -61,6 +61,7 @@ export default function Navbar() {
   }
   const { user } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileExpanded, setMobileExpanded] = useState(null)
   const [catOpen, setCatOpen] = useState(false)
   const [categories, setCategories] = useState([])
   const catRef = useRef(null)
@@ -329,36 +330,54 @@ export default function Navbar() {
       {mobileOpen && (
         <nav className="border-b border-bordergray bg-white lg:hidden">
           <ul className="container-x flex flex-col py-2">
-            {navLinks.map((l) => (
-              <li key={l.label}>
-                {l.to ? (
-                  <Link
-                    to={l.to}
-                    onClick={() => setMobileOpen(false)}
-                    className="block py-2.5 text-sm font-semibold text-dark hover:text-primary"
-                  >
-                    {l.label}
-                  </Link>
-                ) : (
-                  <span className="block pt-2.5 text-sm font-semibold text-dark">{l.label}</span>
-                )}
-                {l.dropdown && (
-                  <ul className="ml-3 border-l border-bordergray">
-                    {l.dropdown.map((d) => (
-                      <li key={d.label}>
-                        <Link
-                          to={d.to}
-                          onClick={() => setMobileOpen(false)}
-                          className="block py-2 pl-3 text-sm text-slate-600 hover:text-primary"
-                        >
-                          {d.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))}
+            {navLinks.map((l) => {
+              const expanded = mobileExpanded === l.label
+              return (
+                <li key={l.label} className="border-b border-bordergray/60 last:border-0">
+                  {l.dropdown ? (
+                    // Items with a submenu toggle it open on tap (no navigation).
+                    <button
+                      type="button"
+                      onClick={() => setMobileExpanded(expanded ? null : l.label)}
+                      aria-expanded={expanded}
+                      className="flex w-full items-center justify-between py-3 text-sm font-semibold text-dark"
+                    >
+                      {l.label}
+                      <FaChevronDown
+                        size={11}
+                        className={`text-slate-400 transition-transform ${expanded ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                  ) : (
+                    <Link
+                      to={l.to}
+                      onClick={() => setMobileOpen(false)}
+                      className="block py-3 text-sm font-semibold text-dark hover:text-primary"
+                    >
+                      {l.label}
+                    </Link>
+                  )}
+                  {l.dropdown && expanded && (
+                    <ul className="ml-3 border-l border-bordergray pb-2">
+                      {l.dropdown.map((d) => (
+                        <li key={d.label}>
+                          <Link
+                            to={d.to}
+                            onClick={() => {
+                              setMobileOpen(false)
+                              setMobileExpanded(null)
+                            }}
+                            className="block py-2 pl-3 text-sm text-slate-600 hover:text-primary"
+                          >
+                            {d.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              )
+            })}
           </ul>
         </nav>
       )}
