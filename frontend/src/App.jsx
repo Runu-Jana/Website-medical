@@ -17,6 +17,7 @@ import Brands from './pages/Brands'
 import HealthClub from './pages/HealthClub'
 import DoctorConsultation from './pages/DoctorConsultation'
 import DoctorProfile from './pages/DoctorProfile'
+import LabTests from './pages/LabTests'
 import Wishlist from './pages/Wishlist'
 import PrescriptionUpload from './pages/PrescriptionUpload'
 import LegalPage from './pages/LegalPage'
@@ -56,6 +57,7 @@ export default function App() {
         <Route path="/health-club" element={<HealthClub />} />
         <Route path="/doctors" element={<DoctorConsultation />} />
         <Route path="/doctors/:idOrSlug" element={<DoctorProfile />} />
+        <Route path="/lab-tests" element={<LabTests />} />
         <Route path="/privacy-policy" element={<LegalPage docKey="privacy-policy" />} />
         <Route path="/terms" element={<LegalPage docKey="terms" />} />
         <Route path="/refund-policy" element={<LegalPage docKey="refund-policy" />} />

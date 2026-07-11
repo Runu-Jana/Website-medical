@@ -16,6 +16,8 @@ import Orders from './pages/Orders.jsx';
 import Offers from './pages/Offers.jsx';
 import Doctors from './pages/Doctors.jsx';
 import Appointments from './pages/Appointments.jsx';
+import LabTests from './pages/LabTests.jsx';
+import LabBookings from './pages/LabBookings.jsx';
 import Customers from './pages/Customers.jsx';
 import Refills from './pages/Refills.jsx';
 import Messages from './pages/Messages.jsx';
@@ -49,6 +51,8 @@ export default function App() {
         <Route path="/offers" element={<Offers />} />
         <Route path="/doctors" element={<Doctors />} />
         <Route path="/appointments" element={<Appointments />} />
+        <Route path="/lab-tests" element={<LabTests />} />
+        <Route path="/lab-bookings" element={<LabBookings />} />
         <Route path="/customers" element={<Customers />} />
         <Route path="/refills" element={<Refills />} />
         <Route path="/messages" element={<Messages />} />

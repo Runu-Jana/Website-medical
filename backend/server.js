@@ -36,14 +36,22 @@ import popupRoutes from './routes/popupRoutes.js';
 import supportRoutes from './routes/supportRoutes.js';
 import doctorRoutes from './routes/doctorRoutes.js';
 import appointmentRoutes from './routes/appointmentRoutes.js';
-import { ensureDefaultPopup, ensureDefaultCoupon, ensureDefaultDoctors } from './config/ensureDefaults.js';
+import labTestRoutes from './routes/labTestRoutes.js';
+import labBookingRoutes from './routes/labBookingRoutes.js';
+import {
+  ensureDefaultPopup,
+  ensureDefaultCoupon,
+  ensureDefaultDoctors,
+  ensureDefaultLabTests,
+} from './config/ensureDefaults.js';
 import { startRefillScheduler } from './lib/refill.js';
 
 connectDB()
   .then(() => autoSeedIfEmpty())
   .then(() => ensureDefaultPopup())
   .then(() => ensureDefaultCoupon())
-  .then(() => ensureDefaultDoctors());
+  .then(() => ensureDefaultDoctors())
+  .then(() => ensureDefaultLabTests());
 console.log(`✉️  Email notifications: ${mailerEnabled ? 'enabled' : 'disabled (set SMTP_* in .env)'}`);
 console.log(`🤖 AI product details: ${aiEnabled ? 'enabled' : 'disabled (set ANTHROPIC_API_KEY in .env)'}`);
 startRefillScheduler();
@@ -127,6 +135,8 @@ app.use('/api/popups', popupRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/lab-tests', labTestRoutes);
+app.use('/api/lab-bookings', labBookingRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

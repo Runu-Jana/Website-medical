@@ -95,3 +95,27 @@ export const ensureDefaultDoctors = async () => {
     console.error('ensureDefaultDoctors skipped:', err.message);
   }
 };
+
+// Seed demo lab tests & packages the first time the table is empty.
+export const ensureDefaultLabTests = async () => {
+  try {
+    const count = await prisma.labTest.count();
+    if (count > 0) return;
+    const demo = [
+      { name: 'Full Body Checkup', category: 'package', price: 999, oldPrice: 1600, parameters: 72, sampleType: 'Blood', reportTime: '24 hours', fasting: true, popular: true, order: 1, description: 'Comprehensive whole-body health screening.' },
+      { name: 'Diabetes Profile', category: 'package', price: 599, oldPrice: 999, parameters: 12, sampleType: 'Blood', reportTime: '24 hours', fasting: true, popular: true, order: 2, description: 'Screen and monitor blood sugar levels.' },
+      { name: 'Thyroid Profile', category: 'package', price: 599, oldPrice: 999, parameters: 3, sampleType: 'Blood', reportTime: '24 hours', fasting: false, popular: true, order: 3, description: 'T3, T4 and TSH thyroid function tests.' },
+      { name: 'Complete Blood Count (CBC)', category: 'test', price: 199, oldPrice: 300, parameters: 24, sampleType: 'Blood', reportTime: '12 hours', fasting: false, popular: true, order: 4, description: 'Measures red & white cells, haemoglobin and platelets.' },
+      { name: 'Lipid Profile', category: 'test', price: 399, oldPrice: 600, parameters: 8, sampleType: 'Blood', reportTime: '24 hours', fasting: true, popular: true, order: 5, description: 'Cholesterol and triglyceride levels.' },
+      { name: 'Vitamin D (25-OH)', category: 'test', price: 799, oldPrice: 1200, parameters: 1, sampleType: 'Blood', reportTime: '48 hours', fasting: false, popular: false, order: 6, description: 'Vitamin D deficiency test.' },
+    ];
+    for (const t of demo) {
+      await prisma.labTest.create({
+        data: { ...t, slug: `${t.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${t.order}`.replace(/-+$/, '') },
+      });
+    }
+    console.log('🧪 Seeded demo lab tests (edit them in Admin → Lab Tests).');
+  } catch (err) {
+    console.error('ensureDefaultLabTests skipped:', err.message);
+  }
+};

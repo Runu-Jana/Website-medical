@@ -302,6 +302,49 @@ model Appointment {
   @@index([userId])
 }
 
+model LabTest {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String   @default("")
+  category    String   @default("test") // test | package
+  price       Float    @default(0)
+  oldPrice    Float    @default(0)
+  parameters  Int      @default(0) // number of tests included (packages)
+  sampleType  String   @default("") // Blood, Urine…
+  reportTime  String   @default("") // e.g. "24 hours"
+  fasting     Boolean  @default(false)
+  popular     Boolean  @default(false)
+  image       String   @default("")
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([active])
+  @@index([category])
+}
+
+model LabBooking {
+  id            String   @id @default(uuid())
+  userId        String?
+  patientName   String   @default("")
+  patientPhone  String   @default("")
+  patientEmail  String   @default("")
+  address       String   @default("")
+  preferredDate String   @default("")
+  preferredTime String   @default("")
+  items         Json // [{ id, name, price }]
+  total         Float    @default(0)
+  note          String   @default("")
+  status        String   @default("pending") // pending | confirmed | sample-collected | completed | cancelled
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  @@index([userId])
+}
+
 model PopupBanner {
   id         String   @id @default(uuid())
   title      String   @default("")
