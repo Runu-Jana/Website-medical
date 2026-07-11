@@ -7,6 +7,8 @@ import {
   FaHeart,
   FaFileMedical,
   FaTruck,
+  FaNotesMedical,
+  FaRobot,
 } from 'react-icons/fa'
 
 const services = [
@@ -16,6 +18,8 @@ const services = [
   { icon: FaShieldAlt, label: 'Health Insurance', to: '/contact', color: 'bg-indigo-100 text-indigo-600' },
   { icon: FaHeart, label: 'Join Health Club', to: '/health-club', color: 'bg-rose-100 text-rose-600' },
   { icon: FaFileMedical, label: 'Upload Prescription', to: '/prescription', color: 'bg-amber-100 text-amber-600' },
+  { icon: FaNotesMedical, label: 'Health Records', to: '/health-records', color: 'bg-cyan-100 text-cyan-600' },
+  { icon: FaRobot, label: 'AI Assistant', to: '/health-assistant', color: 'bg-fuchsia-100 text-fuchsia-600' },
   { icon: FaTruck, label: 'Track Order', to: '/account', color: 'bg-teal-100 text-teal-600' },
 ]
 

@@ -345,6 +345,20 @@ model LabBooking {
   @@index([userId])
 }
 
+model HealthRecord {
+  id         String   @id @default(uuid())
+  userId     String
+  category   String   @default("prescription") // prescription | lab-report | medicine | vaccination | allergy | medical-history
+  title      String   @default("")
+  fileUrl    String   @default("")
+  note       String   @default("")
+  recordDate String   @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+}
+
 model PopupBanner {
   id         String   @id @default(uuid())
   title      String   @default("")

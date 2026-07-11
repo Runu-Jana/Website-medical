@@ -13,7 +13,30 @@ import {
   FaPrescriptionBottleAlt,
   FaTimes,
   FaCrown,
+  FaFileMedical,
+  FaNotesMedical,
+  FaUserMd,
+  FaFlask,
+  FaHeadset,
+  FaCalendarCheck,
+  FaVial,
 } from 'react-icons/fa'
+
+const QUICK_LINKS = [
+  { to: '/prescription', label: 'Upload Rx', Icon: FaFileMedical, color: 'bg-amber-100 text-amber-600' },
+  { to: '/health-records', label: 'Health Records', Icon: FaNotesMedical, color: 'bg-cyan-100 text-cyan-600' },
+  { to: '/doctors', label: 'Consult Doctor', Icon: FaUserMd, color: 'bg-sky-100 text-sky-600' },
+  { to: '/lab-tests', label: 'Lab Tests', Icon: FaFlask, color: 'bg-violet-100 text-violet-600' },
+  { to: '/health-club', label: 'Health Club', Icon: FaCrown, color: 'bg-rose-100 text-rose-600' },
+  { to: '/contact', label: 'Help & Support', Icon: FaHeadset, color: 'bg-emerald-100 text-emerald-600' },
+]
+
+const ORDER_TABS = [
+  { id: '', label: 'All' },
+  { id: 'processing', label: 'Processing' },
+  { id: 'delivered', label: 'Delivered' },
+  { id: 'cancelled', label: 'Cancelled' },
+]
 
 export default function Account() {
   const { user, logout, updateUser } = useAuth()
@@ -21,6 +44,9 @@ export default function Account() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [refills, setRefills] = useState([])
+  const [appointments, setAppointments] = useState([])
+  const [labBookings, setLabBookings] = useState([])
+  const [orderTab, setOrderTab] = useState('')
 
   const [addr, setAddr] = useState({
     line1: user?.address?.line1 || '',
@@ -58,6 +84,14 @@ export default function Account() {
       .get('/me/refills')
       .then(({ data }) => active && setRefills(Array.isArray(data) ? data : []))
       .catch(() => active && setRefills([]))
+    api
+      .get('/appointments/mine')
+      .then(({ data }) => active && setAppointments(Array.isArray(data) ? data : []))
+      .catch(() => active && setAppointments([]))
+    api
+      .get('/lab-bookings/mine')
+      .then(({ data }) => active && setLabBookings(Array.isArray(data) ? data : []))
+      .catch(() => active && setLabBookings([]))
     return () => {
       active = false
     }
@@ -84,6 +118,17 @@ export default function Account() {
   return (
     <div className="container-x py-8">
       <h1 className="mb-6 text-2xl font-bold">My Account</h1>
+
+      {/* Quick links */}
+      <div className="mb-6 grid grid-cols-3 gap-3 sm:grid-cols-6">
+        {QUICK_LINKS.map(({ to, label, Icon, color }) => (
+          <Link key={to} to={to} className="card flex flex-col items-center gap-2 p-3 text-center transition hover:ring-2 hover:ring-primary">
+            <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${color}`}><Icon size={16} /></span>
+            <span className="text-[11px] font-semibold text-slate-600">{label}</span>
+          </Link>
+        ))}
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Profile */}
         <div className="lg:col-span-1">
@@ -236,15 +281,29 @@ export default function Account() {
             <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
               <FaBoxOpen className="text-primary" /> My Orders
             </h3>
+            {/* Status tabs */}
+            <div className="mb-4 flex flex-wrap gap-2">
+              {ORDER_TABS.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setOrderTab(t.id)}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                    orderTab === t.id ? 'bg-primary text-white' : 'bg-lightbg text-slate-600 hover:bg-primary/10'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
             {loading ? (
               <Spinner />
-            ) : orders.length === 0 ? (
+            ) : orders.filter((o) => !orderTab || (o.status || '') === orderTab).length === 0 ? (
               <p className="py-8 text-center text-sm text-slate-500">
-                You have no orders yet.
+                {orders.length === 0 ? 'You have no orders yet.' : 'No orders in this status.'}
               </p>
             ) : (
               <div className="space-y-3">
-                {orders.map((o) => {
+                {orders.filter((o) => !orderTab || (o.status || '') === orderTab).map((o) => {
                   const items = o.items || o.orderItems || []
                   const total = o.totalPrice ?? o.total
                   return (
@@ -283,6 +342,56 @@ export default function Account() {
               </div>
             )}
           </div>
+
+          {/* My consultations */}
+          {appointments.length > 0 && (
+            <div className="card mt-6 p-6">
+              <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
+                <FaCalendarCheck className="text-primary" /> My Consultations
+              </h3>
+              <div className="space-y-3">
+                {appointments.map((a) => (
+                  <div key={a._id} className="flex items-center justify-between gap-3 rounded-xl border border-bordergray p-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-dark">{a.doctorName}</p>
+                      <p className="text-xs text-slate-400 capitalize">
+                        {a.consultationType} · {a.preferredDate || 'date TBD'} {a.preferredTime}
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold capitalize text-primary">
+                      {a.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* My lab bookings */}
+          {labBookings.length > 0 && (
+            <div className="card mt-6 p-6">
+              <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
+                <FaVial className="text-primary" /> My Lab Bookings
+              </h3>
+              <div className="space-y-3">
+                {labBookings.map((b) => (
+                  <div key={b._id} className="flex items-center justify-between gap-3 rounded-xl border border-bordergray p-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-dark">
+                        {(b.items || []).map((i) => i.name).join(', ') || 'Lab test'}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {formatPrice(b.total)} · {b.preferredDate || 'date TBD'}
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                      {b.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
