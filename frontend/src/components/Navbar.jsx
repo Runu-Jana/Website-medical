@@ -19,6 +19,7 @@ import { useAuth } from '../context/AuthContext'
 import api from '../lib/api'
 import SearchBar from './SearchBar'
 import QuickServices from './QuickServices'
+import ThemeToggle from './ThemeToggle'
 import { siteConfig, telLink, mailLink } from '../config/site'
 
 const navLinks = [
@@ -157,6 +158,7 @@ export default function Navbar() {
                 </span>
               </Link>
             )}
+            <ThemeToggle className="self-center" />
             <Link
               to="/wishlist"
               className="hidden flex-col items-center px-2 text-slate-600 hover:text-primary sm:flex"

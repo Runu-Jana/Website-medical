@@ -32,6 +32,69 @@
   }
 }
 
+/* ── Dark theme ──────────────────────────────────────────────────────────
+   Remaps the semantic surfaces/text used across the app. Two-class selectors
+   (.dark .bg-white) beat the base utilities, so no !important is needed. */
+.dark body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+.dark .bg-white {
+  background-color: #1e293b;
+}
+.dark .bg-white\/90,
+.dark .bg-white\/80 {
+  background-color: rgba(30, 41, 59, 0.9);
+}
+.dark .bg-lightbg {
+  background-color: #111827;
+}
+.dark .bg-slate-50 {
+  background-color: #1e293b;
+}
+.dark .bg-slate-100 {
+  background-color: #334155;
+}
+.dark .text-dark {
+  color: #e2e8f0;
+}
+.dark .text-slate-400 {
+  color: #94a3b8;
+}
+.dark .text-slate-500,
+.dark .text-slate-600 {
+  color: #cbd5e1;
+}
+.dark .text-slate-700 {
+  color: #e2e8f0;
+}
+.dark .text-slate-800,
+.dark .text-slate-900 {
+  color: #f1f5f9;
+}
+.dark .border-bordergray,
+.dark .border-slate-100,
+.dark .border-slate-200 {
+  border-color: #334155;
+}
+.dark .divide-bordergray > :not([hidden]) ~ :not([hidden]) {
+  border-color: #334155;
+}
+/* Component classes */
+.dark .card {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+.dark .input-base,
+.dark .btn-outline {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+.dark .shadow-card {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+}
+
 /* Dual-handle price range slider — two transparent range inputs over one track */
 .range-input {
   -webkit-appearance: none;
