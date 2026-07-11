@@ -16,6 +16,8 @@ const SECTIONS = {
   prescriptions: 'Prescriptions',
   orders: 'Orders',
   offers: 'Offers & Coupons',
+  doctors: 'Doctors',
+  appointments: 'Consultation Bookings',
   customers: 'Customers',
   messages: 'Messages',
   'support-chats': 'Support Chats',

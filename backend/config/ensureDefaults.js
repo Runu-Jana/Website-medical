@@ -55,3 +55,43 @@ export const ensureDefaultCoupon = async () => {
     console.error('ensureDefaultCoupon skipped:', err.message);
   }
 };
+
+// Seed a few demo doctors the first time the table is empty, so the Doctor
+// Consultation pages are populated for testing. Manage them in Admin → Doctors.
+export const ensureDefaultDoctors = async () => {
+  try {
+    const count = await prisma.doctor.count();
+    if (count > 0) return;
+    const demo = [
+      {
+        name: 'Dr. Ramesh Gupta', specialty: 'General Physician',
+        qualifications: 'MBBS, MD - General Physician', experience: 10,
+        languages: ['Hindi', 'English'], fee: 399, videoFee: 399, audioFee: 299, chatFee: 199,
+        rating: 4.8, numReviews: 1200, order: 1,
+        about: 'Dr. Ramesh Gupta is a trusted General Physician with 10+ years of experience treating acute and chronic medical conditions.',
+      },
+      {
+        name: 'Dr. Neha Sharma', specialty: 'Gynecologist',
+        qualifications: 'MBBS, DGO - Gynecologist', experience: 8,
+        languages: ['Hindi', 'English'], fee: 499, videoFee: 499, audioFee: 349, chatFee: 249,
+        rating: 4.7, numReviews: 950, order: 2,
+        about: 'Dr. Neha Sharma specialises in women\'s health, pregnancy care and reproductive medicine.',
+      },
+      {
+        name: 'Dr. Arjun Verma', specialty: 'Dermatologist',
+        qualifications: 'MBBS, MD - Dermatology', experience: 7,
+        languages: ['English'], fee: 449, videoFee: 449, audioFee: 349, chatFee: 249,
+        rating: 4.6, numReviews: 640, order: 3,
+        about: 'Dr. Arjun Verma treats skin, hair and nail conditions for patients of all ages.',
+      },
+    ];
+    for (const d of demo) {
+      await prisma.doctor.create({
+        data: { ...d, slug: `${d.name.toLowerCase().replace(/[^a-z]+/g, '-')}-${Math.round(d.rating * 100)}` },
+      });
+    }
+    console.log('🩺 Seeded demo doctors (edit them in Admin → Doctors).');
+  } catch (err) {
+    console.error('ensureDefaultDoctors skipped:', err.message);
+  }
+};

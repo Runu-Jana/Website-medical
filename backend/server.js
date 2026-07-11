@@ -34,13 +34,16 @@ import aiRoutes from './routes/aiRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
 import popupRoutes from './routes/popupRoutes.js';
 import supportRoutes from './routes/supportRoutes.js';
-import { ensureDefaultPopup, ensureDefaultCoupon } from './config/ensureDefaults.js';
+import doctorRoutes from './routes/doctorRoutes.js';
+import appointmentRoutes from './routes/appointmentRoutes.js';
+import { ensureDefaultPopup, ensureDefaultCoupon, ensureDefaultDoctors } from './config/ensureDefaults.js';
 import { startRefillScheduler } from './lib/refill.js';
 
 connectDB()
   .then(() => autoSeedIfEmpty())
   .then(() => ensureDefaultPopup())
-  .then(() => ensureDefaultCoupon());
+  .then(() => ensureDefaultCoupon())
+  .then(() => ensureDefaultDoctors());
 console.log(`✉️  Email notifications: ${mailerEnabled ? 'enabled' : 'disabled (set SMTP_* in .env)'}`);
 console.log(`🤖 AI product details: ${aiEnabled ? 'enabled' : 'disabled (set ANTHROPIC_API_KEY in .env)'}`);
 startRefillScheduler();
@@ -122,6 +125,8 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/popups', popupRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/doctors', doctorRoutes);
+app.use('/api/appointments', appointmentRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

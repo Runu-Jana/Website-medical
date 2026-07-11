@@ -255,6 +255,53 @@ model SupportChat {
   @@index([createdAt])
 }
 
+model Doctor {
+  id             String   @id @default(uuid())
+  name           String
+  slug           String   @unique
+  photo          String   @default("")
+  specialty      String   @default("")
+  qualifications String   @default("") // e.g. "MBBS, MD - General Physician"
+  experience     Int      @default(0) // years
+  languages      String[]
+  fee            Float    @default(0) // headline consultation fee
+  videoFee       Float    @default(0)
+  audioFee       Float    @default(0)
+  chatFee        Float    @default(0)
+  about          String   @default("")
+  rating         Float    @default(0)
+  numReviews     Int      @default(0)
+  active         Boolean  @default(true)
+  order          Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([active])
+  @@index([specialty])
+}
+
+model Appointment {
+  id               String   @id @default(uuid())
+  doctorId         String
+  doctorName       String   @default("")
+  specialty        String   @default("")
+  userId           String?
+  patientName      String   @default("")
+  patientPhone     String   @default("")
+  patientEmail     String   @default("")
+  consultationType String   @default("video") // video | audio | chat
+  fee              Float    @default(0)
+  preferredDate    String   @default("")
+  preferredTime    String   @default("")
+  note             String   @default("")
+  status           String   @default("pending") // pending | confirmed | completed | cancelled
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([status])
+  @@index([userId])
+}
+
 model PopupBanner {
   id         String   @id @default(uuid())
   title      String   @default("")
