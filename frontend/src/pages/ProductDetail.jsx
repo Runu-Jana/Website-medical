@@ -61,6 +61,7 @@ export default function ProductDetail() {
   const [variantIdx, setVariantIdx] = useState(0)
   const [zoom, setZoom] = useState({ active: false, x: 50, y: 50 })
   const [tab, setTab] = useState('description')
+  const [overviewOpen, setOverviewOpen] = useState(false)
 
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState('')
@@ -130,6 +131,25 @@ export default function ProductDetail() {
   const faqs = Array.isArray(product.faqs)
     ? product.faqs.filter((f) => f && f.question && f.answer)
     : []
+
+  // Benefits as a checklist (split on newlines / bullets / semicolons).
+  const benefitList = (product.benefits || '')
+    .split(/\r?\n|•|;/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+
+  // Product overview text (full description, falling back to the short one).
+  const overviewText = product.description || product.shortDescription || ''
+  const overviewLong = overviewText.length > 180
+
+  // Detail tabs (Description is now shown inline as "Product Overview").
+  const tabItems = [
+    ...(hasMedInfo ? [{ id: 'medicine', label: 'Medicine Details' }] : []),
+    { id: 'info', label: 'Additional Info' },
+    ...(faqs.length ? [{ id: 'faqs', label: `FAQs (${faqs.length})` }] : []),
+    { id: 'reviews', label: `Reviews (${product.numReviews || 0})` },
+  ]
+  const activeTab = tabItems.some((t) => t.id === tab) ? tab : tabItems[0]?.id
 
   const handleBuyNow = () => {
     if (addToCart(product, qty)) navigate('/cart')
@@ -217,7 +237,24 @@ export default function ProductDetail() {
           {product.brand?.name && (
             <span className="text-sm font-medium text-slate-400">{product.brand.name}</span>
           )}
-          <h1 className="mt-1 text-2xl font-bold text-dark sm:text-3xl">{product.name}</h1>
+          <div className="mt-1 flex items-start justify-between gap-3">
+            <h1 className="text-2xl font-bold text-dark sm:text-3xl">{product.name}</h1>
+            <span
+              className={`mt-1 shrink-0 rounded-md border px-2 py-1 text-xs font-bold ${
+                product.requiresPrescription
+                  ? 'border-amber-300 bg-amber-50 text-amber-700'
+                  : 'border-emerald-300 bg-emerald-50 text-emerald-700'
+              }`}
+              title={product.requiresPrescription ? 'Prescription required' : 'Over the counter'}
+            >
+              {product.requiresPrescription ? 'Rx' : 'OTC'}
+            </span>
+          </div>
+          {(product.packSize || product.unit) && (
+            <p className="mt-1 text-sm text-slate-500">
+              {product.packSize || `Pack: ${product.unit}`}
+            </p>
+          )}
           <div className="mt-3 flex items-center gap-3">
             <RatingStars rating={product.rating} count={product.numReviews} />
             {product.sku && <span className="text-xs text-slate-400">SKU: {product.sku}</span>}
@@ -246,10 +283,41 @@ export default function ProductDetail() {
             {!outOfStock && <DeliveryPromise />}
           </div>
 
-          {product.shortDescription && (
-            <p className="mt-4 text-sm leading-relaxed text-slate-600">
-              {product.shortDescription}
-            </p>
+          {/* Product Overview */}
+          {overviewText && (
+            <div className="mt-5">
+              <h3 className="text-base font-bold text-dark">Product Overview</h3>
+              <p
+                className={`mt-1 whitespace-pre-line text-sm leading-relaxed text-slate-600 ${
+                  !overviewOpen && overviewLong ? 'line-clamp-3' : ''
+                }`}
+              >
+                {overviewText}
+              </p>
+              {overviewLong && (
+                <button
+                  onClick={() => setOverviewOpen((o) => !o)}
+                  className="mt-1 text-sm font-semibold text-primary hover:underline"
+                >
+                  {overviewOpen ? 'View Less ▲' : 'View More ▼'}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Benefits */}
+          {benefitList.length > 0 && (
+            <div className="mt-5">
+              <h3 className="text-base font-bold text-dark">Benefits</h3>
+              <ul className="mt-2 space-y-2">
+                {benefitList.map((b, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
+                    <FaCheckCircle className="mt-0.5 shrink-0 text-emerald-500" />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
 
           {/* Key pharma highlights */}
@@ -368,18 +436,12 @@ export default function ProductDetail() {
       {/* Tabs */}
       <div className="mt-12">
         <div className="flex flex-wrap gap-2 border-b border-bordergray">
-          {[
-            { id: 'description', label: 'Description' },
-            ...(hasMedInfo ? [{ id: 'medicine', label: 'Medicine Details' }] : []),
-            { id: 'info', label: 'Additional Info' },
-            ...(faqs.length ? [{ id: 'faqs', label: `FAQs (${faqs.length})` }] : []),
-            { id: 'reviews', label: `Reviews (${product.numReviews || 0})` },
-          ].map((t) => (
+          {tabItems.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`-mb-px border-b-2 px-4 py-3 text-sm font-semibold transition ${
-                tab === t.id
+                activeTab === t.id
                   ? 'border-primary text-primary'
                   : 'border-transparent text-slate-500 hover:text-dark'
               }`}
@@ -390,13 +452,7 @@ export default function ProductDetail() {
         </div>
 
         <div className="py-6">
-          {tab === 'description' && (
-            <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">
-              {product.description || product.shortDescription || 'No description available.'}
-            </p>
-          )}
-
-          {tab === 'medicine' && (
+          {activeTab === 'medicine' && (
             <div className="max-w-2xl space-y-6">
               {(product.saltComposition || product.strength || product.dosageForm) && (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -437,7 +493,7 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {tab === 'info' && (
+          {activeTab === 'info' && (
             <table className="w-full max-w-lg text-sm">
               <tbody className="divide-y divide-bordergray">
                 {[
@@ -464,7 +520,7 @@ export default function ProductDetail() {
             </table>
           )}
 
-          {tab === 'faqs' && (
+          {activeTab === 'faqs' && (
             <div className="max-w-2xl space-y-3">
               {faqs.map((f, i) => (
                 <FaqItem key={i} q={f.question} a={f.answer} />
@@ -472,7 +528,7 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {tab === 'reviews' && (
+          {activeTab === 'reviews' && (
             <div className="max-w-2xl">
               {product.reviews?.length > 0 ? (
                 <ul className="space-y-4">
