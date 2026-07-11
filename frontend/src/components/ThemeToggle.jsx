@@ -27,7 +27,7 @@ export default function ThemeToggle({ className = '' }) {
       title={dark ? 'Light mode' : 'Dark mode'}
       className={`flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-primary/10 hover:text-primary dark:text-slate-300 ${className}`}
     >
-      {dark ? <FaSun size={16} /> : <FaMoon size={15} />}
+      {dark ? <FaSun size={16} className="text-amber-500" /> : <FaMoon size={15} />}
     </button>
   )
 }
