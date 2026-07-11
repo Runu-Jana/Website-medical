@@ -121,6 +121,7 @@ export default function Footer() {
               ['/refund-policy', 'Refund & Return'],
               ['/shipping-policy', 'Shipping Policy'],
               ['/disclaimer', 'Medical Disclaimer'],
+              ['/sell', 'Sell with Us'],
             ].map(([to, label], i) => (
               <li key={to} className={reveal(i + 1).className} style={{ '--order': i + 1 }}>
                 <Link to={to} className="hover:text-primary">{label}</Link>

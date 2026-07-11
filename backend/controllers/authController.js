@@ -51,8 +51,9 @@ export const adminLogin = async (req, res) => {
   if (!user || !(await bcrypt.compare(password || '', user.password))) {
     return res.status(401).json({ message: 'Invalid email or password' });
   }
-  if (user.role !== 'admin') {
-    return res.status(403).json({ message: 'Not an admin account' });
+  // The panel is shared by admins and approved/pending vendors (sellers).
+  if (user.role !== 'admin' && user.role !== 'vendor') {
+    return res.status(403).json({ message: 'This account cannot access the panel' });
   }
   res.json({ user: serializeUser(user), token: generateToken(user.id) });
 };

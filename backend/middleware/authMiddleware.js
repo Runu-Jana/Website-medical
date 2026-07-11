@@ -31,6 +31,19 @@ export const admin = (req, res, next) => {
   return res.status(403).json({ message: 'Admin access required' });
 };
 
+// Vendor-only routes (a seller managing their own catalog).
+export const vendor = (req, res, next) => {
+  if (req.user && req.user.role === 'vendor') return next();
+  return res.status(403).json({ message: 'Vendor access required' });
+};
+
+// Panel routes usable by BOTH admins and vendors; the controller then scopes
+// data to the vendor's own records when req.user.role === 'vendor'.
+export const panel = (req, res, next) => {
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'vendor')) return next();
+  return res.status(403).json({ message: 'Panel access required' });
+};
+
 // Populates req.user IF a valid token is present, but never blocks the request.
 // Used for guest-friendly endpoints (e.g. checkout) so logged-in customers are
 // linked to their order and can be emailed, while guests still pass through.

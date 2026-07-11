@@ -16,8 +16,9 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const { data } = await api.post('/auth/admin/login', { email, password });
-    if (!data?.token || data?.user?.role !== 'admin') {
-      throw new Error('You are not authorized to access the admin panel.');
+    const role = data?.user?.role;
+    if (!data?.token || (role !== 'admin' && role !== 'vendor')) {
+      throw new Error('You are not authorized to access this panel.');
     }
     localStorage.setItem('admin_token', data.token);
     localStorage.setItem('admin_user', JSON.stringify(data.user));

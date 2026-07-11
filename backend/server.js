@@ -39,6 +39,7 @@ import appointmentRoutes from './routes/appointmentRoutes.js';
 import labTestRoutes from './routes/labTestRoutes.js';
 import labBookingRoutes from './routes/labBookingRoutes.js';
 import healthRecordRoutes from './routes/healthRecordRoutes.js';
+import vendorRoutes from './routes/vendorRoutes.js';
 import {
   ensureDefaultPopup,
   ensureDefaultCoupon,
@@ -139,6 +140,7 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/lab-tests', labTestRoutes);
 app.use('/api/lab-bookings', labBookingRoutes);
 app.use('/api/health-records', healthRecordRoutes);
+app.use('/api/vendors', vendorRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

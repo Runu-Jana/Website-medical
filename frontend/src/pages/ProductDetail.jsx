@@ -257,6 +257,11 @@ export default function ProductDetail() {
               {product.packSize || `Pack: ${product.unit}`}
             </p>
           )}
+          {product.vendorName && (
+            <p className="mt-1 text-xs text-slate-500">
+              Sold by <span className="font-semibold text-dark">{product.vendorName}</span>
+            </p>
+          )}
           <div className="mt-3 flex items-center gap-3">
             <RatingStars rating={product.rating} count={product.numReviews} />
             {product.sku && <span className="text-xs text-slate-400">SKU: {product.sku}</span>}

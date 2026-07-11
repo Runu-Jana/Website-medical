@@ -20,6 +20,7 @@ import DoctorProfile from './pages/DoctorProfile'
 import LabTests from './pages/LabTests'
 import HealthRecords from './pages/HealthRecords'
 import HealthAssistant from './pages/HealthAssistant'
+import BecomeSeller from './pages/BecomeSeller'
 import Wishlist from './pages/Wishlist'
 import PrescriptionUpload from './pages/PrescriptionUpload'
 import LegalPage from './pages/LegalPage'
@@ -61,6 +62,7 @@ export default function App() {
         <Route path="/doctors/:idOrSlug" element={<DoctorProfile />} />
         <Route path="/lab-tests" element={<LabTests />} />
         <Route path="/health-assistant" element={<HealthAssistant />} />
+        <Route path="/sell" element={<BecomeSeller />} />
         <Route
           path="/health-records"
           element={

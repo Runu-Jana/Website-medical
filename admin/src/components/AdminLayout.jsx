@@ -20,6 +20,8 @@ const SECTIONS = {
   appointments: 'Consultation Bookings',
   'lab-tests': 'Lab Tests & Packages',
   'lab-bookings': 'Lab Test Bookings',
+  vendors: 'Vendors / Sellers',
+  'vendor-profile': 'My Shop',
   customers: 'Customers',
   messages: 'Messages',
   'support-chats': 'Support Chats',

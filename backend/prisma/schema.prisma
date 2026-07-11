@@ -359,6 +359,25 @@ model HealthRecord {
   @@index([userId])
 }
 
+model Vendor {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  shopName          String   @default("")
+  ownerName         String   @default("")
+  email             String   @default("")
+  phone             String   @default("")
+  licenseNumber     String   @default("")
+  gstin             String   @default("")
+  address           String   @default("")
+  logo              String   @default("")
+  status            String   @default("pending") // pending | approved | rejected | suspended
+  commissionPercent Float    @default(10)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([status])
+}
+
 model PopupBanner {
   id         String   @id @default(uuid())
   title      String   @default("")

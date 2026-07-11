@@ -1,6 +1,8 @@
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 import {
   FiGrid,
+  FiShoppingBag,
   FiBox,
   FiTag,
   FiAward,
@@ -23,16 +25,19 @@ import {
   FiX,
 } from 'react-icons/fi';
 
+// `vendor: true` marks links a seller may see; everything else is admin-only.
 const links = [
-  { to: '/', label: 'Dashboard', icon: FiGrid, end: true },
-  { to: '/products', label: 'Products', icon: FiBox },
+  { to: '/', label: 'Dashboard', icon: FiGrid, end: true, vendor: true },
+  { to: '/products', label: 'Products', icon: FiBox, vendor: true },
   { to: '/categories', label: 'Categories', icon: FiTag },
   { to: '/brands', label: 'Brands', icon: FiAward },
   { to: '/banners', label: 'Banners', icon: FiImage },
   { to: '/popups', label: 'Popups', icon: FiMonitor },
   { to: '/posts', label: 'Blog', icon: FiFileText },
   { to: '/prescriptions', label: 'Prescriptions', icon: FiUpload },
-  { to: '/orders', label: 'Orders', icon: FiShoppingCart },
+  { to: '/orders', label: 'Orders', icon: FiShoppingCart, vendor: true },
+  { to: '/vendor-profile', label: 'My Shop', icon: FiShoppingBag, vendorOnly: true },
+  { to: '/vendors', label: 'Vendors', icon: FiShoppingBag },
   { to: '/offers', label: 'Offers', icon: FiPercent },
   { to: '/doctors', label: 'Doctors', icon: FiUserPlus },
   { to: '/appointments', label: 'Appointments', icon: FiCalendar },
@@ -46,6 +51,9 @@ const links = [
 ];
 
 export default function Sidebar({ open, onClose }) {
+  const { user } = useAuth();
+  const isVendor = user?.role === 'vendor';
+  const visibleLinks = links.filter((l) => (isVendor ? l.vendor || l.vendorOnly : !l.vendorOnly));
   return (
     <>
       {/* Mobile overlay */}
@@ -68,8 +76,10 @@ export default function Sidebar({ open, onClose }) {
               <FiActivity size={20} />
             </div>
             <div>
-              <p className="text-lg font-bold text-white leading-none">DCare</p>
-              <p className="text-[11px] uppercase tracking-wider text-slate-400">Admin Panel</p>
+              <p className="text-lg font-bold text-white leading-none">DBL Life Care</p>
+              <p className="text-[11px] uppercase tracking-wider text-slate-400">
+                {isVendor ? 'Seller Panel' : 'Admin Panel'}
+              </p>
             </div>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-white lg:hidden">
@@ -81,7 +91,7 @@ export default function Sidebar({ open, onClose }) {
           <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             Main
           </p>
-          {links.map(({ to, label, icon: Icon, end }) => (
+          {visibleLinks.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}

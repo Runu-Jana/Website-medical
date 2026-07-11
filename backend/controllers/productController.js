@@ -1,6 +1,7 @@
 import prisma from '../prisma/client.js';
 import { slugify } from '../utils/slugify.js';
 import { serializeProduct } from '../prisma/serialize.js';
+import { resolveVendor } from '../lib/vendor.js';
 
 const include = { brand: true, categories: true };
 
@@ -83,6 +84,11 @@ export const getProducts = async (req, res) => {
 export const getProductsAdmin = async (req, res) => {
   const { keyword, page = 1, limit = 15 } = req.query;
   const where = {};
+  // Vendors only ever see their own catalogue.
+  if (req.user?.role === 'vendor') {
+    const v = await resolveVendor(req.user.id);
+    where.vendorId = v?.id || '__none__';
+  }
   if (keyword) {
     where.OR = [
       { name: { contains: keyword, mode: 'insensitive' } },
@@ -137,6 +143,17 @@ export const createProduct = async (req, res) => {
   const b = req.body;
   if (!b.name) return res.status(400).json({ message: 'Name is required' });
 
+  // Vendor context: only approved sellers can list, and products are tagged to them.
+  let vendorTag = null;
+  if (req.user?.role === 'vendor') {
+    const v = await resolveVendor(req.user.id);
+    if (!v) return res.status(403).json({ message: 'No vendor profile found' });
+    if (v.status !== 'approved') {
+      return res.status(403).json({ message: 'Your seller account is awaiting approval.' });
+    }
+    vendorTag = { id: v.id, name: v.shopName };
+  }
+
   const price = Number(b.price) || 0;
   const oldPrice = Number(b.oldPrice) || 0;
   const images = Array.isArray(b.images) ? b.images : [];
@@ -189,8 +206,8 @@ export const createProduct = async (req, res) => {
       seoTitle: b.seoTitle || '',
       metaDescription: b.metaDescription || '',
       metaKeywords: b.metaKeywords || '',
-      vendorId: b.vendorId || '',
-      vendorName: b.vendorName || '',
+      vendorId: vendorTag ? vendorTag.id : b.vendorId || '',
+      vendorName: vendorTag ? vendorTag.name : b.vendorName || '',
       tags: Array.isArray(b.tags) ? b.tags : [],
       status: b.status || 'active',
       reviews: [],
@@ -206,6 +223,13 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   const existing = await prisma.product.findUnique({ where: { id: req.params.id } });
   if (!existing) return res.status(404).json({ message: 'Product not found' });
+  // Vendors can only edit their own products (and can't reassign ownership).
+  if (req.user?.role === 'vendor') {
+    const v = await resolveVendor(req.user.id);
+    if (!v || existing.vendorId !== v.id) {
+      return res.status(403).json({ message: 'You can only edit your own products' });
+    }
+  }
 
   const b = req.body;
   const data = {};
@@ -257,6 +281,16 @@ export const updateProduct = async (req, res) => {
 
 // @route DELETE /api/products/:id  (admin)
 export const deleteProduct = async (req, res) => {
+  if (req.user?.role === 'vendor') {
+    const [v, existing] = await Promise.all([
+      resolveVendor(req.user.id),
+      prisma.product.findUnique({ where: { id: req.params.id } }),
+    ]);
+    if (!existing) return res.status(404).json({ message: 'Product not found' });
+    if (!v || existing.vendorId !== v.id) {
+      return res.status(403).json({ message: 'You can only delete your own products' });
+    }
+  }
   try {
     await prisma.product.delete({ where: { id: req.params.id } });
     res.json({ message: 'Product removed' });

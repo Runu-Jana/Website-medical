@@ -11,7 +11,7 @@ import {
   createReview,
 } from '../controllers/productController.js';
 import { importProducts, downloadTemplate } from '../controllers/productImportController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, admin, panel } from '../middleware/authMiddleware.js';
 import { reviewLimiter } from '../middleware/rateLimit.js';
 
 const router = express.Router();
@@ -30,16 +30,16 @@ const sheetUpload = multer({
 
 router.get('/', getProducts);
 router.get('/meta/price-range', getPriceRange);
-router.get('/admin', protect, admin, getProductsAdmin);
-router.post('/', protect, admin, createProduct);
+router.get('/admin', protect, panel, getProductsAdmin);
+router.post('/', protect, panel, createProduct);
 
 // Bulk import (defined before the /:idOrSlug catch-all so the paths resolve)
 router.get('/import/template', protect, admin, downloadTemplate);
 router.post('/import', protect, admin, sheetUpload.single('file'), importProducts);
 
 router.get('/:idOrSlug', getProduct);
-router.put('/:id', protect, admin, updateProduct);
-router.delete('/:id', protect, admin, deleteProduct);
+router.put('/:id', protect, panel, updateProduct);
+router.delete('/:id', protect, panel, deleteProduct);
 router.post('/:id/reviews', reviewLimiter, protect, createReview);
 
 export default router;

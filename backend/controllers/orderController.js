@@ -12,6 +12,7 @@ import {
   computeCouponDiscount,
   userRedemptionCount,
 } from '../lib/coupons.js';
+import { resolveVendor } from '../lib/vendor.js';
 
 // DBL Life Care Health Club member discount (percent off items).
 export const MEMBER_DISCOUNT_PERCENT = 5;
@@ -58,10 +59,25 @@ export const createOrder = async (req, res) => {
     itemsPrice - discountPrice - couponDiscount + shippingPrice + taxPrice
   );
 
+  // Tag each item with its vendor so a marketplace order can be routed/split.
+  const prodIds = items.map((i) => i.product).filter(Boolean);
+  const prods = prodIds.length
+    ? await prisma.product.findMany({
+        where: { id: { in: prodIds } },
+        select: { id: true, vendorId: true, vendorName: true },
+      })
+    : [];
+  const vmap = new Map(prods.map((p) => [p.id, p]));
+  const itemsWithVendor = items.map((i) => ({
+    ...i,
+    vendorId: vmap.get(i.product)?.vendorId || '',
+    vendorName: vmap.get(i.product)?.vendorName || '',
+  }));
+
   const order = await prisma.order.create({
     data: {
       userId: req.user?.id || null,
-      items,
+      items: itemsWithVendor,
       shippingAddress: shippingAddress || {},
       paymentMethod: paymentMethod || 'Cash on Delivery',
       itemsPrice,
@@ -214,6 +230,21 @@ const buildCondition = ({ field, operator, value }) => {
 
 // @route GET /api/orders  (admin)
 export const getOrders = async (req, res) => {
+  // Vendor view: only orders containing this seller's items, showing just theirs.
+  if (req.user?.role === 'vendor') {
+    const v = await resolveVendor(req.user.id);
+    const vid = v?.id || '__none__';
+    const all = await prisma.order.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 500,
+      include: { user: { select: { id: true, name: true, email: true } } },
+    });
+    const mine = all
+      .filter((o) => Array.isArray(o.items) && o.items.some((i) => i.vendorId === vid))
+      .map((o) => ({ ...o, items: o.items.filter((i) => i.vendorId === vid) }));
+    return res.json({ orders: mine.map(serializeOrder), page: 1, pages: 1, total: mine.length });
+  }
+
   const { status, filters, page = 1, limit = 15 } = req.query;
   let where = {};
   if (status) where.status = status;
