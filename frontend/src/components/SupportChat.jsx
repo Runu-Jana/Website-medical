@@ -17,6 +17,17 @@ export default function SupportChat() {
   const [conversationId, setConversationId] = useState(null)
   const [escalated, setEscalated] = useState(false)
   const scrollRef = useRef(null)
+  const panelRef = useRef(null)
+
+  // Close the chat when clicking/tapping anywhere outside the panel.
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e) => {
+      if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', onDown)
+    return () => document.removeEventListener('pointerdown', onDown)
+  }, [open])
 
   useEffect(() => {
     api
@@ -74,7 +85,7 @@ export default function SupportChat() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-20 right-4 z-50 flex h-[70vh] max-h-[560px] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl bg-white shadow-2xl md:bottom-6 md:right-6">
+        <div ref={panelRef} className="fixed bottom-20 right-4 z-50 flex h-[70vh] max-h-[560px] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl bg-white shadow-2xl md:bottom-6 md:right-6">
           {/* Header */}
           <div className="flex items-center justify-between bg-primary px-4 py-3 text-white">
             <div className="flex items-center gap-2">
