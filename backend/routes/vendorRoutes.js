@@ -4,6 +4,10 @@ import {
   getMyVendor,
   updateMyVendor,
   getVendorStats,
+  getMyEarnings,
+  getSettlements,
+  recordPayout,
+  getVendorPayouts,
   getVendors,
   updateVendor,
 } from '../controllers/vendorController.js';
@@ -15,7 +19,11 @@ router.post('/register', registerVendor);
 router.get('/me', protect, vendor, getMyVendor);
 router.put('/me', protect, vendor, updateMyVendor);
 router.get('/stats', protect, vendor, getVendorStats);
+router.get('/earnings', protect, vendor, getMyEarnings);
+router.get('/settlements', protect, admin, getSettlements);
 router.get('/', protect, admin, getVendors);
+router.post('/:id/payouts', protect, admin, recordPayout);
+router.get('/:id/payouts', protect, admin, getVendorPayouts);
 router.put('/:id', protect, admin, updateVendor);
 
 export default router;

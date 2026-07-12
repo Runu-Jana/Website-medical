@@ -18,11 +18,15 @@ const Tile = ({ icon: Icon, label, value, color }) => (
 
 export default function SellerDashboard() {
   const [stats, setStats] = useState(null);
+  const [earnings, setEarnings] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/vendors/stats')
-      .then(({ data }) => setStats(data))
+    Promise.all([api.get('/vendors/stats'), api.get('/vendors/earnings').catch(() => ({ data: null }))])
+      .then(([s, e]) => {
+        setStats(s.data);
+        setEarnings(e.data);
+      })
       .catch(() => setStats(null))
       .finally(() => setLoading(false));
   }, []);
@@ -56,6 +60,41 @@ export default function SellerDashboard() {
         <Tile icon={FiClock} label="Pending orders" value={stats.pending} color="bg-amber-100 text-amber-600" />
         <Tile icon={FiAlertTriangle} label="Out of stock" value={stats.outOfStock} color="bg-rose-100 text-rose-600" />
       </div>
+
+      {earnings && (
+        <div className="card p-5">
+          <h3 className="mb-3 font-semibold text-slate-800">Earnings & Payouts</h3>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-xl bg-slate-50 p-3">
+              <p className="text-xs text-slate-500">Net earned (after {earnings.commissionPercent}% commission)</p>
+              <p className="text-lg font-bold text-slate-800">{money(earnings.netEarned)}</p>
+            </div>
+            <div className="rounded-xl bg-slate-50 p-3">
+              <p className="text-xs text-slate-500">Commission deducted</p>
+              <p className="text-lg font-bold text-slate-500">−{money(earnings.commission)}</p>
+            </div>
+            <div className="rounded-xl bg-slate-50 p-3">
+              <p className="text-xs text-slate-500">Paid to you</p>
+              <p className="text-lg font-bold text-slate-800">{money(earnings.totalPaid)}</p>
+            </div>
+            <div className="rounded-xl bg-emerald-50 p-3">
+              <p className="text-xs text-emerald-700">Outstanding</p>
+              <p className="text-lg font-bold text-emerald-700">{money(earnings.outstanding)}</p>
+            </div>
+          </div>
+          {earnings.payouts?.length > 0 && (
+            <div className="mt-3 space-y-1.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Recent payouts</p>
+              {earnings.payouts.slice(0, 5).map((p) => (
+                <div key={p._id} className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500">{new Date(p.createdAt).toLocaleDateString('en-IN')}{p.note ? ` · ${p.note}` : ''}</span>
+                  <span className="font-semibold text-slate-800">{money(p.amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="card p-5">
         <div className="mb-3 flex items-center justify-between">

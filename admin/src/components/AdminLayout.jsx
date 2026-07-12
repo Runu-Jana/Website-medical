@@ -22,6 +22,7 @@ const SECTIONS = {
   'lab-bookings': 'Lab Test Bookings',
   vendors: 'Vendors / Sellers',
   'vendor-profile': 'My Shop',
+  settlements: 'Vendor Settlements',
   customers: 'Customers',
   messages: 'Messages',
   'support-chats': 'Support Chats',

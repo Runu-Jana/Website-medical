@@ -38,6 +38,7 @@ const links = [
   { to: '/orders', label: 'Orders', icon: FiShoppingCart, vendor: true },
   { to: '/vendor-profile', label: 'My Shop', icon: FiShoppingBag, vendorOnly: true },
   { to: '/vendors', label: 'Vendors', icon: FiShoppingBag },
+  { to: '/settlements', label: 'Settlements', icon: FiPercent },
   { to: '/offers', label: 'Offers', icon: FiPercent },
   { to: '/doctors', label: 'Doctors', icon: FiUserPlus },
   { to: '/appointments', label: 'Appointments', icon: FiCalendar },

@@ -378,6 +378,16 @@ model Vendor {
   @@index([status])
 }
 
+model VendorPayout {
+  id        String   @id @default(uuid())
+  vendorId  String
+  amount    Float    @default(0)
+  note      String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([vendorId])
+}
+
 model PopupBanner {
   id         String   @id @default(uuid())
   title      String   @default("")

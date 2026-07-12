@@ -133,7 +133,94 @@ export const getVendorStats = async (req, res) => {
   });
 };
 
+// Gross sales (paid, non-refunded) per vendorId from the order stream.
+const grossByVendor = async () => {
+  const orders = await prisma.order.findMany({
+    where: { isPaid: true, isRefunded: false },
+    select: { items: true },
+    take: 5000,
+  });
+  const map = new Map();
+  for (const o of orders) {
+    if (!Array.isArray(o.items)) continue;
+    for (const it of o.items) {
+      if (!it.vendorId) continue;
+      map.set(it.vendorId, (map.get(it.vendorId) || 0) + it.price * it.qty);
+    }
+  }
+  return map;
+};
+
+// @route GET /api/vendors/earnings  (vendor) — own earnings + payout history
+export const getMyEarnings = async (req, res) => {
+  const v = await resolveVendor(req.user.id);
+  if (!v) return res.status(404).json({ message: 'Vendor profile not found' });
+  const gross = (await grossByVendor()).get(v.id) || 0;
+  const commission = gross * (v.commissionPercent / 100);
+  const net = gross - commission;
+  const payouts = await prisma.vendorPayout.findMany({ where: { vendorId: v.id }, orderBy: { createdAt: 'desc' } });
+  const totalPaid = payouts.reduce((s, p) => s + p.amount, 0);
+  res.json({
+    grossSales: Math.round(gross),
+    commissionPercent: v.commissionPercent,
+    commission: Math.round(commission),
+    netEarned: Math.round(net),
+    totalPaid: Math.round(totalPaid),
+    outstanding: Math.round(net - totalPaid),
+    payouts: payouts.map(withId),
+  });
+};
+
 // ---- Admin ----
+
+// @route GET /api/vendors/settlements  (admin) — earnings & outstanding per vendor
+export const getSettlements = async (req, res) => {
+  const [vendors, gross, payoutSums] = await Promise.all([
+    prisma.vendor.findMany({ orderBy: { createdAt: 'desc' } }),
+    grossByVendor(),
+    prisma.vendorPayout.groupBy({ by: ['vendorId'], _sum: { amount: true } }),
+  ]);
+  const paidMap = new Map(payoutSums.map((p) => [p.vendorId, p._sum.amount || 0]));
+  const rows = vendors.map((v) => {
+    const g = gross.get(v.id) || 0;
+    const commission = g * (v.commissionPercent / 100);
+    const net = g - commission;
+    const paid = paidMap.get(v.id) || 0;
+    return {
+      _id: v.id,
+      shopName: v.shopName,
+      status: v.status,
+      commissionPercent: v.commissionPercent,
+      grossSales: Math.round(g),
+      commission: Math.round(commission),
+      netEarned: Math.round(net),
+      totalPaid: Math.round(paid),
+      outstanding: Math.round(net - paid),
+    };
+  });
+  res.json({ vendors: rows });
+};
+
+// @route POST /api/vendors/:id/payouts  (admin) — record a settlement payment
+export const recordPayout = async (req, res) => {
+  const v = await prisma.vendor.findUnique({ where: { id: req.params.id } });
+  if (!v) return res.status(404).json({ message: 'Vendor not found' });
+  const amount = Math.max(0, Number(req.body.amount) || 0);
+  if (!amount) return res.status(400).json({ message: 'Enter a payout amount' });
+  const payout = await prisma.vendorPayout.create({
+    data: { vendorId: v.id, amount, note: String(req.body.note || '').trim() },
+  });
+  res.status(201).json(withId(payout));
+};
+
+// @route GET /api/vendors/:id/payouts  (admin) — a vendor's payout history
+export const getVendorPayouts = async (req, res) => {
+  const payouts = await prisma.vendorPayout.findMany({
+    where: { vendorId: req.params.id },
+    orderBy: { createdAt: 'desc' },
+  });
+  res.json(payouts.map(withId));
+};
 
 // @route GET /api/vendors  (admin)
 export const getVendors = async (req, res) => {
