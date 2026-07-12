@@ -36,6 +36,8 @@ import StatusBadge from '../components/StatusBadge.jsx';
 import Loader from '../components/Loader.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import { formatCurrency, formatCurrencyCompact, formatCompact, formatNumber, formatDate } from '../lib/format.js';
+import { useAuth } from '../context/AuthContext.jsx';
+import SellerDashboard from './SellerDashboard.jsx';
 
 const STATUS_COLORS = {
   pending: '#f59e0b',
@@ -70,6 +72,12 @@ const ChartTooltip = ({ active, payload, label, money }) => {
 };
 
 export default function Dashboard() {
+  // Sellers get their own scoped dashboard, not the store-wide admin view.
+  const { user } = useAuth();
+  return user?.role === 'vendor' ? <SellerDashboard /> : <AdminDashboard />;
+}
+
+function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [cards, setCards] = useState(null);
   const [weekly, setWeekly] = useState(null);

@@ -74,6 +74,65 @@ export const updateMyVendor = async (req, res) => {
   res.json(withId(updated));
 };
 
+// @route GET /api/vendors/stats  (vendor) — seller dashboard summary
+export const getVendorStats = async (req, res) => {
+  const v = await resolveVendor(req.user.id);
+  if (!v) return res.status(404).json({ message: 'Vendor profile not found' });
+
+  const products = await prisma.product.findMany({
+    where: { vendorId: v.id },
+    select: { status: true, countInStock: true },
+  });
+  const productCount = products.length;
+  const activeCount = products.filter((p) => p.status === 'active').length;
+  const outOfStock = products.filter((p) => (p.countInStock || 0) <= 0).length;
+
+  const orders = await prisma.order.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 500,
+    include: { user: { select: { name: true } } },
+  });
+  let revenue = 0;
+  let itemsSold = 0;
+  let orderCount = 0;
+  let pending = 0;
+  const recent = [];
+  for (const o of orders) {
+    const mine = Array.isArray(o.items) ? o.items.filter((i) => i.vendorId === v.id) : [];
+    if (!mine.length) continue;
+    orderCount += 1;
+    const subtotal = mine.reduce((s, i) => s + i.price * i.qty, 0);
+    revenue += subtotal;
+    itemsSold += mine.reduce((s, i) => s + i.qty, 0);
+    if (['pending', 'processing'].includes(o.status)) pending += 1;
+    if (recent.length < 6) {
+      recent.push({
+        id: o.id,
+        orderNumber: o.orderNumber,
+        createdAt: o.createdAt,
+        status: o.status,
+        customer: o.user?.name || 'Guest',
+        items: mine,
+        subtotal,
+      });
+    }
+  }
+
+  res.json({
+    status: v.status,
+    shopName: v.shopName,
+    commissionPercent: v.commissionPercent,
+    productCount,
+    activeCount,
+    outOfStock,
+    orderCount,
+    itemsSold,
+    revenue,
+    pending,
+    recent,
+  });
+};
+
 // ---- Admin ----
 
 // @route GET /api/vendors  (admin)
