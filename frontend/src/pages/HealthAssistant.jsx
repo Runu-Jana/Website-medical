@@ -1,24 +1,49 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../lib/api'
-import { FaHeadset, FaPaperPlane, FaPills, FaUserMd, FaFlask, FaRobot } from 'react-icons/fa'
+import { FaArrowLeft, FaSyncAlt, FaMicrophone, FaArrowUp } from 'react-icons/fa'
 
-const GREETING = {
-  role: 'assistant',
-  content:
-    "Hi! I'm the DBL Life Care Health Assistant 🤖 Tell me your symptoms or ask about products, orders, or offers. For medical advice, please consult a doctor or pharmacist.",
-}
+const GREETING =
+  "Hi! I'm your AI Health Assistant. Tell me your symptoms or ask about medicines, orders or offers. For medical advice, please consult a doctor or pharmacist."
 
 const QUICK = [
-  { label: 'Find Medicine', Icon: FaPills, to: '/shop' },
-  { label: 'Book Doctor', Icon: FaUserMd, to: '/doctors' },
-  { label: 'Book Lab Test', Icon: FaFlask, to: '/lab-tests' },
+  { label: 'Find Medicine', to: '/shop' },
+  { label: 'Book Doctor', to: '/doctors' },
+  { label: 'Book Lab Test', to: '/lab-tests' },
 ]
+
+const fmtTime = (t) =>
+  new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+
+// Render an assistant reply, turning "-", "•" or "*" lines into a bullet list.
+function AssistantText({ text }) {
+  const lines = String(text).split('\n').map((l) => l.trim()).filter(Boolean)
+  return (
+    <>
+      {lines.map((l, i) => {
+        const isBullet = /^[-•*]\s?/.test(l)
+        if (isBullet) {
+          return (
+            <div key={i} className="mt-1 flex gap-2">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              <span>{l.replace(/^[-•*]\s?/, '')}</span>
+            </div>
+          )
+        }
+        return (
+          <p key={i} className={i > 0 ? 'mt-2' : ''}>
+            {l}
+          </p>
+        )
+      })}
+    </>
+  )
+}
 
 export default function HealthAssistant() {
   const navigate = useNavigate()
-  const [enabled, setEnabled] = useState(null) // null=loading
-  const [messages, setMessages] = useState([GREETING])
+  const [enabled, setEnabled] = useState(null)
+  const [messages, setMessages] = useState(() => [{ role: 'assistant', content: GREETING, at: Date.now() }])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [conversationId, setConversationId] = useState(null)
@@ -31,92 +56,132 @@ export default function HealthAssistant() {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
   }, [messages, sending])
 
+  const reset = () => {
+    setMessages([{ role: 'assistant', content: GREETING, at: Date.now() }])
+    setConversationId(null)
+    setInput('')
+  }
+
   const send = async (e) => {
     e?.preventDefault()
     const text = input.trim()
     if (!text || sending) return
-    const next = [...messages, { role: 'user', content: text }]
+    const next = [...messages, { role: 'user', content: text, at: Date.now() }]
     setMessages(next)
     setInput('')
     setSending(true)
     try {
       const { data } = await api.post('/support/chat', {
-        messages: next.filter((m) => m.role === 'user' || m.role === 'assistant'),
+        messages: next.filter((m) => m.role === 'user' || m.role === 'assistant').map((m) => ({ role: m.role, content: m.content })),
         conversationId,
       })
       if (data.conversationId) setConversationId(data.conversationId)
-      setMessages((m) => [...m, { role: 'assistant', content: data.reply }])
+      setMessages((m) => [...m, { role: 'assistant', content: data.reply, at: Date.now() }])
     } catch (err) {
-      setMessages((m) => [...m, { role: 'assistant', content: err.response?.data?.message || "Sorry, I couldn't respond right now." }])
+      setMessages((m) => [
+        ...m,
+        { role: 'assistant', content: err.response?.data?.message || "Sorry, I couldn't respond right now.", at: Date.now() },
+      ])
     } finally {
       setSending(false)
     }
   }
 
+  // Optional voice input (Web Speech API) — no-op if the browser doesn't support it.
+  const startVoice = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SR) return
+    const rec = new SR()
+    rec.lang = 'en-IN'
+    rec.interimResults = false
+    rec.onresult = (ev) => setInput((prev) => `${prev ? prev + ' ' : ''}${ev.results[0][0].transcript}`)
+    try {
+      rec.start()
+    } catch {
+      /* ignore */
+    }
+  }
+
   return (
-    <div className="container-x py-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-primary to-primaryDark p-5 text-white">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20"><FaRobot size={24} /></span>
-        <div>
-          <h1 className="text-xl font-bold">AI Health Assistant</h1>
-          <p className="text-sm text-white/85">Symptoms, products, orders & more — instantly.</p>
-        </div>
-      </div>
-
-      {/* Quick actions */}
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        {QUICK.map(({ label, Icon, to }) => (
-          <button key={label} onClick={() => navigate(to)} className="card flex flex-col items-center gap-1.5 p-3 text-center hover:ring-2 hover:ring-primary">
-            <Icon className="text-primary" size={18} />
-            <span className="text-xs font-semibold text-dark">{label}</span>
+    <div className="container-x pt-3 pb-24 md:py-4">
+      <div className="mx-auto flex h-[calc(100dvh-12rem)] max-h-[820px] min-h-[420px] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-bordergray bg-white shadow-card md:h-[calc(100vh-11rem)]">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-bordergray px-2 py-2.5">
+          <button onClick={() => navigate(-1)} aria-label="Back" className="rounded-full p-2 text-slate-600 hover:bg-lightbg">
+            <FaArrowLeft size={16} />
           </button>
-        ))}
-      </div>
+          <h1 className="text-base font-bold text-dark">AI Health Assistant</h1>
+          <button onClick={reset} aria-label="New chat" title="New chat" className="rounded-full p-2 text-slate-500 hover:bg-lightbg">
+            <FaSyncAlt size={15} />
+          </button>
+        </div>
 
-      {/* Chat */}
-      <div className="mt-4 flex h-[60vh] flex-col overflow-hidden rounded-2xl border border-bordergray bg-white">
-        <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-lightbg p-4">
+        {/* Messages */}
+        <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto bg-lightbg px-3 py-4">
           {messages.map((m, i) => (
-            <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] whitespace-pre-line rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                m.role === 'user' ? 'rounded-br-sm bg-primary text-white' : 'rounded-bl-sm bg-white text-slate-700 shadow-sm'
-              }`}>
-                {m.content}
+            <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+              <div
+                className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                  m.role === 'user'
+                    ? 'rounded-br-md bg-emerald-100 text-slate-800'
+                    : 'rounded-bl-md bg-white text-slate-700 shadow-sm'
+                }`}
+              >
+                {m.role === 'assistant' ? <AssistantText text={m.content} /> : m.content}
               </div>
+              <span className="mt-1 px-1 text-[10px] text-slate-400">{fmtTime(m.at)}</span>
             </div>
           ))}
           {sending && (
             <div className="flex justify-start">
-              <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-white px-4 py-3 shadow-sm">
+              <div className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-white px-4 py-3 shadow-sm">
                 <span className="h-2 w-2 animate-bounce rounded-full bg-slate-300 [animation-delay:-0.3s]" />
                 <span className="h-2 w-2 animate-bounce rounded-full bg-slate-300 [animation-delay:-0.15s]" />
                 <span className="h-2 w-2 animate-bounce rounded-full bg-slate-300" />
               </div>
             </div>
           )}
-          {enabled === false && (
-            <p className="rounded-lg bg-amber-50 px-3 py-2 text-center text-xs text-amber-700">
-              The live assistant isn't switched on yet. You can still use the quick actions above.
-            </p>
-          )}
         </div>
-        <form onSubmit={send} className="flex items-center gap-2 border-t border-bordergray p-3">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={enabled === false ? 'Assistant unavailable' : 'Describe your problem…'}
-            disabled={enabled === false}
-            className="flex-1 rounded-full border border-bordergray px-4 py-2.5 text-sm focus:border-primary focus:outline-none disabled:bg-slate-50"
-          />
-          <button type="submit" disabled={sending || !input.trim() || enabled === false}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white disabled:opacity-50">
-            <FaPaperPlane size={14} />
+
+        {/* Quick action pills */}
+        <div className="flex gap-2 overflow-x-auto border-t border-bordergray px-3 py-2 no-scrollbar">
+          {QUICK.map((q) => (
+            <button
+              key={q.label}
+              onClick={() => navigate(q.to)}
+              className="whitespace-nowrap rounded-full border border-primary/40 px-3.5 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/5"
+            >
+              {q.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Input */}
+        <form onSubmit={send} className="flex items-center gap-2 border-t border-bordergray px-3 py-2.5">
+          <div className="flex flex-1 items-center gap-2 rounded-full bg-lightbg px-4">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={enabled === false ? 'Assistant not available' : 'Type your message...'}
+              disabled={enabled === false}
+              className="flex-1 bg-transparent py-2.5 text-sm outline-none disabled:cursor-not-allowed"
+            />
+            <button type="button" onClick={startVoice} aria-label="Voice input" className="text-slate-400 hover:text-primary">
+              <FaMicrophone size={15} />
+            </button>
+          </div>
+          <button
+            type="submit"
+            disabled={sending || !input.trim() || enabled === false}
+            aria-label="Send"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white transition hover:bg-primaryDark disabled:opacity-50"
+          >
+            <FaArrowUp size={15} />
           </button>
         </form>
       </div>
-      <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-[11px] text-slate-400">
-        <FaHeadset size={11} /> AI assistant · not a substitute for professional medical advice
+      <p className="mx-auto mt-2 max-w-2xl text-center text-[11px] text-slate-400">
+        AI assistant · not a substitute for professional medical advice
       </p>
     </div>
   )
