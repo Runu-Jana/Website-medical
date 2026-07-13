@@ -6,11 +6,12 @@ import Loader from '../components/Loader.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 
 const STATUSES = ['pending', 'confirmed', 'completed', 'cancelled'];
-const badge = {
-  pending: 'bg-amber-100 text-amber-700',
-  confirmed: 'bg-blue-100 text-blue-700',
-  completed: 'bg-green-100 text-green-700',
-  cancelled: 'bg-slate-200 text-slate-500',
+// Colour the text (not the background) by status; cancelled is red.
+const statusColor = {
+  pending: 'text-amber-600',
+  confirmed: 'text-blue-600',
+  completed: 'text-green-600',
+  cancelled: 'text-red-600',
 };
 
 export default function Appointments() {
@@ -96,7 +97,7 @@ export default function Appointments() {
                       <select
                         value={a.status}
                         onChange={(e) => setStatus(a._id, e.target.value)}
-                        className={`rounded-lg px-2 py-1 text-xs font-semibold capitalize ${badge[a.status] || ''}`}
+                        className={`rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold capitalize focus:border-primary focus:outline-none ${statusColor[a.status] || 'text-slate-700'}`}
                       >
                         {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                       </select>
