@@ -85,7 +85,10 @@ export default function SupportChat() {
 
       {/* Chat panel */}
       {open && (
-        <div ref={panelRef} className="fixed bottom-20 right-4 z-50 flex h-[70vh] max-h-[560px] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl bg-white shadow-2xl md:bottom-6 md:right-6">
+        <div
+          ref={panelRef}
+          className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-white md:inset-auto md:bottom-6 md:right-6 md:h-[70vh] md:max-h-[560px] md:w-[calc(100vw-2rem)] md:max-w-sm md:rounded-2xl md:shadow-2xl"
+        >
           {/* Header */}
           <div className="flex items-center justify-between bg-primary px-4 py-3 text-white">
             <div className="flex items-center gap-2">
