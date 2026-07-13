@@ -46,6 +46,10 @@ export default function HealthRecords() {
 
   const upload = async (file) => {
     if (!file) return
+    if (file.size > 10 * 1024 * 1024) {
+      showToast({ title: 'File too large', subtitle: 'Please upload a file under 10 MB.', tone: 'info' })
+      return
+    }
     const fd = new FormData()
     fd.append('images', file)
     setUploading(true)
@@ -162,6 +166,7 @@ export default function HealthRecords() {
                   <FaUpload size={13} /> {uploading ? 'Uploading…' : form.fileUrl ? 'Change file' : 'Upload file'}
                 </button>
                 {form.fileUrl && <span className="ml-2 text-xs text-emerald-600">✓ attached</span>}
+                <p className="mt-1.5 text-xs text-slate-400">Accepted formats: PDF, JPG or PNG (max 10 MB).</p>
               </div>
               <div className="flex gap-2 pt-1">
                 <button type="button" onClick={() => setShowAdd(false)} className="btn-outline flex-1">Cancel</button>

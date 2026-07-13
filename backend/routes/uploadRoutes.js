@@ -1,12 +1,12 @@
 import express from 'express';
 import upload from '../middleware/uploadMiddleware.js';
 import { uploadImages } from '../controllers/uploadController.js';
-import { protect, panel } from '../middleware/authMiddleware.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Up to 10 high-resolution images per request (1GB each by default).
-// Panel = admins and vendors (sellers upload their own product images).
-router.post('/', protect, panel, upload.array('images', 10), uploadImages);
+// Any logged-in user may upload (admins/vendors for products, customers for
+// health records & prescriptions). Up to 10 files per request.
+router.post('/', protect, upload.array('images', 10), uploadImages);
 
 export default router;
