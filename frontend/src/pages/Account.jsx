@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../lib/api'
 import { useAuth } from '../context/AuthContext'
@@ -6,37 +6,32 @@ import Spinner from '../components/Spinner'
 import { formatPrice } from '../lib/helpers'
 import AddressAutocomplete from '../components/AddressAutocomplete'
 import {
-  FaSignOutAlt,
-  FaUserCircle,
-  FaBoxOpen,
-  FaMapMarkerAlt,
-  FaPrescriptionBottleAlt,
-  FaTimes,
-  FaCrown,
-  FaFileMedical,
-  FaNotesMedical,
-  FaUserMd,
-  FaFlask,
-  FaHeadset,
-  FaCalendarCheck,
-  FaVial,
+  FaSignOutAlt, FaUserCircle, FaBoxOpen, FaMapMarkerAlt, FaPrescriptionBottleAlt, FaTimes,
+  FaCrown, FaChevronRight, FaWallet, FaRegAddressBook, FaRegCreditCard, FaFileMedical,
+  FaGift, FaHeadset, FaTruck, FaClipboardCheck, FaUndoAlt, FaRegClock, FaCalendarCheck, FaVial,
 } from 'react-icons/fa'
 
-const QUICK_LINKS = [
-  { to: '/prescription', label: 'Upload Rx', Icon: FaFileMedical, color: 'bg-amber-100 text-amber-600' },
-  { to: '/health-records', label: 'Health Records', Icon: FaNotesMedical, color: 'bg-cyan-100 text-cyan-600' },
-  { to: '/doctors', label: 'Consult Doctor', Icon: FaUserMd, color: 'bg-sky-100 text-sky-600' },
-  { to: '/lab-tests', label: 'Lab Tests', Icon: FaFlask, color: 'bg-violet-100 text-violet-600' },
-  { to: '/health-club', label: 'Health Club', Icon: FaCrown, color: 'bg-rose-100 text-rose-600' },
-  { to: '/contact', label: 'Help & Support', Icon: FaHeadset, color: 'bg-emerald-100 text-emerald-600' },
-]
+const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
-const ORDER_TABS = [
-  { id: '', label: 'All' },
-  { id: 'processing', label: 'Processing' },
-  { id: 'delivered', label: 'Delivered' },
-  { id: 'cancelled', label: 'Cancelled' },
-]
+// A single tappable menu row (icon · label · value · chevron).
+function Row({ icon: Icon, label, value, valueClass, to, onClick, external }) {
+  const inner = (
+    <div className="flex items-center gap-3 px-4 py-3.5">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-lightbg text-primary">
+        <Icon size={16} />
+      </span>
+      <span className="flex-1 text-sm font-medium text-dark">{label}</span>
+      {value != null && <span className={`text-sm font-semibold ${valueClass || 'text-slate-500'}`}>{value}</span>}
+      <FaChevronRight className="text-slate-300" size={12} />
+    </div>
+  )
+  if (to) return <Link to={to}>{inner}</Link>
+  return (
+    <button type="button" onClick={onClick} className="w-full text-left">
+      {inner}
+    </button>
+  )
+}
 
 export default function Account() {
   const { user, logout, updateUser } = useAuth()
@@ -75,26 +70,14 @@ export default function Account() {
 
   useEffect(() => {
     let active = true
-    api
-      .get('/orders/mine')
+    api.get('/orders/mine')
       .then(({ data }) => active && setOrders(Array.isArray(data) ? data : data.orders || []))
       .catch(() => active && setOrders([]))
       .finally(() => active && setLoading(false))
-    api
-      .get('/me/refills')
-      .then(({ data }) => active && setRefills(Array.isArray(data) ? data : []))
-      .catch(() => active && setRefills([]))
-    api
-      .get('/appointments/mine')
-      .then(({ data }) => active && setAppointments(Array.isArray(data) ? data : []))
-      .catch(() => active && setAppointments([]))
-    api
-      .get('/lab-bookings/mine')
-      .then(({ data }) => active && setLabBookings(Array.isArray(data) ? data : []))
-      .catch(() => active && setLabBookings([]))
-    return () => {
-      active = false
-    }
+    api.get('/me/refills').then(({ data }) => active && setRefills(Array.isArray(data) ? data : [])).catch(() => {})
+    api.get('/appointments/mine').then(({ data }) => active && setAppointments(Array.isArray(data) ? data : [])).catch(() => {})
+    api.get('/lab-bookings/mine').then(({ data }) => active && setLabBookings(Array.isArray(data) ? data : [])).catch(() => {})
+    return () => { active = false }
   }, [])
 
   const updateRefill = async (id, body) => {
@@ -102,296 +85,211 @@ export default function Account() {
       await api.patch(`/me/refills/${id}`, body)
       const { data } = await api.get('/me/refills')
       setRefills(Array.isArray(data) ? data : [])
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
   }
 
-  const handleLogout = () => {
-    logout()
-    navigate('/')
-  }
-
-  // Only show reminders that are still upcoming/active.
+  const handleLogout = () => { logout(); navigate('/') }
   const activeRefills = refills.filter((r) => r.status !== 'cancelled')
 
+  // Order status breakdown for the "My Orders" row.
+  const stages = useMemo(() => {
+    const toPay = orders.filter((o) => !o.isPaid && o.status !== 'cancelled' && !o.isDelivered).length
+    const toShip = orders.filter((o) => o.isPaid && !o.isDelivered && o.status !== 'cancelled' && o.fulfillmentStatus !== 'dispatched').length
+    const toDeliver = orders.filter((o) => !o.isDelivered && o.fulfillmentStatus === 'dispatched').length
+    const delivered = orders.filter((o) => o.isDelivered || o.status === 'delivered').length
+    const returns = orders.filter((o) => o.status === 'cancelled' || o.isRefunded).length
+    return [
+      { label: 'To Pay', Icon: FaWallet, count: toPay },
+      { label: 'To Ship', Icon: FaBoxOpen, count: toShip },
+      { label: 'To Deliver', Icon: FaTruck, count: toDeliver },
+      { label: 'Delivered', Icon: FaClipboardCheck, count: delivered },
+      { label: 'Returns', Icon: FaUndoAlt, count: returns },
+    ]
+  }, [orders])
+
+  const addressCount = user?.address?.line1 || user?.address?.city ? 1 : 0
+  const goOrders = () => scrollTo('orders')
+
   return (
-    <div className="container-x py-8">
-      <h1 className="mb-6 text-2xl font-bold">My Account</h1>
-
-      {/* Quick links */}
-      <div className="mb-6 grid grid-cols-3 gap-3 sm:grid-cols-6">
-        {QUICK_LINKS.map(({ to, label, Icon, color }) => (
-          <Link key={to} to={to} className="card flex flex-col items-center gap-2 p-3 text-center transition hover:ring-2 hover:ring-primary">
-            <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${color}`}><Icon size={16} /></span>
-            <span className="text-[11px] font-semibold text-slate-600">{label}</span>
-          </Link>
-        ))}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Profile */}
-        <div className="lg:col-span-1">
-          <div className="card p-6 text-center">
-            <FaUserCircle size={64} className="mx-auto text-primary" />
-            <h3 className="mt-3 text-lg font-bold">{user?.name}</h3>
-            <p className="text-sm text-slate-500">{user?.email}</p>
-            {user?.phone && <p className="text-sm text-slate-500">{user.phone}</p>}
-            {user?.isMember ? (
-              <Link
-                to="/health-club"
-                className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700"
-              >
-                <FaCrown size={11} /> Health Club Member
-              </Link>
-            ) : (
-              <Link
-                to="/health-club"
-                className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary hover:bg-primary/20"
-              >
-                <FaCrown size={11} /> Join Health Club
-              </Link>
-            )}
-            <button onClick={handleLogout} className="btn-outline mt-5 w-full">
-              <FaSignOutAlt /> Logout
+    <div className="container-x py-4">
+      <div className="mx-auto max-w-2xl space-y-4">
+        {/* Profile card */}
+        <div className="card flex items-center gap-3 p-4">
+          {user?.avatar ? (
+            <img src={user.avatar} alt="" className="h-14 w-14 rounded-full object-cover" />
+          ) : (
+            <FaUserCircle className="text-primary" size={56} />
+          )}
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-lg font-bold text-dark">{user?.name || 'My Account'}</h1>
+            <p className="truncate text-sm text-slate-500">{user?.phone || user?.email}</p>
+            <button onClick={() => scrollTo('profile')} className="mt-0.5 text-xs font-semibold text-primary">
+              View &amp; Edit Profile ›
             </button>
           </div>
+          <button onClick={handleLogout} title="Logout" className="rounded-lg bg-red-50 p-2 text-danger hover:bg-red-100">
+            <FaSignOutAlt size={16} />
+          </button>
+        </div>
 
-          {/* Delivery address */}
-          <div className="card mt-6 p-6">
-            <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
-              <FaMapMarkerAlt className="text-primary" /> Delivery Address
-            </h3>
-            <form onSubmit={saveAddress} className="space-y-3">
-              <div>
-                <AddressAutocomplete
-                  onSelect={(a) => setAddr((prev) => ({ ...prev, ...a }))}
-                />
-                <p className="mt-1 text-xs text-slate-400">
-                  Start typing and pick a suggestion — city, state, country &amp; postal code fill
-                  in automatically.
-                </p>
-              </div>
-              <input
-                className="input-base"
-                placeholder="Address line"
-                value={addr.line1}
-                onChange={(e) => setAddr({ ...addr, line1: e.target.value })}
-              />
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  className="input-base"
-                  placeholder="City"
-                  value={addr.city}
-                  onChange={(e) => setAddr({ ...addr, city: e.target.value })}
-                />
-                <input
-                  className="input-base"
-                  placeholder="State"
-                  value={addr.state}
-                  onChange={(e) => setAddr({ ...addr, state: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  className="input-base"
-                  placeholder="Postal code"
-                  value={addr.postalCode}
-                  onChange={(e) => setAddr({ ...addr, postalCode: e.target.value })}
-                />
-                <input
-                  className="input-base"
-                  placeholder="Country"
-                  value={addr.country}
-                  onChange={(e) => setAddr({ ...addr, country: e.target.value })}
-                />
-              </div>
-              {addrMsg && <p className="text-sm font-medium text-accent">{addrMsg}</p>}
-              <button type="submit" disabled={savingAddr} className="btn-primary w-full">
-                {savingAddr ? 'Saving...' : 'Save Address'}
-              </button>
-            </form>
+        {/* My Orders */}
+        <div className="card p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-dark">My Orders</h2>
+            <button onClick={goOrders} className="text-xs font-semibold text-primary">View All</button>
           </div>
+          <div className="grid grid-cols-5 gap-1">
+            {stages.map(({ label, Icon, count }) => (
+              <button key={label} onClick={goOrders} className="relative flex flex-col items-center gap-1 py-1 text-center">
+                <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-lightbg text-slate-600">
+                  <Icon size={15} />
+                  {count > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold text-white">
+                      {count}
+                    </span>
+                  )}
+                </span>
+                <span className="text-[10px] font-medium leading-tight text-slate-500">{label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
-          {/* Refill reminders */}
-          {activeRefills.length > 0 && (
-            <div className="card mt-6 p-6">
-              <h3 className="mb-1 flex items-center gap-2 text-lg font-bold">
-                <FaPrescriptionBottleAlt className="text-primary" /> Refill Reminders
-              </h3>
-              <p className="mb-4 text-xs text-slate-400">
-                We'll email you when it's time to reorder.
-              </p>
-              <div className="space-y-3">
-                {activeRefills.map((r) => {
-                  const due = new Date(r.dueDate)
-                  const overdue = r.status === 'sent' || due <= new Date()
-                  return (
-                    <div key={r._id} className="rounded-xl border border-bordergray p-3">
-                      <div className="flex items-start gap-3">
-                        {r.thumbnail ? (
-                          <img
-                            src={r.thumbnail}
-                            alt=""
-                            className="h-10 w-10 shrink-0 rounded-lg border border-bordergray object-cover"
-                          />
-                        ) : null}
-                        <div className="min-w-0 flex-1">
-                          <p className="line-clamp-1 text-sm font-semibold text-dark">
-                            {r.productName}
-                          </p>
-                          <p className={`text-xs ${overdue ? 'font-semibold text-accent' : 'text-slate-500'}`}>
-                            {overdue ? 'Due now' : `Refill by ${due.toLocaleDateString()}`}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => updateRefill(r._id, { action: 'cancel' })}
-                          className="p-1 text-slate-300 hover:text-red-500"
-                          aria-label="Cancel reminder"
-                          title="Cancel reminder"
-                        >
-                          <FaTimes size={13} />
-                        </button>
+        {/* Menu list */}
+        <div className="card divide-y divide-bordergray overflow-hidden">
+          <Row icon={FaWallet} label="Wallet" value={formatPrice(0)} onClick={() => {}} />
+          <Row icon={FaRegAddressBook} label="Address Book" value={`${addressCount} Address${addressCount === 1 ? '' : 'es'}`} onClick={() => scrollTo('profile')} />
+          <Row icon={FaRegCreditCard} label="Payment Methods" value="At checkout" onClick={() => {}} />
+          <Row icon={FaFileMedical} label="My Prescriptions" to="/prescription" />
+          <Row icon={FaGift} label="Rewards & Offers" value="0 Points" to="/health-club" valueClass="text-amber-600" />
+          <Row
+            icon={FaCrown}
+            label="Health Club Membership"
+            value={user?.isMember ? 'Member' : 'Join now'}
+            valueClass={user?.isMember ? 'text-emerald-600' : 'text-primary'}
+            to="/health-club"
+          />
+          <Row icon={FaHeadset} label="Help & Support" to="/contact" />
+        </div>
+
+        {/* Bookings (if any) */}
+        {appointments.length > 0 && (
+          <div className="card p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-dark"><FaCalendarCheck className="text-primary" /> My Consultations</h2>
+            <div className="space-y-2">
+              {appointments.map((a) => (
+                <div key={a._id} className="flex items-center justify-between gap-3 rounded-xl border border-bordergray p-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-dark">{a.doctorName}</p>
+                    <p className="text-xs capitalize text-slate-400">{a.consultationType} · {a.preferredDate || 'date TBD'} {a.preferredTime}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold capitalize text-primary">{a.status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {labBookings.length > 0 && (
+          <div className="card p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-dark"><FaVial className="text-primary" /> My Lab Bookings</h2>
+            <div className="space-y-2">
+              {labBookings.map((b) => (
+                <div key={b._id} className="flex items-center justify-between gap-3 rounded-xl border border-bordergray p-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-dark">{(b.items || []).map((i) => i.name).join(', ') || 'Lab test'}</p>
+                    <p className="text-xs text-slate-400">{formatPrice(b.total)} · {b.preferredDate || 'date TBD'}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">{b.status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Refill reminders */}
+        {activeRefills.length > 0 && (
+          <div className="card p-4">
+            <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-dark"><FaRegClock className="text-primary" /> Refill Reminders</h2>
+            <div className="space-y-2">
+              {activeRefills.map((r) => {
+                const due = new Date(r.dueDate)
+                const overdue = r.status === 'sent' || due <= new Date()
+                return (
+                  <div key={r._id} className="rounded-xl border border-bordergray p-3">
+                    <div className="flex items-start gap-3">
+                      {r.thumbnail && <img src={r.thumbnail} alt="" className="h-10 w-10 shrink-0 rounded-lg border border-bordergray object-cover" />}
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-1 text-sm font-semibold text-dark">{r.productName}</p>
+                        <p className={`text-xs ${overdue ? 'font-semibold text-accent' : 'text-slate-500'}`}>{overdue ? 'Due now' : `Refill by ${due.toLocaleDateString()}`}</p>
                       </div>
-                      <div className="mt-2 flex gap-2">
-                        <Link
-                          to={`/product/${r.productSlug || r.productId}`}
-                          className="flex-1 rounded-lg bg-primary px-3 py-1.5 text-center text-xs font-semibold text-white hover:bg-primaryDark"
-                        >
-                          Reorder
-                        </Link>
-                        <button
-                          onClick={() => updateRefill(r._id, { action: 'snooze', days: 7 })}
-                          className="rounded-lg border border-bordergray px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary"
-                        >
-                          Snooze 7d
-                        </button>
+                      <button onClick={() => updateRefill(r._id, { action: 'cancel' })} className="p-1 text-slate-300 hover:text-red-500" aria-label="Cancel"><FaTimes size={13} /></button>
+                    </div>
+                    <div className="mt-2 flex gap-2">
+                      <Link to={`/product/${r.productSlug || r.productId}`} className="flex-1 rounded-lg bg-primary px-3 py-1.5 text-center text-xs font-semibold text-white hover:bg-primaryDark">Reorder</Link>
+                      <button onClick={() => updateRefill(r._id, { action: 'snooze', days: 7 })} className="rounded-lg border border-bordergray px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary">Snooze 7d</button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Orders list */}
+        <div id="orders" className="card p-4">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-dark"><FaBoxOpen className="text-primary" /> Order History</h2>
+          <div className="mb-3 flex flex-wrap gap-2">
+            {[{ id: '', label: 'All' }, { id: 'processing', label: 'Processing' }, { id: 'delivered', label: 'Delivered' }, { id: 'cancelled', label: 'Cancelled' }].map((t) => (
+              <button key={t.id} onClick={() => setOrderTab(t.id)} className={`rounded-full px-3 py-1 text-xs font-semibold transition ${orderTab === t.id ? 'bg-primary text-white' : 'bg-lightbg text-slate-600 hover:bg-primary/10'}`}>{t.label}</button>
+            ))}
+          </div>
+          {loading ? (
+            <Spinner />
+          ) : orders.filter((o) => !orderTab || (o.status || '') === orderTab).length === 0 ? (
+            <p className="py-6 text-center text-sm text-slate-500">{orders.length === 0 ? 'You have no orders yet.' : 'No orders in this status.'}</p>
+          ) : (
+            <div className="space-y-3">
+              {orders.filter((o) => !orderTab || (o.status || '') === orderTab).map((o) => {
+                const items = o.items || o.orderItems || []
+                const total = o.totalPrice ?? o.total
+                return (
+                  <div key={o._id} className="rounded-xl border border-bordergray p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-bold">#{o.orderNumber || o._id?.slice(-6)}</p>
+                        <p className="text-xs text-slate-400">{o.createdAt ? new Date(o.createdAt).toLocaleDateString() : ''}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-primary">{formatPrice(total)}</p>
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">{o.status || (o.isDelivered ? 'Delivered' : 'Processing')}</span>
                       </div>
                     </div>
-                  )
-                })}
-              </div>
+                    {items.length > 0 && <p className="mt-2 line-clamp-1 text-xs text-slate-500">{items.map((i) => `${i.name} ×${i.qty}`).join(', ')}</p>}
+                    <Link to={`/invoice/${o._id}`} state={{ order: o }} className="mt-2 inline-block text-xs font-semibold text-primary hover:underline">Download Invoice</Link>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
 
-        {/* Orders */}
-        <div className="lg:col-span-2">
-          <div className="card p-6">
-            <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
-              <FaBoxOpen className="text-primary" /> My Orders
-            </h3>
-            {/* Status tabs */}
-            <div className="mb-4 flex flex-wrap gap-2">
-              {ORDER_TABS.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setOrderTab(t.id)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                    orderTab === t.id ? 'bg-primary text-white' : 'bg-lightbg text-slate-600 hover:bg-primary/10'
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
+        {/* Edit profile / address */}
+        <div id="profile" className="card p-4">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-dark"><FaMapMarkerAlt className="text-primary" /> Profile &amp; Address</h2>
+          <form onSubmit={saveAddress} className="space-y-3">
+            <AddressAutocomplete onSelect={(a) => setAddr((prev) => ({ ...prev, ...a }))} />
+            <input className="input-base" placeholder="Address line" value={addr.line1} onChange={(e) => setAddr({ ...addr, line1: e.target.value })} />
+            <div className="grid grid-cols-2 gap-3">
+              <input className="input-base" placeholder="City" value={addr.city} onChange={(e) => setAddr({ ...addr, city: e.target.value })} />
+              <input className="input-base" placeholder="State" value={addr.state} onChange={(e) => setAddr({ ...addr, state: e.target.value })} />
             </div>
-            {loading ? (
-              <Spinner />
-            ) : orders.filter((o) => !orderTab || (o.status || '') === orderTab).length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-500">
-                {orders.length === 0 ? 'You have no orders yet.' : 'No orders in this status.'}
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {orders.filter((o) => !orderTab || (o.status || '') === orderTab).map((o) => {
-                  const items = o.items || o.orderItems || []
-                  const total = o.totalPrice ?? o.total
-                  return (
-                    <div key={o._id} className="rounded-xl border border-bordergray p-4">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div>
-                          <p className="text-sm font-bold">#{o._id}</p>
-                          <p className="text-xs text-slate-400">
-                            {o.createdAt
-                              ? new Date(o.createdAt).toLocaleDateString()
-                              : ''}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold text-primary">{formatPrice(total)}</p>
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-                            {o.status || (o.isDelivered ? 'Delivered' : 'Processing')}
-                          </span>
-                        </div>
-                      </div>
-                      {items.length > 0 && (
-                        <p className="mt-2 line-clamp-1 text-xs text-slate-500">
-                          {items.map((i) => `${i.name} ×${i.qty}`).join(', ')}
-                        </p>
-                      )}
-                      <Link
-                        to={`/invoice/${o._id}`}
-                        state={{ order: o }}
-                        className="mt-2 inline-block text-xs font-semibold text-primary hover:underline"
-                      >
-                        Download Invoice
-                      </Link>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* My consultations */}
-          {appointments.length > 0 && (
-            <div className="card mt-6 p-6">
-              <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
-                <FaCalendarCheck className="text-primary" /> My Consultations
-              </h3>
-              <div className="space-y-3">
-                {appointments.map((a) => (
-                  <div key={a._id} className="flex items-center justify-between gap-3 rounded-xl border border-bordergray p-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-dark">{a.doctorName}</p>
-                      <p className="text-xs text-slate-400 capitalize">
-                        {a.consultationType} · {a.preferredDate || 'date TBD'} {a.preferredTime}
-                      </p>
-                    </div>
-                    <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold capitalize text-primary">
-                      {a.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
+            <div className="grid grid-cols-2 gap-3">
+              <input className="input-base" placeholder="Postal code" value={addr.postalCode} onChange={(e) => setAddr({ ...addr, postalCode: e.target.value })} />
+              <input className="input-base" placeholder="Country" value={addr.country} onChange={(e) => setAddr({ ...addr, country: e.target.value })} />
             </div>
-          )}
-
-          {/* My lab bookings */}
-          {labBookings.length > 0 && (
-            <div className="card mt-6 p-6">
-              <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
-                <FaVial className="text-primary" /> My Lab Bookings
-              </h3>
-              <div className="space-y-3">
-                {labBookings.map((b) => (
-                  <div key={b._id} className="flex items-center justify-between gap-3 rounded-xl border border-bordergray p-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-dark">
-                        {(b.items || []).map((i) => i.name).join(', ') || 'Lab test'}
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        {formatPrice(b.total)} · {b.preferredDate || 'date TBD'}
-                      </p>
-                    </div>
-                    <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-                      {b.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            {addrMsg && <p className="text-sm font-medium text-accent">{addrMsg}</p>}
+            <button type="submit" disabled={savingAddr} className="btn-primary w-full">{savingAddr ? 'Saving...' : 'Save Address'}</button>
+          </form>
         </div>
       </div>
     </div>
