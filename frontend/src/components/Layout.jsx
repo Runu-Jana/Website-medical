@@ -13,16 +13,23 @@ export default function Layout() {
     window.scrollTo(0, 0)
   }, [pathname])
 
+  // Immersive full-screen pages hide the storefront chrome on mobile (kept on desktop).
+  const immersive = pathname === '/health-assistant'
+
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar />
+      <div className={immersive ? 'hidden md:block' : ''}>
+        <Navbar />
+      </div>
       <main className="flex-1">
         <Outlet />
       </main>
-      <Footer />
-      {/* Spacer so the fixed mobile bar never covers the footer */}
-      <div className="h-16 md:hidden" />
-      <MobileBottomNav />
+      <div className={immersive ? 'hidden md:block' : ''}>
+        <Footer />
+      </div>
+      {/* Spacer + mobile bottom nav (hidden on immersive pages) */}
+      {!immersive && <div className="h-16 md:hidden" />}
+      {!immersive && <MobileBottomNav />}
       {/* Welcome / offer popup (managed in Admin → Popups) */}
       <PopupBanner />
       {/* AI customer-support widget (shown only when the AI key is configured) */}

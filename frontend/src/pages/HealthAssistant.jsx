@@ -103,8 +103,8 @@ export default function HealthAssistant() {
   }
 
   return (
-    <div className="container-x pt-3 pb-24 md:py-4">
-      <div className="mx-auto flex h-[calc(100dvh-12rem)] max-h-[820px] min-h-[420px] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-bordergray bg-white shadow-card md:h-[calc(100vh-11rem)]">
+    <div className="mx-auto w-full max-w-2xl md:px-6 md:py-4">
+      <div className="flex h-[100dvh] w-full flex-col overflow-hidden border-bordergray bg-white md:h-[calc(100vh-11rem)] md:max-h-[820px] md:min-h-[420px] md:rounded-2xl md:border md:shadow-card">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-bordergray px-2 py-2.5">
           <button onClick={() => navigate(-1)} aria-label="Back" className="rounded-full p-2 text-slate-600 hover:bg-lightbg">
@@ -180,7 +180,7 @@ export default function HealthAssistant() {
           </button>
         </form>
       </div>
-      <p className="mx-auto mt-2 max-w-2xl text-center text-[11px] text-slate-400">
+      <p className="mx-auto mt-2 hidden max-w-2xl text-center text-[11px] text-slate-400 md:block">
         AI assistant · not a substitute for professional medical advice
       </p>
     </div>
