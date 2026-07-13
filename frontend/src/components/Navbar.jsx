@@ -214,8 +214,10 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Quick services strip */}
-      <QuickServices onNavigate={() => setMobileOpen(false)} />
+      {/* Quick services strip — hidden on mobile for the Doctors page (kept on desktop) */}
+      <div className={location.pathname.startsWith('/doctors') ? 'hidden md:block' : ''}>
+        <QuickServices onNavigate={() => setMobileOpen(false)} />
+      </div>
 
       {/* Main nav */}
       <nav className="hidden border-b border-bordergray bg-white lg:block">

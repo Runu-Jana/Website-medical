@@ -32,8 +32,8 @@ export default function Layout() {
       {!immersive && <MobileBottomNav />}
       {/* Welcome / offer popup (managed in Admin → Popups) */}
       <PopupBanner />
-      {/* AI customer-support widget (shown only when the AI key is configured) */}
-      <SupportChat />
+      {/* AI customer-support widget — hidden on the dedicated AI Assistant page */}
+      {!immersive && <SupportChat />}
       {/* Scroll-to-top button */}
       <BackToTop />
     </div>

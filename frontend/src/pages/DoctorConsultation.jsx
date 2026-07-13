@@ -114,7 +114,7 @@ export default function DoctorConsultation() {
       </div>
 
       {/* Consult a Doctor banner */}
-      <div className="mt-4 flex items-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-br from-teal-50 to-emerald-100 p-5">
+      <div className="mt-4 flex items-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-50 to-sky-100 p-5">
         <div className="flex-1">
           <h2 className="text-lg font-extrabold text-dark">Consult a Doctor</h2>
           <p className="mt-1 text-sm text-slate-600">From the comfort of your home.</p>
