@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../lib/api'
 import Spinner from '../components/Spinner'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { formatPrice } from '../lib/helpers'
+import { payForBooking, PAYMENT_DISMISSED } from '../lib/payment'
 import { FaFlask, FaSearch, FaHome, FaFileMedical, FaCheckCircle, FaVial, FaClock } from 'react-icons/fa'
 
 function PackageCard({ t, selected, onToggle }) {
@@ -44,6 +46,7 @@ function PackageCard({ t, selected, onToggle }) {
 }
 
 export default function LabTests() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const { showToast } = useToast()
   const [tests, setTests] = useState([])
@@ -83,18 +86,49 @@ export default function LabTests() {
   const singles = filtered.filter((t) => t.category === 'test')
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
+
+  // Booking requires an account so tests tie to the customer; send guests to log in.
+  const openForm = () => {
+    if (!user) {
+      showToast({ title: 'Please log in to book a lab test', tone: 'info' })
+      navigate('/login', { state: { from: '/lab-tests' } })
+      return
+    }
+    setShowForm(true)
+  }
+
   const book = async (e) => {
     e.preventDefault()
+    if (!user) {
+      showToast({ title: 'Please log in to book a lab test', tone: 'info' })
+      navigate('/login', { state: { from: '/lab-tests' } })
+      return
+    }
     if (!form.patientName.trim() || !(form.patientPhone.trim() || form.patientEmail.trim())) {
       showToast({ title: 'Please add your name and a phone or email', tone: 'info' }); return
     }
     setBooking(true)
     try {
-      await api.post('/lab-bookings', { items: selected, ...form })
+      const { data } = await api.post('/lab-bookings', { items: selected, ...form })
+      // When online payment is required, the booking is only confirmed after
+      // the customer pays and the payment is verified server-side.
+      if (data.requiresPayment) {
+        await payForBooking({
+          type: 'labBooking',
+          id: data.booking._id,
+          name: form.patientName,
+          contact: form.patientPhone,
+          description: `Lab tests (${selected.length} item${selected.length > 1 ? 's' : ''})`,
+        })
+      }
       setDone(true)
       showToast({ title: 'Lab test booked 🎉', subtitle: 'Our team will confirm your home collection.', tone: 'success' })
     } catch (err) {
-      showToast({ title: err.response?.data?.message || 'Could not book. Try again.', tone: 'info' })
+      if (err.message === PAYMENT_DISMISSED) {
+        showToast({ title: 'Payment cancelled — your lab test is not booked yet', tone: 'info' })
+      } else {
+        showToast({ title: err.response?.data?.message || err.message || 'Could not book. Try again.', tone: 'info' })
+      }
     } finally { setBooking(false) }
   }
 
@@ -182,7 +216,7 @@ export default function LabTests() {
               <p className="text-sm font-bold text-dark">{selected.length} selected · {formatPrice(total)}</p>
               <p className="text-xs text-slate-400">Free home sample collection</p>
             </div>
-            <button onClick={() => setShowForm(true)} className="btn-primary">Book Now</button>
+            <button onClick={openForm} className="btn-primary">Book Now</button>
           </div>
         </div>
       )}
@@ -209,7 +243,7 @@ export default function LabTests() {
               <textarea className="input-base" rows={2} placeholder="Note (optional)" value={form.note} onChange={(e) => set('note', e.target.value)} />
               <div className="flex gap-2">
                 <button type="button" onClick={() => setShowForm(false)} className="btn-outline flex-1">Back</button>
-                <button type="submit" disabled={booking} className="btn-primary flex-1">{booking ? 'Booking…' : 'Confirm Booking'}</button>
+                <button type="submit" disabled={booking} className="btn-primary flex-1">{booking ? 'Booking…' : `Pay ${formatPrice(total)} & Book`}</button>
               </div>
             </form>
           </div>

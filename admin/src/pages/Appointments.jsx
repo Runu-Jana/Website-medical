@@ -72,6 +72,7 @@ export default function Appointments() {
                   <th className="px-4 py-3">Type</th>
                   <th className="px-4 py-3">Preferred</th>
                   <th className="px-4 py-3">Fee</th>
+                  <th className="px-4 py-3">Payment</th>
                   <th className="px-4 py-3">Status</th>
                 </tr>
               </thead>
@@ -93,6 +94,13 @@ export default function Appointments() {
                       {a.preferredDate || '—'}<br /><span className="text-xs text-slate-400">{a.preferredTime}</span>
                     </td>
                     <td className="px-4 py-3 font-semibold text-slate-700">₹{Math.round(a.fee)}</td>
+                    <td className="px-4 py-3">
+                      {a.isPaid ? (
+                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">Paid</span>
+                      ) : (
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">Unpaid</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <select
                         value={a.status}

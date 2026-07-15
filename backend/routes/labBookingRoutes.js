@@ -5,11 +5,11 @@ import {
   getLabBookings,
   updateLabBooking,
 } from '../controllers/labBookingController.js';
-import { protect, admin, optionalAuth } from '../middleware/authMiddleware.js';
+import { protect, admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/', optionalAuth, createLabBooking);
+router.post('/', protect, createLabBooking);
 router.get('/mine', protect, getMyLabBookings);
 router.get('/', protect, admin, getLabBookings);
 router.put('/:id', protect, admin, updateLabBooking);

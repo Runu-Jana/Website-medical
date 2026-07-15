@@ -7,6 +7,16 @@ import {
   webhookEnabled,
   RAZORPAY_KEY_ID,
 } from '../lib/razorpay.js';
+import { notifyAppointmentBooked } from './appointmentController.js';
+import { notifyLabBooking } from './labBookingController.js';
+
+// Maps a booking "type" to its Prisma model + the field holding the amount.
+// Used so one pair of payment endpoints can charge shop orders, doctor
+// appointments and lab bookings alike.
+const BOOKING_KINDS = {
+  appointment: { model: 'appointment', amountField: 'fee', notify: notifyAppointmentBooked },
+  labBooking: { model: 'labBooking', amountField: 'total', notify: notifyLabBooking },
+};
 
 // @route GET /api/payments/config  — lets the storefront know if online pay is on
 export const getPaymentConfig = (req, res) => {
@@ -18,29 +28,41 @@ export const getPaymentConfig = (req, res) => {
 };
 
 // @route POST /api/payments/order  — create a Razorpay order (amount in rupees)
+// Body: { type?: 'order'|'appointment'|'labBooking', id|orderId, amount? }
 export const createPaymentOrder = async (req, res) => {
   if (!razorpayEnabled) return res.status(400).json({ message: 'Online payment is not configured' });
-  const orderId = req.body.orderId || '';
-  // Trust the server-computed order total (incl. coupons/member discounts) over
-  // any client-supplied amount, so the charge can't be tampered with.
+
+  const kind = BOOKING_KINDS[req.body.type];
+  const recordId = req.body.id || req.body.orderId || '';
+
+  // Trust the server-computed amount over anything the client supplies, so the
+  // charge can't be tampered with.
   let rupees = Number(req.body.amount);
-  if (orderId) {
-    const ourOrder = await prisma.order.findUnique({ where: { id: orderId } }).catch(() => null);
+  let receipt = recordId || `rcpt_${Date.now()}`;
+  let notes;
+
+  if (kind) {
+    // Doctor appointment / lab booking — price from its own record.
+    const record = await prisma[kind.model].findUnique({ where: { id: recordId } }).catch(() => null);
+    if (!record) return res.status(404).json({ message: 'Booking not found' });
+    rupees = record[kind.amountField];
+    notes = { bookingType: req.body.type, bookingId: recordId };
+  } else if (recordId) {
+    // Shop order.
+    const ourOrder = await prisma.order.findUnique({ where: { id: recordId } }).catch(() => null);
     if (ourOrder) rupees = ourOrder.totalPrice;
+    notes = { orderId: recordId };
   }
+
   const amount = Math.round(rupees * 100); // rupees → paise
   if (!amount || amount < 100) return res.status(400).json({ message: 'Invalid amount' });
   try {
-    const order = await razorpay.orders.create({
-      amount,
-      currency: 'INR',
-      receipt: orderId || `rcpt_${Date.now()}`,
-      notes: orderId ? { orderId } : undefined,
-    });
-    // Link the Razorpay order to ours so the webhook can reconcile it later.
-    if (orderId) {
-      await prisma.order
-        .update({ where: { id: orderId }, data: { razorpayOrderId: order.id } })
+    const order = await razorpay.orders.create({ amount, currency: 'INR', receipt, notes });
+    // Link the Razorpay order to ours so the webhook / verify step can reconcile it.
+    if (recordId) {
+      const model = kind ? kind.model : 'order';
+      await prisma[model]
+        .update({ where: { id: recordId }, data: { razorpayOrderId: order.id } })
         .catch(() => {});
     }
     res.json({ id: order.id, amount: order.amount, currency: order.currency, keyId: RAZORPAY_KEY_ID });
@@ -49,7 +71,8 @@ export const createPaymentOrder = async (req, res) => {
   }
 };
 
-// @route POST /api/payments/verify  — verify signature & mark our order paid
+// @route POST /api/payments/verify  — verify signature & mark our record paid
+// Body: { razorpay_*, type?, id | orderId }
 export const verifyPayment = async (req, res) => {
   if (!razorpayEnabled) return res.status(400).json({ message: 'Online payment is not configured' });
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
@@ -63,10 +86,30 @@ export const verifyPayment = async (req, res) => {
     return res.status(400).json({ message: 'Payment verification failed' });
   }
 
-  if (orderId) {
+  const kind = BOOKING_KINDS[req.body.type];
+  const recordId = req.body.id || orderId;
+
+  if (kind && recordId) {
+    // Doctor appointment / lab booking — confirm it and notify admin now that
+    // the payment has cleared.
+    // Mark it paid; the booking stays 'pending' so the admin still runs their
+    // confirm workflow. It only becomes visible to admin/customer once paid.
+    const updated = await prisma[kind.model]
+      .update({
+        where: { id: recordId },
+        data: {
+          isPaid: true,
+          paidAt: new Date(),
+          razorpayOrderId: razorpay_order_id,
+          razorpayPaymentId: razorpay_payment_id,
+        },
+      })
+      .catch(() => null);
+    if (updated) kind.notify(updated);
+  } else if (recordId) {
     await prisma.order
       .update({
-        where: { id: orderId },
+        where: { id: recordId },
         data: {
           isPaid: true,
           paidAt: new Date(),

@@ -2,8 +2,38 @@ import prisma from '../prisma/client.js';
 import { withId } from '../prisma/serialize.js';
 import { createNotification } from '../lib/notify.js';
 import { sendMail } from '../lib/mailer.js';
+import { razorpayEnabled } from '../lib/razorpay.js';
 
-// @route POST /api/lab-bookings  (optional auth)
+// Notify admin (bell + email) about a confirmed lab booking. Called once the
+// booking is actually secured — immediately when it's free, or after the online
+// payment is verified.
+export const notifyLabBooking = (booking) => {
+  const items = Array.isArray(booking.items) ? booking.items : [];
+  createNotification({
+    type: 'message',
+    title: `New lab test booking — ${booking.patientName}`,
+    message: `${items.length} item(s) · ₹${booking.total} · ${booking.preferredDate || 'no date'}`,
+    link: '/lab-bookings',
+    meta: { labBookingId: booking.id },
+  }).catch(() => {});
+
+  const adminEmail = process.env.NOTIFY_EMAIL || process.env.ADMIN_EMAIL;
+  if (adminEmail) {
+    sendMail({
+      to: adminEmail,
+      subject: `New lab test booking: ${booking.patientName}`,
+      text: `Patient: ${booking.patientName} (${booking.patientPhone} ${booking.patientEmail})
+Tests: ${items.map((i) => i.name).join(', ')}
+Total: ₹${booking.total}
+Payment: ${booking.isPaid ? 'Paid online' : 'To be collected'}
+Home collection: ${booking.address || '—'}
+Preferred: ${booking.preferredDate} ${booking.preferredTime}
+Note: ${booking.note || '—'}`,
+    }).catch(() => {});
+  }
+};
+
+// @route POST /api/lab-bookings  (protect)
 export const createLabBooking = async (req, res) => {
   const b = req.body || {};
   const ids = Array.isArray(b.items) ? b.items.map((i) => i.id || i._id).filter(Boolean) : [];
@@ -18,9 +48,14 @@ export const createLabBooking = async (req, res) => {
   const items = tests.map((t) => ({ id: t.id, name: t.name, price: t.price }));
   const total = items.reduce((s, i) => s + i.price, 0);
 
+  // Online payment is required whenever it's configured and there's an amount to
+  // charge. The booking is only confirmed (and admin notified) after payment is
+  // verified; otherwise it's booked straight away.
+  const requiresPayment = razorpayEnabled && total >= 1;
+
   const booking = await prisma.labBooking.create({
     data: {
-      userId: req.user?.id || null,
+      userId: req.user.id,
       patientName: String(b.patientName).trim(),
       patientPhone: String(b.patientPhone || '').trim(),
       patientEmail: String(b.patientEmail || req.user?.email || '').trim(),
@@ -30,38 +65,24 @@ export const createLabBooking = async (req, res) => {
       items,
       total,
       note: String(b.note || '').trim(),
+      paymentRequired: requiresPayment,
     },
   });
 
-  res.status(201).json({ success: true, booking: withId(booking) });
+  res.status(201).json({ success: true, booking: withId(booking), requiresPayment });
 
-  createNotification({
-    type: 'message',
-    title: `New lab test booking — ${booking.patientName}`,
-    message: `${items.length} item(s) · ₹${total} · ${booking.preferredDate || 'no date'}`,
-    link: '/lab-bookings',
-    meta: { labBookingId: booking.id },
-  }).catch(() => {});
-
-  const adminEmail = process.env.NOTIFY_EMAIL || process.env.ADMIN_EMAIL;
-  if (adminEmail) {
-    sendMail({
-      to: adminEmail,
-      subject: `New lab test booking: ${booking.patientName}`,
-      text: `Patient: ${booking.patientName} (${booking.patientPhone} ${booking.patientEmail})
-Tests: ${items.map((i) => i.name).join(', ')}
-Total: ₹${total}
-Home collection: ${booking.address || '—'}
-Preferred: ${booking.preferredDate} ${booking.preferredTime}
-Note: ${booking.note || '—'}`,
-    }).catch(() => {});
-  }
+  if (!requiresPayment) notifyLabBooking(booking);
 };
+
+// Only surface bookings that are actually secured: either no payment was
+// required (free), or the online payment has been completed. Bookings still
+// awaiting payment (abandoned checkouts) are hidden.
+const CONFIRMED_ONLY = { OR: [{ paymentRequired: false }, { isPaid: true }] };
 
 // @route GET /api/lab-bookings/mine  (protect)
 export const getMyLabBookings = async (req, res) => {
   const list = await prisma.labBooking.findMany({
-    where: { userId: req.user.id },
+    where: { userId: req.user.id, ...CONFIRMED_ONLY },
     orderBy: { createdAt: 'desc' },
   });
   res.json(list.map(withId));
@@ -70,14 +91,14 @@ export const getMyLabBookings = async (req, res) => {
 // @route GET /api/lab-bookings  (admin)
 export const getLabBookings = async (req, res) => {
   const { status, page = 1, limit = 20 } = req.query;
-  const where = {};
+  const where = { ...CONFIRMED_ONLY };
   if (status) where.status = status;
   const pageNum = Math.max(1, Number(page));
   const perPage = Number(limit);
   const [items, total, pending] = await Promise.all([
     prisma.labBooking.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (pageNum - 1) * perPage, take: perPage }),
     prisma.labBooking.count({ where }),
-    prisma.labBooking.count({ where: { status: 'pending' } }),
+    prisma.labBooking.count({ where: { status: 'pending', ...CONFIRMED_ONLY } }),
   ]);
   res.json({ bookings: items.map(withId), pending, page: pageNum, pages: Math.ceil(total / perPage), total });
 };

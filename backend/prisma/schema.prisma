@@ -281,22 +281,27 @@ model Doctor {
 }
 
 model Appointment {
-  id               String   @id @default(uuid())
-  doctorId         String
-  doctorName       String   @default("")
-  specialty        String   @default("")
-  userId           String?
-  patientName      String   @default("")
-  patientPhone     String   @default("")
-  patientEmail     String   @default("")
-  consultationType String   @default("video") // video | audio | chat
-  fee              Float    @default(0)
-  preferredDate    String   @default("")
-  preferredTime    String   @default("")
-  note             String   @default("")
-  status           String   @default("pending") // pending | confirmed | completed | cancelled
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                String    @id @default(uuid())
+  doctorId          String
+  doctorName        String    @default("")
+  specialty         String    @default("")
+  userId            String?
+  patientName       String    @default("")
+  patientPhone      String    @default("")
+  patientEmail      String    @default("")
+  consultationType  String    @default("video") // video | audio | chat
+  fee               Float     @default(0)
+  preferredDate     String    @default("")
+  preferredTime     String    @default("")
+  note              String    @default("")
+  status            String    @default("pending") // pending | confirmed | completed | cancelled
+  paymentRequired   Boolean   @default(false) // online payment needed to confirm
+  isPaid            Boolean   @default(false)
+  paidAt            DateTime?
+  razorpayOrderId   String    @default("")
+  razorpayPaymentId String    @default("")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   @@index([status])
   @@index([userId])
@@ -326,20 +331,25 @@ model LabTest {
 }
 
 model LabBooking {
-  id            String   @id @default(uuid())
-  userId        String?
-  patientName   String   @default("")
-  patientPhone  String   @default("")
-  patientEmail  String   @default("")
-  address       String   @default("")
-  preferredDate String   @default("")
-  preferredTime String   @default("")
-  items         Json // [{ id, name, price }]
-  total         Float    @default(0)
-  note          String   @default("")
-  status        String   @default("pending") // pending | confirmed | sample-collected | completed | cancelled
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                String    @id @default(uuid())
+  userId            String?
+  patientName       String    @default("")
+  patientPhone      String    @default("")
+  patientEmail      String    @default("")
+  address           String    @default("")
+  preferredDate     String    @default("")
+  preferredTime     String    @default("")
+  items             Json // [{ id, name, price }]
+  total             Float     @default(0)
+  note              String    @default("")
+  status            String    @default("pending") // pending | confirmed | sample-collected | completed | cancelled
+  paymentRequired   Boolean   @default(false) // online payment needed to confirm
+  isPaid            Boolean   @default(false)
+  paidAt            DateTime?
+  razorpayOrderId   String    @default("")
+  razorpayPaymentId String    @default("")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   @@index([status])
   @@index([userId])

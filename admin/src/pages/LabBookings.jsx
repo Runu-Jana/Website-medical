@@ -57,7 +57,7 @@ export default function LabBookings() {
             <table className="w-full text-sm">
               <thead><tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
                 <th className="px-4 py-3">Patient</th><th className="px-4 py-3">Tests</th><th className="px-4 py-3">Collection</th>
-                <th className="px-4 py-3">Total</th><th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Total</th><th className="px-4 py-3">Payment</th><th className="px-4 py-3">Status</th>
               </tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {items.map((a) => (
@@ -75,6 +75,13 @@ export default function LabBookings() {
                       <p>{a.preferredDate} {a.preferredTime}</p>
                     </td>
                     <td className="px-4 py-3 font-semibold text-slate-700">₹{Math.round(a.total)}</td>
+                    <td className="px-4 py-3">
+                      {a.isPaid ? (
+                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">Paid</span>
+                      ) : (
+                        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-500">Unpaid</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <select value={a.status} onChange={(e) => setStatus(a._id, e.target.value)}
                         className={`rounded-lg px-2 py-1 text-xs font-semibold ${badge[a.status] || ''}`}>

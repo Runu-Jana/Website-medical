@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import api from '../lib/api'
 import Spinner from '../components/Spinner'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { imgFallback } from '../lib/helpers'
+import { payForBooking, PAYMENT_DISMISSED } from '../lib/payment'
 import {
   FaUserMd, FaStar, FaArrowLeft, FaVideo, FaPhoneAlt, FaCommentDots, FaCheckCircle, FaLanguage,
 } from 'react-icons/fa'
@@ -17,6 +18,7 @@ const TYPES = [
 
 export default function DoctorProfile() {
   const { idOrSlug } = useParams()
+  const navigate = useNavigate()
   const { user } = useAuth()
   const { showToast } = useToast()
 
@@ -68,17 +70,38 @@ export default function DoctorProfile() {
 
   const book = async (e) => {
     e.preventDefault()
+    // Booking requires an account so the appointment ties to the customer.
+    if (!user) {
+      showToast({ title: 'Please log in to book an appointment', tone: 'info' })
+      navigate('/login', { state: { from: `/doctors/${idOrSlug}` } })
+      return
+    }
     if (!form.patientName.trim() || !(form.patientPhone.trim() || form.patientEmail.trim())) {
       showToast({ title: 'Please add your name and a phone or email', tone: 'info' })
       return
     }
     setBooking(true)
     try {
-      await api.post('/appointments', { doctorId: doc._id, consultationType: type, ...form })
+      const { data } = await api.post('/appointments', { doctorId: doc._id, consultationType: type, ...form })
+      // When online payment is required, the booking is only confirmed after
+      // the customer pays and the payment is verified server-side.
+      if (data.requiresPayment) {
+        await payForBooking({
+          type: 'appointment',
+          id: data.appointment._id,
+          name: form.patientName,
+          contact: form.patientPhone,
+          description: `${type} consultation — ${doc.name}`,
+        })
+      }
       setDone(true)
-      showToast({ title: 'Appointment requested 🎉', subtitle: 'Our team will confirm shortly.', tone: 'success' })
+      showToast({ title: 'Appointment confirmed 🎉', subtitle: 'Our team will confirm the slot shortly.', tone: 'success' })
     } catch (err) {
-      showToast({ title: err.response?.data?.message || 'Could not book. Try again.', tone: 'info' })
+      if (err.message === PAYMENT_DISMISSED) {
+        showToast({ title: 'Payment cancelled — your appointment is not booked yet', tone: 'info' })
+      } else {
+        showToast({ title: err.response?.data?.message || err.message || 'Could not book. Try again.', tone: 'info' })
+      }
     } finally {
       setBooking(false)
     }
@@ -184,10 +207,14 @@ export default function DoctorProfile() {
                 </div>
                 <textarea className="input-base" rows={2} placeholder="Describe your problem (optional)" value={form.note} onChange={(e) => set('note', e.target.value)} />
                 <button type="submit" disabled={booking} className="btn-primary w-full">
-                  {booking ? 'Booking…' : 'Book Appointment'}
+                  {booking
+                    ? 'Booking…'
+                    : feeFor(type) >= 1
+                    ? `Pay ₹${Math.round(feeFor(type))} & Book`
+                    : 'Book Appointment'}
                 </button>
                 <p className="text-center text-[11px] text-slate-400">
-                  This is a consultation request. Our team will confirm the time and payment details.
+                  Pay securely online to confirm your appointment. Our team will then finalise the slot.
                 </p>
               </form>
             )}
