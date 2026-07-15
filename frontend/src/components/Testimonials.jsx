@@ -69,11 +69,11 @@ export default function Testimonials() {
         {testimonials.map((t) => (
           <div
             key={t.name}
-            className="w-[80vw] max-w-[320px] shrink-0 snap-start sm:w-[320px]"
+            className="flex h-full w-[80vw] max-w-[320px] shrink-0 snap-start flex-col sm:w-[320px]"
           >
             <p className="font-bold text-dark">{t.name}</p>
             <p className="text-sm text-slate-500">{t.date}</p>
-            <div className="mt-4 rounded-2xl bg-[#e9f7ef] p-6">
+            <div className="mt-4 flex flex-1 flex-col rounded-2xl bg-[#e9f7ef] p-6 dark:bg-slate-800 dark:ring-1 dark:ring-white/10">
               <FaQuoteLeft className="text-2xl text-primary/40" />
               <p className="mt-3 text-sm leading-relaxed text-slate-600">{t.text}</p>
             </div>

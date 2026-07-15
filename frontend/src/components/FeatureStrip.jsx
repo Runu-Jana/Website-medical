@@ -25,9 +25,9 @@ export default function FeatureStrip() {
           <Link
             key={f.label}
             to={f.to}
-            className={`flex items-center gap-3 rounded-2xl px-4 py-5 transition hover:shadow-card ${f.bg}`}
+            className={`flex items-center gap-3 rounded-2xl px-4 py-5 transition hover:shadow-card dark:bg-slate-800 dark:ring-1 dark:ring-white/10 ${f.bg}`}
           >
-            <span className="shrink-0 text-3xl text-slate-700">
+            <span className="shrink-0 text-3xl text-slate-700 dark:text-primary">
               <f.icon />
             </span>
             <div>

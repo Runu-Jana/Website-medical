@@ -53,7 +53,7 @@ function PromoPanel({
 
   return (
     <div
-      className={`col-span-2 flex flex-col items-center justify-center rounded-2xl p-5 text-center sm:col-span-1 ${bg}`}
+      className={`col-span-2 flex flex-col items-center justify-center rounded-2xl p-5 text-center sm:col-span-1 dark:bg-slate-800 dark:ring-1 dark:ring-white/10 ${bg}`}
     >
       <p className="text-2xl font-semibold text-dark">
         Extra <span className="text-4xl font-extrabold">{discount}</span> off
