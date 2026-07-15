@@ -2,7 +2,6 @@ import prisma from '../prisma/client.js';
 import { withId } from '../prisma/serialize.js';
 import { createNotification } from '../lib/notify.js';
 import { sendMail } from '../lib/mailer.js';
-import { razorpayEnabled } from '../lib/razorpay.js';
 
 // Notify admin (bell + email) about a confirmed lab booking. Called once the
 // booking is actually secured — immediately when it's free, or after the online
@@ -48,11 +47,9 @@ export const createLabBooking = async (req, res) => {
   const items = tests.map((t) => ({ id: t.id, name: t.name, price: t.price }));
   const total = items.reduce((s, i) => s + i.price, 0);
 
-  // Online payment is required whenever it's configured and there's an amount to
-  // charge. The booking is only confirmed (and admin notified) after payment is
-  // verified; otherwise it's booked straight away.
-  const requiresPayment = razorpayEnabled && total >= 1;
-
+  // Lab tests are pay-at-visit: the customer books online and pays at the time
+  // of sample collection (per lab rules), so a booking is confirmed immediately
+  // and never requires online payment.
   const booking = await prisma.labBooking.create({
     data: {
       userId: req.user.id,
@@ -65,13 +62,13 @@ export const createLabBooking = async (req, res) => {
       items,
       total,
       note: String(b.note || '').trim(),
-      paymentRequired: requiresPayment,
+      paymentRequired: false,
     },
   });
 
-  res.status(201).json({ success: true, booking: withId(booking), requiresPayment });
+  res.status(201).json({ success: true, booking: withId(booking), requiresPayment: false });
 
-  if (!requiresPayment) notifyLabBooking(booking);
+  notifyLabBooking(booking);
 };
 
 // Only surface bookings that are actually secured: either no payment was

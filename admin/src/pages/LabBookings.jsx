@@ -79,7 +79,7 @@ export default function LabBookings() {
                       {a.isPaid ? (
                         <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">Paid</span>
                       ) : (
-                        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-500">Unpaid</span>
+                        <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-700">Pay at visit</span>
                       )}
                     </td>
                     <td className="px-4 py-3">

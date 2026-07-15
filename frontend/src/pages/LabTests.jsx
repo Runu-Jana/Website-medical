@@ -5,7 +5,6 @@ import Spinner from '../components/Spinner'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { formatPrice } from '../lib/helpers'
-import { payForBooking, PAYMENT_DISMISSED } from '../lib/payment'
 import { FaFlask, FaSearch, FaHome, FaFileMedical, FaCheckCircle, FaVial, FaClock } from 'react-icons/fa'
 
 function PackageCard({ t, selected, onToggle }) {
@@ -56,7 +55,6 @@ export default function LabTests() {
   const [showForm, setShowForm] = useState(false)
   const [booking, setBooking] = useState(false)
   const [done, setDone] = useState(false)
-  const [payEnabled, setPayEnabled] = useState(false)
   const [form, setForm] = useState({
     patientName: '', patientPhone: '', patientEmail: '', address: '', preferredDate: '', preferredTime: '', note: '',
   })
@@ -73,10 +71,6 @@ export default function LabTests() {
   useEffect(() => {
     if (user) setForm((f) => ({ ...f, patientName: f.patientName || user.name || '', patientEmail: f.patientEmail || user.email || '', patientPhone: f.patientPhone || user.phone || '' }))
   }, [user])
-
-  useEffect(() => {
-    api.get('/payments/config').then(({ data }) => setPayEnabled(!!data?.razorpay)).catch(() => {})
-  }, [])
 
   const isSel = (id) => selected.some((s) => s.id === id)
   const toggle = (t) => setSelected((s) => (isSel(t.id) ? s.filter((x) => x.id !== t.id) : [...s, { id: t.id, name: t.name, price: t.price }]))
@@ -114,26 +108,13 @@ export default function LabTests() {
     }
     setBooking(true)
     try {
-      const { data } = await api.post('/lab-bookings', { items: selected, ...form })
-      // When online payment is required, the booking is only confirmed after
-      // the customer pays and the payment is verified server-side.
-      if (data.requiresPayment) {
-        await payForBooking({
-          type: 'labBooking',
-          id: data.booking._id,
-          name: form.patientName,
-          contact: form.patientPhone,
-          description: `Lab tests (${selected.length} item${selected.length > 1 ? 's' : ''})`,
-        })
-      }
+      // Lab tests are pay-at-visit — the booking is confirmed right away and the
+      // customer pays during the home sample collection.
+      await api.post('/lab-bookings', { items: selected, ...form })
       setDone(true)
       showToast({ title: 'Lab test booked 🎉', subtitle: 'Our team will confirm your home collection.', tone: 'success' })
     } catch (err) {
-      if (err.message === PAYMENT_DISMISSED) {
-        showToast({ title: 'Payment cancelled — your lab test is not booked yet', tone: 'info' })
-      } else {
-        showToast({ title: err.response?.data?.message || err.message || 'Could not book. Try again.', tone: 'info' })
-      }
+      showToast({ title: err.response?.data?.message || err.message || 'Could not book. Try again.', tone: 'info' })
     } finally { setBooking(false) }
   }
 
@@ -144,7 +125,7 @@ export default function LabTests() {
         <h2 className="mt-4 text-2xl font-bold">Lab test booked</h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
           We've received your booking for {selected.length} item(s). Our team will call you to confirm the
-          home sample collection slot.
+          home sample collection slot. You can pay for the tests at the time of collection.
         </p>
       </div>
     )
@@ -233,6 +214,7 @@ export default function LabTests() {
             <h3 className="text-lg font-bold">Book Home Collection</h3>
             <div className="mt-2 rounded-lg bg-lightbg px-3 py-2 text-sm">
               <div className="flex justify-between"><span className="text-slate-500">{selected.length} item(s)</span><span className="font-bold text-primary">{formatPrice(total)}</span></div>
+              <p className="mt-1 text-xs text-slate-400">💵 Pay at the time of sample collection — no online payment needed.</p>
             </div>
             <form onSubmit={book} className="mt-3 space-y-3">
               <input className="input-base" placeholder="Patient name *" value={form.patientName} onChange={(e) => set('patientName', e.target.value)} required />
@@ -248,7 +230,7 @@ export default function LabTests() {
               <textarea className="input-base" rows={2} placeholder="Note (optional)" value={form.note} onChange={(e) => set('note', e.target.value)} />
               <div className="flex gap-2">
                 <button type="button" onClick={() => setShowForm(false)} className="btn-outline flex-1">Back</button>
-                <button type="submit" disabled={booking} className="btn-primary flex-1">{booking ? 'Booking…' : payEnabled ? `Pay ${formatPrice(total)} & Book` : 'Confirm Booking'}</button>
+                <button type="submit" disabled={booking} className="btn-primary flex-1">{booking ? 'Booking…' : 'Confirm Booking'}</button>
               </div>
             </form>
           </div>

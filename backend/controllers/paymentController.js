@@ -8,14 +8,12 @@ import {
   RAZORPAY_KEY_ID,
 } from '../lib/razorpay.js';
 import { notifyAppointmentBooked } from './appointmentController.js';
-import { notifyLabBooking } from './labBookingController.js';
 
 // Maps a booking "type" to its Prisma model + the field holding the amount.
-// Used so one pair of payment endpoints can charge shop orders, doctor
-// appointments and lab bookings alike.
+// Used so one pair of payment endpoints can charge shop orders and doctor
+// appointments. (Lab tests are pay-at-visit, so they never pay online.)
 const BOOKING_KINDS = {
   appointment: { model: 'appointment', amountField: 'fee', notify: notifyAppointmentBooked },
-  labBooking: { model: 'labBooking', amountField: 'total', notify: notifyLabBooking },
 };
 
 // @route GET /api/payments/config  — lets the storefront know if online pay is on
