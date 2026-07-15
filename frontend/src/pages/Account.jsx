@@ -183,7 +183,14 @@ export default function Account() {
                     <p className="truncate text-sm font-semibold text-dark">{a.doctorName}</p>
                     <p className="text-xs capitalize text-slate-400">{a.consultationType} · {a.preferredDate || 'date TBD'} {a.preferredTime}</p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold capitalize text-primary">{a.status}</span>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold capitalize text-primary">{a.status}</span>
+                    {a.paymentRequired && (
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${a.isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                        {a.isPaid ? `Paid ₹${Math.round(a.fee)}` : 'Payment due'}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -199,7 +206,14 @@ export default function Account() {
                     <p className="truncate text-sm font-semibold text-dark">{(b.items || []).map((i) => i.name).join(', ') || 'Lab test'}</p>
                     <p className="text-xs text-slate-400">{formatPrice(b.total)} · {b.preferredDate || 'date TBD'}</p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">{b.status}</span>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold capitalize text-primary">{b.status}</span>
+                    {b.paymentRequired && (
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${b.isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                        {b.isPaid ? 'Paid' : 'Payment due'}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

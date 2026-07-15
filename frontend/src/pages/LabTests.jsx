@@ -56,6 +56,7 @@ export default function LabTests() {
   const [showForm, setShowForm] = useState(false)
   const [booking, setBooking] = useState(false)
   const [done, setDone] = useState(false)
+  const [payEnabled, setPayEnabled] = useState(false)
   const [form, setForm] = useState({
     patientName: '', patientPhone: '', patientEmail: '', address: '', preferredDate: '', preferredTime: '', note: '',
   })
@@ -72,6 +73,10 @@ export default function LabTests() {
   useEffect(() => {
     if (user) setForm((f) => ({ ...f, patientName: f.patientName || user.name || '', patientEmail: f.patientEmail || user.email || '', patientPhone: f.patientPhone || user.phone || '' }))
   }, [user])
+
+  useEffect(() => {
+    api.get('/payments/config').then(({ data }) => setPayEnabled(!!data?.razorpay)).catch(() => {})
+  }, [])
 
   const isSel = (id) => selected.some((s) => s.id === id)
   const toggle = (t) => setSelected((s) => (isSel(t.id) ? s.filter((x) => x.id !== t.id) : [...s, { id: t.id, name: t.name, price: t.price }]))
@@ -243,7 +248,7 @@ export default function LabTests() {
               <textarea className="input-base" rows={2} placeholder="Note (optional)" value={form.note} onChange={(e) => set('note', e.target.value)} />
               <div className="flex gap-2">
                 <button type="button" onClick={() => setShowForm(false)} className="btn-outline flex-1">Back</button>
-                <button type="submit" disabled={booking} className="btn-primary flex-1">{booking ? 'Booking…' : `Pay ${formatPrice(total)} & Book`}</button>
+                <button type="submit" disabled={booking} className="btn-primary flex-1">{booking ? 'Booking…' : payEnabled ? `Pay ${formatPrice(total)} & Book` : 'Confirm Booking'}</button>
               </div>
             </form>
           </div>

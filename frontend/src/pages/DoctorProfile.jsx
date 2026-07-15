@@ -27,6 +27,7 @@ export default function DoctorProfile() {
   const [type, setType] = useState('video')
   const [booking, setBooking] = useState(false)
   const [done, setDone] = useState(false)
+  const [payEnabled, setPayEnabled] = useState(false)
   const [form, setForm] = useState({
     patientName: '', patientPhone: '', patientEmail: '', preferredDate: '', preferredTime: '', note: '',
   })
@@ -54,6 +55,10 @@ export default function DoctorProfile() {
       }))
     }
   }, [user])
+
+  useEffect(() => {
+    api.get('/payments/config').then(({ data }) => setPayEnabled(!!data?.razorpay)).catch(() => {})
+  }, [])
 
   if (loading) return <Spinner className="py-32" />
   if (!doc) {
@@ -209,12 +214,14 @@ export default function DoctorProfile() {
                 <button type="submit" disabled={booking} className="btn-primary w-full">
                   {booking
                     ? 'Booking…'
-                    : feeFor(type) >= 1
+                    : payEnabled && feeFor(type) >= 1
                     ? `Pay ₹${Math.round(feeFor(type))} & Book`
                     : 'Book Appointment'}
                 </button>
                 <p className="text-center text-[11px] text-slate-400">
-                  Pay securely online to confirm your appointment. Our team will then finalise the slot.
+                  {payEnabled && feeFor(type) >= 1
+                    ? 'Pay securely online to confirm your appointment. Our team will then finalise the slot.'
+                    : 'This is a consultation request. Our team will confirm the time and payment details.'}
                 </p>
               </form>
             )}
