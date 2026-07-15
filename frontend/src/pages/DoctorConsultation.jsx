@@ -31,6 +31,14 @@ const specialtyMeta = (name, i) => {
   return { Icon: found ? found[1] : FaUserMd, color: PALETTE[i % PALETTE.length] }
 }
 
+// Common specialties shown even before doctors are added for them; any custom
+// specialty from a real doctor is merged in after these.
+const CURATED_SPECIALTIES = [
+  'General Physician', 'Pediatrics', 'Gynecologist', 'Dermatologist', 'Cardiologist',
+  'ENT Specialist', 'Psychiatrist', 'Neurologist', 'Orthopedic', 'Dentist',
+  'Ophthalmologist', 'Diabetologist', 'Gastroenterologist', 'Urologist', 'Physiotherapist',
+]
+
 function DoctorCard({ doc }) {
   return (
     <div className="card flex items-center gap-3 p-3">
@@ -70,6 +78,7 @@ export default function DoctorConsultation() {
   const [active, setActive] = useState('')
   const [keyword, setKeyword] = useState('')
   const [loading, setLoading] = useState(true)
+  const [showAllSpec, setShowAllSpec] = useState(false)
   const doctorsRef = useRef(null)
 
   useEffect(() => {
@@ -86,7 +95,7 @@ export default function DoctorConsultation() {
   }, [])
 
   const filtered = useMemo(() => doctors.filter((d) => {
-    if (active && d.specialty !== active) return false
+    if (active && (d.specialty || '').toLowerCase() !== active.toLowerCase()) return false
     if (keyword) {
       const k = keyword.toLowerCase()
       return d.name.toLowerCase().includes(k) || (d.specialty || '').toLowerCase().includes(k) || (d.qualifications || '').toLowerCase().includes(k)
@@ -94,8 +103,15 @@ export default function DoctorConsultation() {
     return true
   }), [doctors, active, keyword])
 
+  // Curated specialties first, then any real doctor specialty not already present (case-insensitive).
+  const allSpecialties = useMemo(() => {
+    const seen = new Set(CURATED_SPECIALTIES.map((s) => s.toLowerCase()))
+    const extras = specialties.filter((s) => s && !seen.has(s.toLowerCase()))
+    return [...CURATED_SPECIALTIES, ...extras]
+  }, [specialties])
+
   const scrollToDoctors = () => doctorsRef.current?.scrollIntoView({ behavior: 'smooth' })
-  const visibleSpecialties = specialties.slice(0, 7)
+  const shownSpecialties = showAllSpec ? allSpecialties : allSpecialties.slice(0, 7)
 
   return (
     <div className="container-x py-4">
@@ -138,7 +154,7 @@ export default function DoctorConsultation() {
       ) : (
         <>
           {/* Specialities */}
-          {specialties.length > 0 && (
+          {allSpecialties.length > 0 && (
             <section className="mt-6">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-base font-bold text-dark">Specialities</h2>
@@ -147,9 +163,9 @@ export default function DoctorConsultation() {
                 )}
               </div>
               <div className="grid grid-cols-4 gap-3">
-                {visibleSpecialties.map((s, i) => {
+                {shownSpecialties.map((s, i) => {
                   const { Icon, color } = specialtyMeta(s, i)
-                  const on = active === s
+                  const on = active.toLowerCase() === s.toLowerCase()
                   return (
                     <button key={s} onClick={() => setActive(on ? '' : s)} className="flex flex-col items-center gap-1.5 text-center">
                       <span className={`flex h-14 w-14 items-center justify-center rounded-2xl transition ${on ? 'bg-primary text-white' : color} ${on ? '' : 'hover:scale-105'}`}>
@@ -159,11 +175,13 @@ export default function DoctorConsultation() {
                     </button>
                   )
                 })}
-                {/* "More" tile */}
-                <button onClick={() => { setActive(''); scrollToDoctors() }} className="flex flex-col items-center gap-1.5 text-center">
-                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 hover:scale-105"><FaThLarge size={20} /></span>
-                  <span className="text-[11px] font-medium text-slate-600">More</span>
-                </button>
+                {/* "More" / "Less" toggle tile — reveals every specialty in the project */}
+                {allSpecialties.length > 7 && (
+                  <button onClick={() => setShowAllSpec((v) => !v)} className="flex flex-col items-center gap-1.5 text-center">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 hover:scale-105"><FaThLarge size={20} /></span>
+                    <span className="text-[11px] font-medium text-slate-600">{showAllSpec ? 'Less' : 'More'}</span>
+                  </button>
+                )}
               </div>
             </section>
           )}

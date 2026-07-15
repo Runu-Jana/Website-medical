@@ -214,8 +214,14 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Quick services strip — hidden on mobile for the Doctors page (kept on desktop) */}
-      <div className={location.pathname.startsWith('/doctors') ? 'hidden md:block' : ''}>
+      {/* Quick services strip — hidden on mobile for focused service pages (kept on desktop) */}
+      <div
+        className={
+          ['/doctors', '/lab-tests', '/health-records'].some((p) => location.pathname.startsWith(p))
+            ? 'hidden md:block'
+            : ''
+        }
+      >
         <QuickServices onNavigate={() => setMobileOpen(false)} />
       </div>
 
