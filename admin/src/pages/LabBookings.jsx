@@ -5,12 +5,13 @@ import { useToast } from '../context/ToastContext.jsx';
 import Loader from '../components/Loader.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 
-const STATUSES = ['pending', 'confirmed', 'sample-collected', 'completed', 'cancelled'];
+const STATUSES = ['booked', 'visit-done', 'no-show', 'cancelled'];
+const LABELS = { booked: 'Booked', 'visit-done': 'Visit Done', 'no-show': 'No Show', cancelled: 'Cancelled' };
+const label = (s) => LABELS[s] || s;
 const badge = {
-  pending: 'bg-amber-100 text-amber-700',
-  confirmed: 'bg-blue-100 text-blue-700',
-  'sample-collected': 'bg-violet-100 text-violet-700',
-  completed: 'bg-green-100 text-green-700',
+  booked: 'bg-amber-100 text-amber-700',
+  'visit-done': 'bg-green-100 text-green-700',
+  'no-show': 'bg-rose-100 text-rose-700',
   cancelled: 'bg-slate-200 text-slate-500',
 };
 
@@ -21,15 +22,21 @@ export default function LabBookings() {
   const [pending, setPending] = useState(0);
   const [filter, setFilter] = useState('');
 
-  const load = async () => {
-    setLoading(true);
+  const load = async (showSpinner = true) => {
+    if (showSpinner) setLoading(true);
     try {
       const { data } = await api.get('/lab-bookings', { params: { limit: 100, ...(filter ? { status: filter } : {}) } });
       setItems(data.bookings || []); setPending(data.pending || 0);
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed to load'); }
-    finally { setLoading(false); }
+    } catch (err) { if (showSpinner) toast.error(err.response?.data?.message || 'Failed to load'); }
+    finally { if (showSpinner) setLoading(false); }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [filter]);
+  // Poll every 15s so customer cancellations / reschedules show up in near real time.
+  useEffect(() => {
+    load();
+    const t = setInterval(() => load(false), 15000);
+    return () => clearInterval(t);
+    /* eslint-disable-next-line */
+  }, [filter]);
 
   const setStatus = async (id, status) => {
     try { await api.put(`/lab-bookings/${id}`, { status }); setItems((l) => l.map((a) => (a._id === id ? { ...a, status } : a))); }
@@ -45,7 +52,7 @@ export default function LabBookings() {
         </div>
         <select value={filter} onChange={(e) => setFilter(e.target.value)} className="input w-auto">
           <option value="">All statuses</option>
-          {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+          {STATUSES.map((s) => <option key={s} value={s}>{label(s)}</option>)}
         </select>
       </div>
 
@@ -84,8 +91,10 @@ export default function LabBookings() {
                     </td>
                     <td className="px-4 py-3">
                       <select value={a.status} onChange={(e) => setStatus(a._id, e.target.value)}
-                        className={`rounded-lg px-2 py-1 text-xs font-semibold ${badge[a.status] || ''}`}>
-                        {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                        className={`rounded-lg px-2 py-1 text-xs font-semibold ${badge[a.status] || 'bg-slate-100 text-slate-600'}`}>
+                        {(STATUSES.includes(a.status) ? STATUSES : [a.status, ...STATUSES]).map((s) => (
+                          <option key={s} value={s}>{label(s)}</option>
+                        ))}
                       </select>
                     </td>
                   </tr>

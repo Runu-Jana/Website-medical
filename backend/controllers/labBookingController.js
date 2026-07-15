@@ -62,6 +62,7 @@ export const createLabBooking = async (req, res) => {
       items,
       total,
       note: String(b.note || '').trim(),
+      status: 'booked',
       paymentRequired: false,
     },
   });
@@ -95,19 +96,61 @@ export const getLabBookings = async (req, res) => {
   const [items, total, pending] = await Promise.all([
     prisma.labBooking.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (pageNum - 1) * perPage, take: perPage }),
     prisma.labBooking.count({ where }),
-    prisma.labBooking.count({ where: { status: 'pending', ...CONFIRMED_ONLY } }),
+    prisma.labBooking.count({ where: { status: 'booked', ...CONFIRMED_ONLY } }),
   ]);
   res.json({ bookings: items.map(withId), pending, page: pageNum, pages: Math.ceil(total / perPage), total });
 };
 
-// @route PUT /api/lab-bookings/:id  (admin)
+// Visit-status lifecycle for a lab booking.
+const LAB_STATUSES = ['booked', 'visit-done', 'no-show', 'cancelled'];
+
+// @route PUT /api/lab-bookings/:id  (admin) — set the visit status
 export const updateLabBooking = async (req, res) => {
   const { status } = req.body;
-  const valid = ['pending', 'confirmed', 'sample-collected', 'completed', 'cancelled'];
-  if (status && !valid.includes(status)) return res.status(400).json({ message: 'Invalid status' });
+  if (status && !LAB_STATUSES.includes(status)) return res.status(400).json({ message: 'Invalid status' });
   const updated = await prisma.labBooking
     .update({ where: { id: req.params.id }, data: { ...(status ? { status } : {}) } })
     .catch(() => null);
   if (!updated) return res.status(404).json({ message: 'Booking not found' });
   res.json(withId(updated));
+};
+
+// @route PUT /api/lab-bookings/mine/:id  (protect) — customer cancels or
+// reschedules their own booking. Only allowed while it's still "booked".
+export const updateMyLabBooking = async (req, res) => {
+  const booking = await prisma.labBooking.findFirst({
+    where: { id: req.params.id, userId: req.user.id },
+  });
+  if (!booking) return res.status(404).json({ message: 'Booking not found' });
+  if (booking.status !== 'booked') {
+    return res.status(400).json({ message: `This booking can no longer be changed (${booking.status}).` });
+  }
+
+  const b = req.body || {};
+  const data = {};
+  let action = 'rescheduled';
+  if (b.cancel === true || b.status === 'cancelled') {
+    data.status = 'cancelled';
+    action = 'cancelled';
+  } else {
+    if (b.preferredDate !== undefined) data.preferredDate = String(b.preferredDate).trim();
+    if (b.preferredTime !== undefined) data.preferredTime = String(b.preferredTime).trim();
+    if (data.preferredDate === undefined && data.preferredTime === undefined) {
+      return res.status(400).json({ message: 'Nothing to update' });
+    }
+  }
+
+  const updated = await prisma.labBooking.update({ where: { id: booking.id }, data });
+  res.json(withId(updated));
+
+  // Reflect the change for the admin (bell notification).
+  createNotification({
+    type: 'message',
+    title: `Lab booking ${action} — ${updated.patientName}`,
+    message: action === 'cancelled'
+      ? 'Customer cancelled their lab test booking.'
+      : `Customer rescheduled to ${updated.preferredDate || 'a new date'} ${updated.preferredTime || ''}`.trim(),
+    link: '/lab-bookings',
+    meta: { labBookingId: updated.id },
+  }).catch(() => {});
 };

@@ -2,9 +2,19 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../lib/api'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import Spinner from '../components/Spinner'
 import { formatPrice } from '../lib/helpers'
 import AddressAutocomplete from '../components/AddressAutocomplete'
+
+// Lab-booking visit status → label + badge colour (mirrors the admin panel).
+const LAB_LABELS = { booked: 'Booked', 'visit-done': 'Visit Done', 'no-show': 'No Show', cancelled: 'Cancelled' }
+const LAB_BADGE = {
+  booked: 'bg-amber-100 text-amber-700',
+  'visit-done': 'bg-emerald-100 text-emerald-700',
+  'no-show': 'bg-rose-100 text-rose-700',
+  cancelled: 'bg-slate-200 text-slate-500',
+}
 import {
   FaSignOutAlt, FaUserCircle, FaBoxOpen, FaMapMarkerAlt, FaPrescriptionBottleAlt, FaTimes,
   FaCrown, FaChevronRight, FaWallet, FaRegAddressBook, FaRegCreditCard, FaFileMedical,
@@ -35,6 +45,7 @@ function Row({ icon: Icon, label, value, valueClass, to, onClick, external }) {
 
 export default function Account() {
   const { user, logout, updateUser } = useAuth()
+  const { showToast } = useToast()
   const navigate = useNavigate()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -42,6 +53,9 @@ export default function Account() {
   const [appointments, setAppointments] = useState([])
   const [labBookings, setLabBookings] = useState([])
   const [orderTab, setOrderTab] = useState('')
+  const [rescheduleId, setRescheduleId] = useState(null)
+  const [reForm, setReForm] = useState({ date: '', time: '' })
+  const [labBusy, setLabBusy] = useState(false)
 
   const [addr, setAddr] = useState({
     line1: user?.address?.line1 || '',
@@ -86,6 +100,38 @@ export default function Account() {
       const { data } = await api.get('/me/refills')
       setRefills(Array.isArray(data) ? data : [])
     } catch { /* ignore */ }
+  }
+
+  // Customer cancels their own lab booking (only while it's still "booked").
+  const cancelLabBooking = async (id) => {
+    if (!window.confirm('Cancel this lab test booking?')) return
+    setLabBusy(true)
+    try {
+      const { data } = await api.put(`/lab-bookings/mine/${id}`, { cancel: true })
+      setLabBookings((list) => list.map((b) => (b._id === id ? data : b)))
+      showToast({ title: 'Booking cancelled', tone: 'info' })
+    } catch (err) {
+      showToast({ title: err.response?.data?.message || 'Could not cancel', tone: 'info' })
+    } finally { setLabBusy(false) }
+  }
+
+  const openReschedule = (b) => {
+    setRescheduleId(b._id)
+    setReForm({ date: b.preferredDate || '', time: b.preferredTime || '' })
+  }
+
+  // Customer picks a new date/time; reflected on the admin panel in real time.
+  const saveReschedule = async (id) => {
+    if (!reForm.date) { showToast({ title: 'Please choose a date', tone: 'info' }); return }
+    setLabBusy(true)
+    try {
+      const { data } = await api.put(`/lab-bookings/mine/${id}`, { preferredDate: reForm.date, preferredTime: reForm.time })
+      setLabBookings((list) => list.map((b) => (b._id === id ? data : b)))
+      setRescheduleId(null)
+      showToast({ title: 'Visit rescheduled 🎉', tone: 'success' })
+    } catch (err) {
+      showToast({ title: err.response?.data?.message || 'Could not reschedule', tone: 'info' })
+    } finally { setLabBusy(false) }
   }
 
   const handleLogout = () => { logout(); navigate('/') }
@@ -200,22 +246,50 @@ export default function Account() {
           <div className="card p-4">
             <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-dark"><FaVial className="text-primary" /> My Lab Bookings</h2>
             <div className="space-y-2">
-              {labBookings.map((b) => (
-                <div key={b._id} className="flex items-center justify-between gap-3 rounded-xl border border-bordergray p-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-dark">{(b.items || []).map((i) => i.name).join(', ') || 'Lab test'}</p>
-                    <p className="text-xs text-slate-400">{formatPrice(b.total)} · {b.preferredDate || 'date TBD'}</p>
-                  </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1">
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold capitalize text-primary">{b.status}</span>
-                    {b.paymentRequired && (
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${b.isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                        {b.isPaid ? 'Paid' : 'Payment due'}
+              {labBookings.map((b) => {
+                const editing = rescheduleId === b._id
+                const canChange = b.status === 'booked'
+                return (
+                  <div key={b._id} className="rounded-xl border border-bordergray p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-dark">{(b.items || []).map((i) => i.name).join(', ') || 'Lab test'}</p>
+                        <p className="text-xs text-slate-400">
+                          {formatPrice(b.total)} · {b.preferredDate || 'date TBD'}{b.preferredTime ? ` · ${b.preferredTime}` : ''}
+                        </p>
+                      </div>
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${LAB_BADGE[b.status] || 'bg-primary/10 text-primary'}`}>
+                        {LAB_LABELS[b.status] || b.status}
                       </span>
+                    </div>
+
+                    {canChange && !editing && (
+                      <div className="mt-2 flex gap-2">
+                        <button onClick={() => openReschedule(b)} className="rounded-lg border border-primary px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/5">
+                          Reschedule
+                        </button>
+                        <button onClick={() => cancelLabBooking(b._id)} disabled={labBusy} className="rounded-lg border border-red-300 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50">
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+
+                    {editing && (
+                      <div className="mt-2 space-y-2 rounded-lg bg-lightbg p-2">
+                        <p className="text-xs font-medium text-slate-500">Pick a new date &amp; time</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <input type="date" value={reForm.date} onChange={(e) => setReForm((f) => ({ ...f, date: e.target.value }))} className="input-base text-sm" />
+                          <input type="time" value={reForm.time} onChange={(e) => setReForm((f) => ({ ...f, time: e.target.value }))} className="input-base text-sm" />
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={() => setRescheduleId(null)} className="btn-outline flex-1 py-1.5 text-xs">Back</button>
+                          <button onClick={() => saveReschedule(b._id)} disabled={labBusy} className="btn-primary flex-1 py-1.5 text-xs">{labBusy ? 'Saving…' : 'Save date'}</button>
+                        </div>
+                      </div>
                     )}
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}

@@ -342,7 +342,7 @@ model LabBooking {
   items             Json // [{ id, name, price }]
   total             Float     @default(0)
   note              String    @default("")
-  status            String    @default("pending") // pending | confirmed | sample-collected | completed | cancelled
+  status            String    @default("booked") // booked | visit-done | no-show | cancelled
   paymentRequired   Boolean   @default(false) // online payment needed to confirm
   isPaid            Boolean   @default(false)
   paidAt            DateTime?

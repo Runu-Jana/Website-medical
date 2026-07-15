@@ -4,6 +4,7 @@ import {
   getMyLabBookings,
   getLabBookings,
   updateLabBooking,
+  updateMyLabBooking,
 } from '../controllers/labBookingController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -11,6 +12,7 @@ const router = express.Router();
 
 router.post('/', protect, createLabBooking);
 router.get('/mine', protect, getMyLabBookings);
+router.put('/mine/:id', protect, updateMyLabBooking); // customer cancel / reschedule
 router.get('/', protect, admin, getLabBookings);
 router.put('/:id', protect, admin, updateLabBooking);
 
