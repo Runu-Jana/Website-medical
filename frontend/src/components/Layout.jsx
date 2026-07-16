@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import MobileBottomNav from './MobileBottomNav'
@@ -7,6 +7,7 @@ import PopupBanner from './PopupBanner'
 import SupportChat from './SupportChat'
 import BackToTop from './BackToTop'
 import Seo from './Seo'
+import RouteLoader from './RouteLoader'
 
 // Per-route SEO defaults for pages that don't set their own <Seo>. Pages with
 // dynamic metadata (Home, product pages) have no entry here and own their tags.
@@ -44,7 +45,11 @@ export default function Layout() {
         <Navbar />
       </div>
       <main className="flex-1">
-        <Outlet />
+        {/* Suspense sits here (not above the whole app) so the navbar/footer
+            stay put and only the page content shows the loader on navigation. */}
+        <Suspense fallback={<RouteLoader />}>
+          <Outlet />
+        </Suspense>
       </main>
       <div className={immersive ? 'hidden md:block' : ''}>
         <Footer />
