@@ -15,6 +15,7 @@ import {
 import { resolveVendor } from '../lib/vendor.js';
 import { audit } from '../lib/audit.js';
 import { memberDiscount, shippingFor, orderTotal } from '../lib/pricing.js';
+import { sendPushToUser } from '../lib/push.js';
 
 // DBL Life Care Health Club member discount (percent off items).
 export const MEMBER_DISCOUNT_PERCENT = 5;
@@ -377,6 +378,14 @@ export const updateOrderStatus = async (req, res) => {
 
   if (status && status !== order.status) {
     audit(req.user, 'order.status', 'order', order.id, { from: order.status, to: status });
+    // Push notification to the customer's devices (no-op without Firebase).
+    if (order.userId) {
+      sendPushToUser(order.userId, {
+        title: `Order ${status}`,
+        body: `Your order #${order.orderNumber || order.id.slice(-6)} is now ${status}.`,
+        data: { type: 'order', orderId: order.id },
+      }).catch(() => {});
+    }
   }
 
   // Email the customer about the status change (if it actually changed).

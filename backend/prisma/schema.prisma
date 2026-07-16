@@ -360,6 +360,17 @@ model LabBooking {
   @@index([userId])
 }
 
+model DeviceToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  platform  String   @default("android") // android | ios | web
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
 model HealthRecord {
   id         String   @id @default(uuid())
   userId     String

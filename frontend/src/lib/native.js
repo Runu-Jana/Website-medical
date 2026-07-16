@@ -33,4 +33,31 @@ export async function initNative() {
   } catch {
     /* plugin not present */
   }
+
+  // Push notifications (order updates, offers). Registers the device with FCM and
+  // sends the token to the backend (tied to the logged-in customer). No-op until
+  // you add the Firebase/FCM config to the native project.
+  try {
+    const { PushNotifications } = await import('@capacitor/push-notifications')
+    let perm = await PushNotifications.checkPermissions()
+    if (perm.receive === 'prompt') perm = await PushNotifications.requestPermissions()
+    if (perm.receive === 'granted') {
+      await PushNotifications.register()
+      PushNotifications.addListener('registration', async (token) => {
+        try {
+          const api = (await import('./api')).default
+          await api.post('/me/push-token', { token: token.value, platform: 'android' })
+        } catch {
+          /* not logged in yet — will re-register on next launch */
+        }
+      })
+      // Tapping a notification opens the relevant screen.
+      PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+        const data = action?.notification?.data || {}
+        if (data.type === 'order') window.location.href = '/account'
+      })
+    }
+  } catch {
+    /* plugin not present */
+  }
 }

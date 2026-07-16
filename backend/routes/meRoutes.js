@@ -1,5 +1,5 @@
 import express from 'express';
-import { getCart, putCart, getWishlist, putWishlist } from '../controllers/meController.js';
+import { getCart, putCart, getWishlist, putWishlist, registerPushToken } from '../controllers/meController.js';
 import { getMyRefills, updateMyRefill } from '../controllers/refillController.js';
 import { joinMembership, cancelMembership } from '../controllers/membershipController.js';
 import { protect } from '../middleware/authMiddleware.js';
@@ -14,5 +14,6 @@ router.get('/refills', protect, getMyRefills);
 router.patch('/refills/:id', protect, updateMyRefill);
 router.post('/membership', protect, joinMembership);
 router.delete('/membership', protect, cancelMembership);
+router.post('/push-token', protect, registerPushToken);
 
 export default router;

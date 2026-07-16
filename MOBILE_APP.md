@@ -66,11 +66,26 @@ upload to App Store Connect.
 
 ---
 
-## Recommended native upgrades (optional, do later)
-These work in the webview as-is, but native plugins are smoother:
+## Push notifications (built — just add FCM config)
+The plumbing is done end-to-end:
+- The app registers the device with FCM on launch and sends the token to the
+  backend (`POST /api/me/push-token`, tied to the logged-in customer).
+- The backend sends a push when an **order status changes** (reuses the same
+  Firebase Admin service account as OTP; a no-op until Firebase is configured).
 
-- **Push notifications** (order updates, offers): `@capacitor/push-notifications`
-  + Firebase Cloud Messaging. Big value-add for a store.
+To turn it on:
+1. In **Firebase console → Project settings → Cloud Messaging**, make sure the
+   API is enabled.
+2. **Project settings → General → Your apps → Add Android app** with package
+   name **`com.dbllifecare.app`**, download **`google-services.json`** and drop
+   it into **`frontend/android/app/`**.
+3. Ensure the backend has the Firebase Admin creds (`FIREBASE_PROJECT_ID`,
+   `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`) — the same ones used for OTP.
+4. `npm run cap:sync`, rebuild in Android Studio. Change an order's status in
+   admin → the customer gets a notification.
+
+## Other native upgrades (optional, later)
+These work in the webview as-is, but native plugins are smoother:
 - **Phone OTP**: reCAPTCHA is fiddly in a webview — use
   `@capacitor-firebase/authentication` for native SMS verification.
 - **Razorpay**: the web checkout works in the webview; `capacitor-razorpay`

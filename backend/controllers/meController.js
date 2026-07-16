@@ -63,3 +63,16 @@ export const putWishlist = async (req, res) => {
   const map = Object.fromEntries(products.map((p) => [p.id, serializeProduct(p)]));
   res.json({ items: ids.map((id) => map[id]).filter(Boolean) });
 };
+
+// @route POST /api/me/push-token  (protect) — register this device for push.
+export const registerPushToken = async (req, res) => {
+  const token = String(req.body.token || '').trim();
+  if (!token) return res.status(400).json({ message: 'token is required' });
+  const platform = String(req.body.platform || 'android').trim();
+  await prisma.deviceToken.upsert({
+    where: { token },
+    create: { token, platform, userId: req.user.id },
+    update: { userId: req.user.id, platform },
+  });
+  res.json({ success: true });
+};
