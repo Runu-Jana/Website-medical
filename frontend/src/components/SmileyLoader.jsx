@@ -3,12 +3,13 @@ import './SmileyLoader.css'
 // Animated smiley loader (eyes rotate in, right eye blinks, parts merge into a
 // smile). Colours come from CSS variables themed to the project's teal in both
 // light and dark mode — see SmileyLoader.css.
-export default function SmileyLoader({ className = '' }) {
+export default function SmileyLoader({ className = '', size }) {
   return (
     <svg
       role="img"
       aria-label="Loading"
       className={`smiley ${className}`}
+      style={size ? { width: size, height: size } : undefined}
       viewBox="0 0 128 128"
       width="128"
       height="128"
