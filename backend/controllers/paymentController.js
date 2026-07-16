@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import prisma from '../prisma/client.js';
 import { serializeOrder } from '../prisma/serialize.js';
 import {
@@ -7,6 +6,7 @@ import {
   webhookEnabled,
   RAZORPAY_KEY_ID,
 } from '../lib/razorpay.js';
+import { verifyPaymentSignature, verifyWebhookSignature } from '../lib/razorpaySignature.js';
 import { notifyAppointmentBooked } from './appointmentController.js';
 
 // Maps a booking "type" to its Prisma model + the field holding the amount.
@@ -75,12 +75,13 @@ export const verifyPayment = async (req, res) => {
   if (!razorpayEnabled) return res.status(400).json({ message: 'Online payment is not configured' });
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
 
-  const expected = crypto
-    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-    .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-    .digest('hex');
-
-  if (expected !== razorpay_signature) {
+  const valid = verifyPaymentSignature({
+    orderId: razorpay_order_id,
+    paymentId: razorpay_payment_id,
+    signature: razorpay_signature,
+    secret: process.env.RAZORPAY_KEY_SECRET,
+  });
+  if (!valid) {
     return res.status(400).json({ message: 'Payment verification failed' });
   }
 
@@ -181,8 +182,9 @@ export const webhook = async (req, res) => {
 
   const signature = req.headers['x-razorpay-signature'];
   const payload = req.rawBody || Buffer.from(JSON.stringify(req.body));
-  const expected = crypto.createHmac('sha256', secret).update(payload).digest('hex');
-  if (expected !== signature) return res.status(400).json({ message: 'Invalid signature' });
+  if (!verifyWebhookSignature(payload, signature, secret)) {
+    return res.status(400).json({ message: 'Invalid signature' });
+  }
 
   // Acknowledge fast; reconcile in the background so Razorpay doesn't retry.
   res.json({ received: true });
