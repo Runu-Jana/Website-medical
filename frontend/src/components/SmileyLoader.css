@@ -1,0 +1,95 @@
+/* Animated smiley loader — themed to the project's teal (#0e9f8e ≈ hsl(173)).
+   Two tones blend via the SVG mask; brighter in dark mode for contrast. */
+.smiley {
+  width: 5rem;
+  height: 5rem;
+  --smiley-1: hsl(173, 80%, 38%);
+  --smiley-2: hsl(173, 82%, 27%);
+}
+.dark .smiley {
+  --smiley-1: hsl(173, 68%, 55%);
+  --smiley-2: hsl(173, 74%, 42%);
+}
+
+/* Layer colours (rect = eyes fill via clip, circle = mouth stroke). */
+.smiley__layer1 rect { fill: var(--smiley-1); }
+.smiley__layer1 circle { stroke: var(--smiley-1); }
+.smiley__layer2 rect { fill: var(--smiley-2); }
+.smiley__layer2 circle { stroke: var(--smiley-2); }
+
+/* Animation wiring */
+.smiley__eye1,
+.smiley__eye2,
+.smiley__mouth1,
+.smiley__mouth2 {
+  animation: smiley-eye1 3s ease-in-out infinite;
+}
+.smiley__eye1,
+.smiley__eye2 {
+  transform-origin: 64px 64px;
+}
+.smiley__eye2 { animation-name: smiley-eye2; }
+.smiley__mouth1 { animation-name: smiley-mouth1; }
+.smiley__mouth2 {
+  animation-name: smiley-mouth2;
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smiley__eye1,
+  .smiley__eye2,
+  .smiley__mouth1,
+  .smiley__mouth2 {
+    animation-duration: 6s;
+  }
+}
+
+@keyframes smiley-eye1 {
+  from { transform: rotate(-260deg) translate(0, -56px); }
+  50%, 60% {
+    animation-timing-function: cubic-bezier(0.17, 0, 0.58, 1);
+    transform: rotate(-40deg) translate(0, -56px) scale(1);
+  }
+  to { transform: rotate(225deg) translate(0, -56px) scale(0.35); }
+}
+@keyframes smiley-eye2 {
+  from { transform: rotate(-260deg) translate(0, -56px); }
+  50% { transform: rotate(40deg) translate(0, -56px) rotate(-40deg) scale(1); }
+  52.5% { transform: rotate(40deg) translate(0, -56px) rotate(-40deg) scale(1, 0); }
+  55%, 70% {
+    animation-timing-function: cubic-bezier(0, 0, 0.28, 1);
+    transform: rotate(40deg) translate(0, -56px) rotate(-40deg) scale(1);
+  }
+  to { transform: rotate(150deg) translate(0, -56px) scale(0.4); }
+}
+@keyframes smiley-mouth1 {
+  from {
+    animation-timing-function: ease-in;
+    stroke-dasharray: 0 351.86;
+    stroke-dashoffset: 0;
+  }
+  25% {
+    animation-timing-function: ease-out;
+    stroke-dasharray: 175.93 351.86;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    animation-timing-function: steps(1, start);
+    stroke-dasharray: 175.93 351.86;
+    stroke-dashoffset: -175.93;
+    visibility: visible;
+  }
+  75%, to { visibility: hidden; }
+}
+@keyframes smiley-mouth2 {
+  from {
+    animation-timing-function: steps(1, end);
+    visibility: hidden;
+  }
+  50% {
+    animation-timing-function: ease-in-out;
+    visibility: visible;
+    stroke-dashoffset: 0;
+  }
+  to { stroke-dashoffset: -351.86; }
+}
