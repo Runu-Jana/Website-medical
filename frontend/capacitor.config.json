@@ -1,0 +1,13 @@
+{
+  "appId": "com.dbllifecare.app",
+  "appName": "DBL Life Care",
+  "webDir": "dist",
+  "backgroundColor": "#0e9f8e",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "backgroundColor": "#0e9f8e",
+      "showSpinner": false
+    }
+  }
+}

@@ -31,7 +31,7 @@ export default function MobileBottomNav() {
   )
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-bordergray bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.06)] md:hidden">
+    <nav className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-40 border-t border-bordergray bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.06)] md:hidden">
       <div className="mx-auto flex max-w-md items-end justify-between px-2">
         <Tab to="/" icon={FaHome} label="Home" />
         <Tab to="/shop" icon={FaThLarge} label="Shop" />

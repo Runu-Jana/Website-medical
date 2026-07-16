@@ -235,3 +235,12 @@
     animation: none;
   }
 }
+
+/* ── Native app (Capacitor) safe areas — notch / status bar / home indicator.
+   Scoped to .native-app so the web is unaffected. ── */
+.native-app body {
+  padding-top: env(safe-area-inset-top);
+}
+.native-app .mobile-bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom);
+}

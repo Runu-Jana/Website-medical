@@ -7,7 +7,11 @@ import { ToastProvider } from './context/ToastContext.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { CartProvider } from './context/CartContext.jsx'
 import { WishlistProvider } from './context/WishlistContext.jsx'
+import { initNative } from './lib/native'
 import './index.css'
+
+// Native-only setup (status bar, Android back button) — no-op on the web.
+initNative()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
