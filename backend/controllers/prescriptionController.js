@@ -1,6 +1,7 @@
 import prisma from '../prisma/client.js';
 import { withId } from '../prisma/serialize.js';
 import { createNotification } from '../lib/notify.js';
+import { audit } from '../lib/audit.js';
 
 // @route POST /api/prescriptions  (customer / guest)
 export const createPrescription = async (req, res) => {
@@ -23,6 +24,44 @@ export const createPrescription = async (req, res) => {
     type: 'prescription',
     title: `Prescription from ${rx.name || 'a customer'}`,
     message: rx.note ? rx.note.slice(0, 80) : 'Awaiting review',
+    link: '/prescriptions',
+    meta: { prescriptionId: rx.id },
+  }).catch(() => {});
+};
+
+// @route PUT /api/prescriptions/:id/review  (pharmacist/admin)
+// Approve or reject a prescription; propagates the decision to any linked order
+// so it can (or cannot) be dispensed, and records an audit entry.
+export const reviewPrescription = async (req, res) => {
+  const decision = req.body.decision;
+  if (!['approved', 'rejected'].includes(decision)) {
+    return res.status(400).json({ message: 'decision must be "approved" or "rejected"' });
+  }
+  const rx = await prisma.prescription
+    .update({
+      where: { id: req.params.id },
+      data: {
+        status: decision,
+        reviewedBy: req.user?.name || req.user?.id || '',
+        reviewedAt: new Date(),
+        reviewNote: String(req.body.note || '').trim(),
+      },
+    })
+    .catch(() => null);
+  if (!rx) return res.status(404).json({ message: 'Prescription not found' });
+
+  // Propagate to the linked order (and any order that referenced this Rx).
+  await prisma.order
+    .updateMany({ where: { prescriptionId: rx.id }, data: { rxStatus: decision } })
+    .catch(() => {});
+
+  res.json(withId(rx));
+
+  audit(req.user, `rx.${decision}`, 'prescription', rx.id, { orderId: rx.orderId, note: rx.reviewNote });
+  createNotification({
+    type: 'prescription',
+    title: `Prescription ${decision}`,
+    message: `${rx.name || 'Customer'}'s prescription was ${decision}${rx.reviewNote ? ` — ${rx.reviewNote}` : ''}`,
     link: '/prescriptions',
     meta: { prescriptionId: rx.id },
   }).catch(() => {});

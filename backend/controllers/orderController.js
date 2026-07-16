@@ -13,6 +13,7 @@ import {
   userRedemptionCount,
 } from '../lib/coupons.js';
 import { resolveVendor } from '../lib/vendor.js';
+import { audit } from '../lib/audit.js';
 
 // DBL Life Care Health Club member discount (percent off items).
 export const MEMBER_DISCOUNT_PERCENT = 5;
@@ -59,12 +60,13 @@ export const createOrder = async (req, res) => {
     itemsPrice - discountPrice - couponDiscount + shippingPrice + taxPrice
   );
 
-  // Tag each item with its vendor so a marketplace order can be routed/split.
+  // Look up the cart's products once — for vendor routing, prescription rules
+  // and authoritative stock levels (all decided server-side).
   const prodIds = items.map((i) => i.product).filter(Boolean);
   const prods = prodIds.length
     ? await prisma.product.findMany({
         where: { id: { in: prodIds } },
-        select: { id: true, vendorId: true, vendorName: true },
+        select: { id: true, name: true, vendorId: true, vendorName: true, requiresPrescription: true, countInStock: true },
       })
     : [];
   const vmap = new Map(prods.map((p) => [p.id, p]));
@@ -74,21 +76,80 @@ export const createOrder = async (req, res) => {
     vendorName: vmap.get(i.product)?.vendorName || '',
   }));
 
-  const order = await prisma.order.create({
-    data: {
-      userId: req.user?.id || null,
-      items: itemsWithVendor,
-      shippingAddress: shippingAddress || {},
-      paymentMethod: paymentMethod || 'Cash on Delivery',
-      itemsPrice,
-      shippingPrice,
-      discountPrice,
-      couponCode: appliedCoupon?.code || '',
-      couponDiscount,
-      taxPrice,
-      totalPrice,
-    },
-  });
+  // ── Prescription compliance ────────────────────────────────────────────
+  // Any prescription-only medicine must be backed by a prescription the customer
+  // uploaded; it cannot be dispensed until a pharmacist approves it.
+  const rxItems = items.filter((i) => vmap.get(i.product)?.requiresPrescription);
+  let prescription = null;
+  if (rxItems.length) {
+    const pid = req.body.prescriptionId;
+    if (pid) {
+      prescription = await prisma.prescription.findUnique({ where: { id: pid } }).catch(() => null);
+      // Must exist, belong to this customer (when logged in), and not be rejected.
+      if (
+        !prescription ||
+        (req.user?.id && prescription.userId && prescription.userId !== req.user.id) ||
+        prescription.status === 'rejected'
+      ) {
+        prescription = null;
+      }
+    }
+    if (!prescription) {
+      return res.status(400).json({
+        message:
+          'A valid prescription is required for the prescription-only medicine(s) in your cart. Please upload one to continue.',
+        prescriptionRequired: true,
+        rxItems: rxItems.map((i) => i.name),
+      });
+    }
+  }
+
+  // ── Atomic stock reservation + order creation (one transaction) ─────────
+  // Decrement stock conditionally so two shoppers can't oversell the last unit.
+  const tracked = itemsWithVendor.filter((i) => i.product && vmap.has(i.product));
+  let order;
+  try {
+    order = await prisma.$transaction(async (tx) => {
+      for (const it of tracked) {
+        const r = await tx.product.updateMany({
+          where: { id: it.product, countInStock: { gte: it.qty } },
+          data: { countInStock: { decrement: it.qty }, sold: { increment: it.qty } },
+        });
+        if (r.count !== 1) {
+          const err = new Error(`${vmap.get(it.product)?.name || 'An item'} is out of stock`);
+          err.outOfStock = true;
+          throw err;
+        }
+      }
+      return tx.order.create({
+        data: {
+          userId: req.user?.id || null,
+          items: itemsWithVendor,
+          shippingAddress: shippingAddress || {},
+          paymentMethod: paymentMethod || 'Cash on Delivery',
+          itemsPrice,
+          shippingPrice,
+          discountPrice,
+          couponCode: appliedCoupon?.code || '',
+          couponDiscount,
+          taxPrice,
+          totalPrice,
+          requiresPrescription: rxItems.length > 0,
+          prescriptionId: prescription?.id || null,
+          rxStatus: rxItems.length ? (prescription?.status === 'approved' ? 'approved' : 'pending') : 'none',
+        },
+      });
+    });
+  } catch (e) {
+    if (e.outOfStock) return res.status(409).json({ message: e.message, outOfStock: true });
+    console.error('createOrder failed:', e);
+    return res.status(500).json({ message: 'Could not place order. Please try again.' });
+  }
+
+  // Link the prescription to this order for the pharmacist's review queue.
+  if (prescription) {
+    prisma.prescription.update({ where: { id: prescription.id }, data: { orderId: order.id } }).catch(() => {});
+  }
 
   // Record the redemption and bump usage (after the order exists).
   if (appliedCoupon) {
@@ -109,22 +170,12 @@ export const createOrder = async (req, res) => {
     ]).catch(() => {});
   }
 
-  // Update sold counts + stock for known products (ignore unknown ids).
-  const updated = await Promise.all(
-    items
-      .filter((i) => i.product)
-      .map((i) =>
-        prisma.product
-          .update({
-            where: { id: i.product },
-            data: { sold: { increment: i.qty }, countInStock: { decrement: i.qty } },
-          })
-          .then((p) => ({ p, qty: i.qty }))
-          .catch(() => null)
-      )
-  );
-
   res.status(201).json(serializeOrder(order));
+
+  audit(req.user || { name: 'Guest' }, 'order.created', 'order', order.id, {
+    total: totalPrice,
+    requiresPrescription: rxItems.length > 0,
+  });
 
   // Activity notifications (after responding, so checkout isn't slowed).
   createNotification({
@@ -138,18 +189,19 @@ export const createOrder = async (req, res) => {
   // Order confirmation email to the customer (if logged in) + admin heads-up.
   notifyOrderPlaced({ order, items, customerEmail: req.user?.email }).catch(() => {});
 
-  // Alert once when a product's stock crosses below the low-stock threshold.
-  for (const u of updated) {
-    if (!u) continue;
-    const newStock = u.p.countInStock;
-    const oldStock = newStock + u.qty;
+  // Alert once when a product's stock crosses below the low-stock threshold
+  // (using the pre-decrement levels we already fetched).
+  for (const it of tracked) {
+    const p = vmap.get(it.product);
+    const oldStock = p.countInStock;
+    const newStock = oldStock - it.qty;
     if (oldStock > LOW_STOCK_THRESHOLD && newStock <= LOW_STOCK_THRESHOLD) {
       createNotification({
         type: 'stock',
-        title: `Low stock: ${u.p.name}`,
+        title: `Low stock: ${p.name}`,
         message: `${newStock} left in inventory`,
-        link: `/products/${u.p.id}/edit`,
-        meta: { productId: u.p.id },
+        link: `/products/${p.id}/edit`,
+        meta: { productId: p.id },
       }).catch(() => {});
     }
   }
@@ -297,6 +349,21 @@ export const updateOrderStatus = async (req, res) => {
   });
   if (!order) return res.status(404).json({ message: 'Order not found' });
   const { status } = req.body;
+
+  // Prescription gate: an order with Rx-only medicines cannot be dispensed
+  // (moved into fulfilment) until a pharmacist has approved the prescription.
+  const DISPENSING = ['processing', 'shipped', 'dispatched', 'out-for-delivery', 'delivered'];
+  const DISPENSING_FULFILMENT = ['verified', 'ready', 'dispatched'];
+  const wantsDispense =
+    (status && DISPENSING.includes(status)) ||
+    (req.body.fulfillmentStatus && DISPENSING_FULFILMENT.includes(req.body.fulfillmentStatus));
+  if (order.requiresPrescription && order.rxStatus !== 'approved' && wantsDispense) {
+    return res.status(400).json({
+      message: 'This order contains prescription-only medicine. A pharmacist must verify the prescription before it can be processed.',
+      rxStatus: order.rxStatus,
+    });
+  }
+
   const data = {};
   if (status) data.status = status;
   // Fulfillment stage (packed | verified | ready | dispatched) — independent of lifecycle status.
@@ -309,6 +376,10 @@ export const updateOrderStatus = async (req, res) => {
   }
   const updated = await prisma.order.update({ where: { id: order.id }, data });
   res.json(serializeOrder(updated));
+
+  if (status && status !== order.status) {
+    audit(req.user, 'order.status', 'order', order.id, { from: order.status, to: status });
+  }
 
   // Email the customer about the status change (if it actually changed).
   if (status && status !== order.status && order.user?.email) {

@@ -40,6 +40,12 @@ export default function Checkout() {
   const [error, setError] = useState('')
   const [payConfig, setPayConfig] = useState({ razorpay: false })
 
+  // Prescription-only items require an uploaded prescription before checkout.
+  const rxItems = items.filter((i) => i.requiresPrescription)
+  const [rxFile, setRxFile] = useState(null)
+  const [rxUploading, setRxUploading] = useState(false)
+  const [prescriptionId, setPrescriptionId] = useState('')
+
   useEffect(() => {
     api.get('/payments/config').then(({ data }) => setPayConfig(data || {})).catch(() => {})
   }, [])
@@ -79,7 +85,31 @@ export default function Checkout() {
     shippingAddress: { ...form },
     paymentMethod,
     couponCode: totals.couponCode || undefined,
+    prescriptionId: prescriptionId || undefined,
   })
+
+  // Upload the customer's prescription for the Rx-only items in the cart.
+  const uploadRx = async () => {
+    if (!rxFile) return
+    setRxUploading(true)
+    setError('')
+    try {
+      const fd = new FormData()
+      fd.append('file', rxFile)
+      const { data: up } = await api.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      const { data: rx } = await api.post('/prescriptions', {
+        name: form.fullName,
+        phone: form.phone,
+        fileUrl: up.url || up.fileUrl || up.secure_url || '',
+        note: `Prescription for order: ${rxItems.map((i) => i.name).join(', ')}`,
+      })
+      setPrescriptionId(rx._id || rx.id)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not upload prescription. Please try again.')
+    } finally {
+      setRxUploading(false)
+    }
+  }
 
   const payOnline = async (payload) => {
     // Create our order first, then the linked Razorpay order (enables webhook reconcile).
@@ -118,6 +148,11 @@ export default function Checkout() {
   const onSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    // Block checkout of Rx-only items until a prescription has been uploaded.
+    if (rxItems.length && !prescriptionId) {
+      setError('Please upload a prescription for the prescription-only medicine(s) in your cart.')
+      return
+    }
     setSubmitting(true)
     try {
       const payload = buildPayload()
@@ -234,6 +269,42 @@ export default function Checkout() {
               </div>
             </div>
           </div>
+
+          {/* Prescription (only when the cart has Rx-only medicines) */}
+          {rxItems.length > 0 && (
+            <div className="card border-amber-300 p-6">
+              <h3 className="mb-1 flex items-center gap-2 text-lg font-bold">
+                📋 Prescription required
+              </h3>
+              <p className="mb-3 text-sm text-slate-500">
+                Your cart has prescription-only medicine ({rxItems.map((i) => i.name).join(', ')}).
+                Upload a valid prescription — our pharmacist will verify it before dispatch.
+              </p>
+              {prescriptionId ? (
+                <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+                  ✓ Prescription uploaded. It will be verified by our pharmacist.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => setRxFile(e.target.files?.[0] || null)}
+                    className="text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={uploadRx}
+                    disabled={!rxFile || rxUploading}
+                    className="btn-primary shrink-0 disabled:opacity-50"
+                  >
+                    {rxUploading ? 'Uploading…' : 'Upload prescription'}
+                  </button>
+                </div>
+              )}
+              <p className="mt-2 text-xs text-slate-400">Accepted: PDF, JPG or PNG.</p>
+            </div>
+          )}
 
           {/* Payment */}
           <div className="card p-6">

@@ -126,6 +126,7 @@ export function CartProvider({ children }) {
           countInStock: stock,
           gstPercent: product.gstPercent || 0,
           hsnCode: product.hsnCode || '',
+          requiresPrescription: !!product.requiresPrescription,
         },
       ]
     })

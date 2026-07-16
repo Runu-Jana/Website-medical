@@ -43,6 +43,23 @@ export default function Prescriptions() {
     }
   };
 
+  // Pharmacist verification: approving releases any linked Rx order for dispatch.
+  const review = async (rx, decision) => {
+    try {
+      const { data } = await api.put(`/prescriptions/${rx._id}/review`, { decision });
+      setItems((list) => list.map((r) => (r._id === rx._id ? { ...r, ...data } : r)));
+      toast.success(`Prescription ${decision}`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Update failed');
+    }
+  };
+
+  const rxBadge = {
+    approved: 'bg-green-100 text-green-700',
+    rejected: 'bg-red-100 text-red-700',
+    pending: 'bg-amber-100 text-amber-700',
+  };
+
   const confirmDelete = async () => {
     if (!delTarget) return;
     setDeleting(true);
@@ -93,8 +110,29 @@ export default function Prescriptions() {
                 <p className="text-sm text-slate-500">{rx.phone || '—'}</p>
                 {rx.note && <p className="mt-1 line-clamp-2 text-sm text-slate-500">{rx.note}</p>}
                 <p className="mt-1 text-xs text-slate-500">{formatDate(rx.createdAt)}</p>
+                {['approved', 'rejected', 'pending'].includes(rx.status) && (
+                  <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${rxBadge[rx.status] || ''}`}>
+                    {rx.status}{rx.reviewedBy ? ` · by ${rx.reviewedBy}` : ''}
+                  </span>
+                )}
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                {rx.status !== 'approved' && (
+                  <button
+                    onClick={() => review(rx, 'approved')}
+                    className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-green-700"
+                  >
+                    Approve
+                  </button>
+                )}
+                {rx.status !== 'rejected' && (
+                  <button
+                    onClick={() => review(rx, 'rejected')}
+                    className="rounded-lg border border-red-300 px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50"
+                  >
+                    Reject
+                  </button>
+                )}
                 {rx.fileUrl && (
                   <a
                     href={resolveImg(rx.fileUrl)}

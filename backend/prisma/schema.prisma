@@ -153,6 +153,11 @@ model Order {
   deliveredAt       DateTime?
   status            String    @default("pending")
   fulfillmentStatus String    @default("") // packed | verified | ready | dispatched
+  // Prescription compliance: orders containing Rx-only medicines must be
+  // verified by a pharmacist before they can be dispensed/dispatched.
+  requiresPrescription Boolean @default(false)
+  prescriptionId       String?
+  rxStatus             String  @default("none") // none | pending | approved | rejected
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -418,17 +423,39 @@ model PopupBanner {
 }
 
 model Prescription {
-  id        String   @id @default(uuid())
-  name      String   @default("")
-  phone     String   @default("")
-  note      String   @default("")
-  fileUrl   String   @default("")
-  userId    String?
-  status    String   @default("pending") // pending, reviewed, quoted, completed
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String    @id @default(uuid())
+  name       String    @default("")
+  phone      String    @default("")
+  note       String    @default("")
+  fileUrl    String    @default("")
+  userId     String?
+  orderId    String? // linked order (when uploaded for a specific checkout)
+  status     String    @default("pending") // pending | approved | rejected | reviewed | quoted | completed
+  reviewedBy String? // pharmacist/admin who approved or rejected
+  reviewedAt DateTime?
+  reviewNote String    @default("")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@index([status])
+  @@index([userId])
+}
+
+// Tamper-evident trail of sensitive actions (Rx approvals, order status changes,
+// refunds) for regulatory audit and dispute resolution.
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String   @default("")
+  actorName String   @default("")
+  actorRole String   @default("")
+  action    String // e.g. rx.approved, order.status, payment.refund
+  entity    String   @default("") // order | prescription | …
+  entityId  String   @default("")
+  details   Json?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
 }
 
 model Post {

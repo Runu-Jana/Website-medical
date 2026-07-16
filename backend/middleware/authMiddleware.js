@@ -37,6 +37,13 @@ export const vendor = (req, res, next) => {
   return res.status(403).json({ message: 'Vendor access required' });
 };
 
+// Pharmacist actions (verifying prescriptions, releasing Rx orders). Admins
+// are also allowed, since they can do anything a pharmacist can.
+export const pharmacist = (req, res, next) => {
+  if (req.user && (req.user.role === 'pharmacist' || req.user.role === 'admin')) return next();
+  return res.status(403).json({ message: 'Pharmacist access required' });
+};
+
 // Panel routes usable by BOTH admins and vendors; the controller then scopes
 // data to the vendor's own records when req.user.role === 'vendor'.
 export const panel = (req, res, next) => {
