@@ -30,21 +30,22 @@ The web deploy is unchanged — all of this is additive.
 **Prerequisites (one-time):** install **Android Studio** (includes the Android
 SDK + JDK). No Mac needed for Android.
 
+The **`frontend/android/` native project is already generated and committed**
+(with branded adaptive icons + splash), so you can open it directly — no
+`cap add` needed.
+
 ```bash
 cd frontend
 npm install
 
-# 1) Point the app at your LIVE backend, then build + generate the native project
-#    (set VITE_API_URL in frontend/.env to your Railway URL first)
-npm run build
-npm run cap:add:android      # one-time: creates the android/ project
-
-# 2) After ANY web change, rebuild + copy into the native project:
-npm run cap:sync
-
-# 3) Open in Android Studio to run on a device/emulator or build an APK/AAB
-npm run cap:open:android
+# Set VITE_API_URL in frontend/.env to your LIVE backend URL, then:
+npm run cap:sync          # builds the web app + copies it into android/
+npm run cap:open:android  # opens Android Studio
 ```
+
+After **any** web change, re-run `npm run cap:sync` to copy the latest build
+into the native app. Regenerate icons/splash after editing `frontend/assets/*`
+with: `npx @capacitor/assets generate --android`.
 
 In Android Studio: **Run ▶** to test on a device/emulator, or
 **Build → Generate Signed Bundle/APK** to produce the **.aab** you upload to the
