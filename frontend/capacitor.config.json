@@ -8,6 +8,10 @@
       "launchShowDuration": 1200,
       "backgroundColor": "#0e9f8e",
       "showSpinner": false
+    },
+    "FirebaseAuthentication": {
+      "skipNativeAuth": false,
+      "providers": ["phone"]
     }
   }
 }

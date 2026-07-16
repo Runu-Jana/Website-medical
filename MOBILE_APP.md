@@ -84,12 +84,20 @@ To turn it on:
 4. `npm run cap:sync`, rebuild in Android Studio. Change an order's status in
    admin → the customer gets a notification.
 
+## Native phone OTP + Razorpay (built)
+Both auto-switch: **web uses the browser flow, the app uses the native plugin**
+— same code, no branching in your pages.
+
+- **Phone OTP** (`@capacitor-firebase/authentication`): in the app, SMS
+  verification runs natively (no reCAPTCHA). Needs the same Firebase Android app
+  + `google-services.json` as push, with **Phone** sign-in enabled and your app's
+  SHA-1/SHA-256 fingerprints added in Firebase (Project settings → your Android
+  app) so SMS works on a real build.
+- **Razorpay** (`capacitor-razorpay`): in the app, checkout opens the native
+  payment sheet; on web it's the usual Razorpay popup. Uses the same key sent by
+  your backend — no extra config.
+
 ## Other native upgrades (optional, later)
-These work in the webview as-is, but native plugins are smoother:
-- **Phone OTP**: reCAPTCHA is fiddly in a webview — use
-  `@capacitor-firebase/authentication` for native SMS verification.
-- **Razorpay**: the web checkout works in the webview; `capacitor-razorpay`
-  gives a smoother native sheet.
 - **Prescription upload**: `@capacitor/camera` for a native camera/file picker.
 
 ## Notes

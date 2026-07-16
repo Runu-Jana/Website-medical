@@ -6,20 +6,11 @@ import { useAuth } from '../context/AuthContext'
 import { formatPrice, imgFallback, PLACEHOLDER_IMG } from '../lib/helpers'
 import AddressAutocomplete from '../components/AddressAutocomplete'
 import CouponInput from '../components/CouponInput'
+import { openRazorpayCheckout, PAYMENT_DISMISSED } from '../lib/payment'
 import { FaMoneyBillWave, FaCreditCard } from 'react-icons/fa'
 
 const COD = { id: 'Cash on Delivery', label: 'Cash on Delivery', icon: FaMoneyBillWave }
 const ONLINE = { id: 'Razorpay', label: 'Pay Online — UPI / Card / Netbanking', icon: FaCreditCard }
-
-const loadRazorpay = () =>
-  new Promise((resolve) => {
-    if (window.Razorpay) return resolve(true)
-    const s = document.createElement('script')
-    s.src = 'https://checkout.razorpay.com/v1/checkout.js'
-    s.onload = () => resolve(true)
-    s.onerror = () => resolve(false)
-    document.body.appendChild(s)
-  })
 
 export default function Checkout() {
   const navigate = useNavigate()
@@ -118,31 +109,28 @@ export default function Checkout() {
       amount: totals.total,
       orderId: order._id,
     })
-    const ok = await loadRazorpay()
-    if (!ok) throw new Error('Could not load the payment window. Check your connection.')
-
-    const rzp = new window.Razorpay({
-      key: pay.keyId,
-      order_id: pay.id,
-      amount: pay.amount,
-      currency: pay.currency,
-      name: 'DBL Life Care',
-      description: 'Order payment',
-      prefill: { name: form.fullName, contact: form.phone },
-      theme: { color: '#0e9f8e' },
-      handler: async (resp) => {
-        try {
-          await api.post('/payments/verify', { ...resp, orderId: order._id })
-          clearCart()
-          navigate(`/order-success/${order._id}`, { state: { order } })
-        } catch {
-          setError('Payment could not be verified. If money was deducted, please contact support.')
-          setSubmitting(false)
-        }
-      },
-      modal: { ondismiss: () => setSubmitting(false) },
-    })
-    rzp.open()
+    try {
+      // Native Razorpay sheet in the app, web checkout in the browser.
+      const resp = await openRazorpayCheckout({
+        key: pay.keyId,
+        order_id: pay.id,
+        amount: pay.amount,
+        currency: pay.currency,
+        name: 'DBL Life Care',
+        description: 'Order payment',
+        prefill: { name: form.fullName, contact: form.phone },
+      })
+      await api.post('/payments/verify', { ...resp, orderId: order._id })
+      clearCart()
+      navigate(`/order-success/${order._id}`, { state: { order } })
+    } catch (err) {
+      if (err.message === PAYMENT_DISMISSED) {
+        setSubmitting(false) // customer closed the payment window
+        return
+      }
+      setError('Payment could not be verified. If money was deducted, please contact support.')
+      setSubmitting(false)
+    }
   }
 
   const onSubmit = async (e) => {

@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { FaHeartbeat, FaEnvelope, FaMobileAlt } from 'react-icons/fa'
-import { auth, firebaseEnabled, RecaptchaVerifier, signInWithPhoneNumber } from '../lib/firebase'
+import { realOtpAvailable, startPhoneAuth, confirmPhoneCode } from '../lib/phoneAuth'
 
 // Normalise to E.164; default India (+91) for a bare 10-digit number.
 const toE164 = (raw) => {
@@ -25,8 +25,6 @@ export default function Login() {
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
   const [phoneStep, setPhoneStep] = useState('phone') // 'phone' | 'code'
-  const confirmationRef = useRef(null)
-  const recaptchaRef = useRef(null)
 
   const [error, setError] = useState('')
   const [welcome, setWelcome] = useState('')
@@ -64,13 +62,8 @@ export default function Login() {
         goAfterLogin(check) // trusted device → no OTP
         return
       }
-      if (firebaseEnabled) {
-        if (!recaptchaRef.current) {
-          recaptchaRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            size: 'invisible',
-          })
-        }
-        confirmationRef.current = await signInWithPhoneNumber(auth, e164, recaptchaRef.current)
+      if (realOtpAvailable()) {
+        await startPhoneAuth(e164) // native SMS in the app, reCAPTCHA+SMS on web
       }
       setPhoneStep('code')
     } catch (err) {
@@ -87,9 +80,8 @@ export default function Login() {
     setLoading(true)
     try {
       let data
-      if (firebaseEnabled && confirmationRef.current) {
-        const result = await confirmationRef.current.confirm(code)
-        const idToken = await result.user.getIdToken()
+      if (realOtpAvailable()) {
+        const idToken = await confirmPhoneCode(code)
         data = await phoneVerify({ idToken, name })
       } else {
         // Dev/test mode — backend accepts the dev code (default 123456).
