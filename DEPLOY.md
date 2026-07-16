@@ -103,3 +103,21 @@ Set `IMAGEKIT_*` on the backend so uploaded product images persist (local
   at checkout and a pharmacist approval before dispatch. Assign the `pharmacist`
   role to whoever verifies prescriptions; approvals are recorded in the audit log
   (`GET /api/audit`).
+
+## SEO prerendering (optional)
+
+The storefront sets per-page `<title>`, meta and Open Graph tags (react-helmet)
+and JSON-LD product data, which modern crawlers execute. For crawlers/scrapers
+that don't run JS, you can also ship prerendered static HTML:
+
+```
+cd frontend
+npx playwright install chromium   # one-time
+npm run build:seo                 # vite build + prerender static routes
+```
+
+This writes real HTML for the static routes (home, shop, about, contact,
+doctors, lab-tests, blog, brands, health-club, sell, legal pages) into `dist/`,
+then upload `dist/` as usual. Dynamic pages (individual products, blog posts,
+doctor profiles) remain client-rendered. The plain `npm run build` is unchanged
+if you don't want prerendering.
