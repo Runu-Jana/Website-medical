@@ -7,6 +7,7 @@ import QuantitySelector from '../components/QuantitySelector'
 import ProductCard from '../components/ProductCard'
 import ProductCarousel from '../components/ProductCarousel'
 import SectionHeading from '../components/SectionHeading'
+import Seo from '../components/Seo'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import DeliveryPromise from '../components/DeliveryPromise'
@@ -174,8 +175,35 @@ export default function ProductDetail() {
     }
   }
 
+  const seoImage = product.thumbnail || product.images?.[0] || ''
+  const productJsonLd = {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    name: product.name,
+    image: product.images?.length ? product.images : seoImage ? [seoImage] : undefined,
+    description: (product.metaDescription || overviewText || product.name).slice(0, 300),
+    sku: product.sku || product._id,
+    brand: product.brand?.name ? { '@type': 'Brand', name: product.brand.name } : undefined,
+    ...(product.rating > 0 && product.numReviews > 0
+      ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: product.rating, reviewCount: product.numReviews } }
+      : {}),
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'INR',
+      price: product.price,
+      availability: product.countInStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+    },
+  }
+
   return (
     <div className="container-x py-8">
+      <Seo
+        title={product.seoTitle || product.name}
+        description={product.metaDescription || product.shortDescription || overviewText || product.name}
+        image={seoImage}
+        type="product"
+        jsonLd={productJsonLd}
+      />
       <nav className="mb-5 text-sm text-slate-500">
         <Link to="/" className="hover:text-primary">Home</Link> /{' '}
         <Link to="/shop" className="hover:text-primary">Shop</Link> /{' '}

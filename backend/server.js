@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 
 import connectDB from './config/db.js';
 import { autoSeedIfEmpty } from './config/autoSeed.js';
+import { initMonitoring } from './lib/monitoring.js';
 import { mailerEnabled } from './lib/mailer.js';
 import { aiEnabled } from './lib/ai.js';
 import { authLimiter } from './middleware/rateLimit.js';
@@ -146,6 +147,8 @@ app.use('/api/vendors', vendorRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
+
+initMonitoring();
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>

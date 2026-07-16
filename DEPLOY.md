@@ -83,3 +83,23 @@ Set `IMAGEKIT_*` on the backend so uploaded product images persist (local
 - [ ] `CLIENT_URLS` (backend) and `VITE_API_URL` (frontends) point at real domains
 - [ ] Test: register → add to cart → checkout (COD + online) → invoice → admin sees order
 - [ ] Change the default admin password (`admin@dcare.com`)
+
+## Production hardening checklist
+
+- **Database migrations.** Local/dev uses `prisma db push` for speed. For
+  production, switch to versioned migrations so schema changes are reviewable
+  and reversible: run `npx prisma migrate dev --name <change>` when editing the
+  schema, commit the generated `prisma/migrations/`, and deploy with
+  `npx prisma migrate deploy` (script: `npm run db:deploy`). This replaces the
+  `db push` used on first-time setup.
+- **Backups.** Enable automated daily backups + point-in-time recovery on your
+  Postgres provider (Railway/Neon/RDS all offer this) and test a restore.
+- **Error monitoring.** Set `SENTRY_DSN` and `npm i @sentry/node` (see
+  `.env.example`). Unhandled rejections/exceptions are already logged.
+- **CI.** `.github/workflows/ci.yml` runs backend tests + builds on every push.
+- **Secrets.** Keep `RAZORPAY_KEY_SECRET`, `SMTP_PASS`, `ANTHROPIC_API_KEY`,
+  `JWT_SECRET` only in the backend environment — never in the front-ends.
+- **Prescription compliance.** Rx-only products require an uploaded prescription
+  at checkout and a pharmacist approval before dispatch. Assign the `pharmacist`
+  role to whoever verifies prescriptions; approvals are recorded in the audit log
+  (`GET /api/audit`).

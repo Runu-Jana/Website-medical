@@ -17,6 +17,7 @@ import NewLaunches from '../components/NewLaunches'
 import BlogTeaser from '../components/BlogTeaser'
 import Testimonials from '../components/Testimonials'
 import CountdownTimer from '../components/CountdownTimer'
+import Seo from '../components/Seo'
 import { FaArrowRight } from 'react-icons/fa'
 
 export default function Home() {
@@ -106,6 +107,10 @@ export default function Home() {
 
   return (
     <div className="pb-4">
+      <Seo
+        title="Online Pharmacy, Lab Tests & Doctor Consultation"
+        description="Order genuine medicines online with fast delivery, book lab tests with home sample collection, and consult verified doctors — all in one place."
+      />
       <HeroSlider />
       <TrustBar />
       <CouponStrip coupons={coupons} />
