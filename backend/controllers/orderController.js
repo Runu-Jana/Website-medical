@@ -14,6 +14,7 @@ import {
 } from '../lib/coupons.js';
 import { resolveVendor } from '../lib/vendor.js';
 import { audit } from '../lib/audit.js';
+import { memberDiscount, shippingFor, orderTotal } from '../lib/pricing.js';
 
 // DBL Life Care Health Club member discount (percent off items).
 export const MEMBER_DISCOUNT_PERCENT = 5;
@@ -28,7 +29,7 @@ export const createOrder = async (req, res) => {
   const itemsPrice = items.reduce((a, i) => a + i.price * i.qty, 0);
   // Health Club perks: free delivery + 5% off (computed server-side, never trusted from client).
   const isMember = !!req.user?.isMember;
-  const discountPrice = isMember ? Math.round(itemsPrice * (MEMBER_DISCOUNT_PERCENT / 100)) : 0;
+  const discountPrice = memberDiscount(itemsPrice, isMember, MEMBER_DISCOUNT_PERCENT);
 
   // Coupon — validated & priced server-side so the client can't fake a discount.
   // Coupons stack with member/deal discounts (store policy).
@@ -53,12 +54,9 @@ export const createOrder = async (req, res) => {
     }
   }
 
-  const shippingPrice = isMember ? 0 : itemsPrice > 1000 ? 0 : 60;
+  const shippingPrice = shippingFor(itemsPrice, isMember);
   const taxPrice = 0;
-  const totalPrice = Math.max(
-    0,
-    itemsPrice - discountPrice - couponDiscount + shippingPrice + taxPrice
-  );
+  const totalPrice = orderTotal({ itemsPrice, discountPrice, couponDiscount, shippingPrice, taxPrice });
 
   // Look up the cart's products once — for vendor routing, prescription rules
   // and authoritative stock levels (all decided server-side).
