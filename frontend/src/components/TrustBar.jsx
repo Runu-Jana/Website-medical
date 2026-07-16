@@ -18,14 +18,14 @@ export default function TrustBar() {
   return (
     <div className="container-x mt-6">
       <div className="card px-3 py-5 sm:px-6">
-        <ul className="flex gap-4 overflow-x-auto sm:justify-around sm:gap-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <ul className="flex gap-4 overflow-x-auto py-1.5 sm:justify-around sm:gap-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {items.map((it) => (
             <li
               key={it.label}
               className="flex min-w-[84px] flex-col items-center gap-2 text-center sm:min-w-0"
             >
               <span
-                className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl ring-4 ring-white ${it.color}`}
+                className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl ring-4 ring-white dark:ring-slate-800 ${it.color}`}
               >
                 <it.icon />
               </span>
