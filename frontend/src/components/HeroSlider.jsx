@@ -98,11 +98,13 @@ export default function HeroSlider() {
               {slide.badge}
             </span>
           )}
-          <h1 className="mt-3 text-2xl font-extrabold leading-[1.1] text-dark sm:mt-5 sm:text-5xl sm:leading-[1.05] lg:text-6xl">
+          {/* Fixed dark ink so the copy stays readable on the light banner in
+              both light and dark themes (arbitrary colours aren't theme-remapped). */}
+          <h1 className="mt-3 text-2xl font-extrabold leading-[1.1] text-[#1e293b] sm:mt-5 sm:text-5xl sm:leading-[1.05] lg:text-6xl">
             {slide.title}
           </h1>
           {slide.subtitle && (
-            <p className="mt-2 text-sm font-medium text-slate-700 sm:mt-4 sm:text-lg">
+            <p className="mt-2 text-sm font-medium text-[#334155] sm:mt-4 sm:text-lg">
               {slide.subtitle}
             </p>
           )}
