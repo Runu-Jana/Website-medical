@@ -7,7 +7,8 @@ import { formatPrice, imgFallback, PLACEHOLDER_IMG } from '../lib/helpers'
 import AddressAutocomplete from '../components/AddressAutocomplete'
 import CouponInput from '../components/CouponInput'
 import { openRazorpayCheckout, PAYMENT_DISMISSED } from '../lib/payment'
-import { FaMoneyBillWave, FaCreditCard } from 'react-icons/fa'
+import { isNativeApp, capturePrescription } from '../lib/nativeCamera'
+import { FaMoneyBillWave, FaCreditCard, FaCamera } from 'react-icons/fa'
 
 const COD = { id: 'Cash on Delivery', label: 'Cash on Delivery', icon: FaMoneyBillWave }
 const ONLINE = { id: 'Razorpay', label: 'Pay Online — UPI / Card / Netbanking', icon: FaCreditCard }
@@ -36,6 +37,8 @@ export default function Checkout() {
   const [rxFile, setRxFile] = useState(null)
   const [rxUploading, setRxUploading] = useState(false)
   const [prescriptionId, setPrescriptionId] = useState('')
+  const [isApp, setIsApp] = useState(false)
+  useEffect(() => { isNativeApp().then(setIsApp) }, [])
 
   useEffect(() => {
     api.get('/payments/config').then(({ data }) => setPayConfig(data || {})).catch(() => {})
@@ -80,13 +83,14 @@ export default function Checkout() {
   })
 
   // Upload the customer's prescription for the Rx-only items in the cart.
-  const uploadRx = async () => {
-    if (!rxFile) return
+  const uploadRx = async (fileArg) => {
+    const file = fileArg || rxFile
+    if (!file) return
     setRxUploading(true)
     setError('')
     try {
       const fd = new FormData()
-      fd.append('file', rxFile)
+      fd.append('file', file)
       const { data: up } = await api.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
       const { data: rx } = await api.post('/prescriptions', {
         name: form.fullName,
@@ -273,21 +277,36 @@ export default function Checkout() {
                   ✓ Prescription uploaded. It will be verified by our pharmacist.
                 </p>
               ) : (
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <input
-                    type="file"
-                    accept="image/*,application/pdf"
-                    onChange={(e) => setRxFile(e.target.files?.[0] || null)}
-                    className="text-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={uploadRx}
-                    disabled={!rxFile || rxUploading}
-                    className="btn-primary shrink-0 disabled:opacity-50"
-                  >
-                    {rxUploading ? 'Uploading…' : 'Upload prescription'}
-                  </button>
+                <div className="space-y-2">
+                  {isApp && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const f = await capturePrescription()
+                        if (f) uploadRx(f)
+                      }}
+                      disabled={rxUploading}
+                      className="btn-primary flex w-full items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <FaCamera /> {rxUploading ? 'Uploading…' : 'Take a photo'}
+                    </button>
+                  )}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      onChange={(e) => setRxFile(e.target.files?.[0] || null)}
+                      className="text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => uploadRx()}
+                      disabled={!rxFile || rxUploading}
+                      className="btn-primary shrink-0 disabled:opacity-50"
+                    >
+                      {rxUploading ? 'Uploading…' : 'Upload prescription'}
+                    </button>
+                  </div>
                 </div>
               )}
               <p className="mt-2 text-xs text-slate-400">Accepted: PDF, JPG or PNG.</p>

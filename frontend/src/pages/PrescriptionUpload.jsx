@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { waLink, telLink } from '../config/site'
+import { isNativeApp, capturePrescription } from '../lib/nativeCamera'
 import {
   FaPrescriptionBottleAlt,
   FaQuestionCircle,
@@ -11,6 +12,7 @@ import {
   FaHeadset,
   FaWhatsapp,
   FaCloudUploadAlt,
+  FaCamera,
   FaCheckCircle,
   FaArrowRight,
   FaTimes,
@@ -52,6 +54,8 @@ export default function PrescriptionUpload() {
     note: '',
   })
   const [uploading, setUploading] = useState(false)
+  const [isApp, setIsApp] = useState(false)
+  useEffect(() => { isNativeApp().then(setIsApp) }, [])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
@@ -234,6 +238,20 @@ export default function PrescriptionUpload() {
                     onChange={(e) => pickFile(e.target.files?.[0])}
                   />
                 </div>
+
+                {isApp && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const f = await capturePrescription()
+                      if (f) pickFile(f)
+                    }}
+                    disabled={uploading}
+                    className="btn-primary flex w-full items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <FaCamera /> Take a photo
+                  </button>
+                )}
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
