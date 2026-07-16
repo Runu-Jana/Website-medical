@@ -116,8 +116,16 @@ npx playwright install chromium   # one-time
 npm run build:seo                 # vite build + prerender static routes
 ```
 
-This writes real HTML for the static routes (home, shop, about, contact,
-doctors, lab-tests, blog, brands, health-club, sell, legal pages) into `dist/`,
-then upload `dist/` as usual. Dynamic pages (individual products, blog posts,
-doctor profiles) remain client-rendered. The plain `npm run build` is unchanged
-if you don't want prerendering.
+This writes real HTML into `dist/` for the static routes **and**, when the build
+points at a reachable API, for every **individual product, blog post and doctor
+profile** (their slugs are pulled from the API at build time). Each product page
+includes JSON-LD structured data for search rich results. Then upload `dist/`
+as usual.
+
+- `VITE_API_URL` must be your **live/production API** (reachable from the machine
+  running the build) so the pages can fetch their data — e.g.
+  `VITE_API_URL=https://api.yourpharmacy.com npm run build:seo`.
+- Without an API base it prerenders the static routes only.
+- `PRERENDER_MAX=<n>` caps dynamic pages per type (default 2000).
+
+The plain `npm run build` is unchanged if you don't want prerendering.

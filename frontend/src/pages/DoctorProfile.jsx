@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { imgFallback } from '../lib/helpers'
 import { payForBooking, PAYMENT_DISMISSED } from '../lib/payment'
+import Seo from '../components/Seo'
 import {
   FaUserMd, FaStar, FaArrowLeft, FaVideo, FaPhoneAlt, FaCommentDots, FaCheckCircle, FaLanguage,
 } from 'react-icons/fa'
@@ -114,6 +115,12 @@ export default function DoctorProfile() {
 
   return (
     <div className="container-x py-6">
+      <Seo
+        title={`${doc.name}${doc.specialty ? ` — ${doc.specialty}` : ''}`}
+        description={doc.about || `Consult ${doc.name}${doc.specialty ? `, ${doc.specialty}` : ''} online — book a video, audio or chat consultation.`}
+        image={doc.photo || ''}
+        type="profile"
+      />
       <Link to="/doctors" className="mb-4 inline-flex items-center gap-2 text-sm text-slate-500 hover:text-primary">
         <FaArrowLeft /> All Doctors
       </Link>

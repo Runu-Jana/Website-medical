@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api, { API } from '../lib/api'
 import Spinner from '../components/Spinner'
+import Seo from '../components/Seo'
 import { imgFallback } from '../lib/helpers'
 import { FaRegCalendarAlt, FaUser, FaArrowLeft } from 'react-icons/fa'
 
@@ -45,8 +46,23 @@ export default function BlogPost() {
     )
   }
 
+  const seoImage = post.image ? resolveImg(post.image) : ''
   return (
     <article className="container-x py-8">
+      <Seo
+        title={post.title}
+        description={post.excerpt || (post.content || '').slice(0, 160)}
+        image={seoImage}
+        type="article"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          headline: post.title,
+          image: seoImage || undefined,
+          datePublished: post.createdAt,
+          author: { '@type': 'Organization', name: post.author || 'DBL Life Care' },
+        }}
+      />
       <nav className="mb-5 text-sm text-slate-500">
         <Link to="/" className="hover:text-primary">
           Home
