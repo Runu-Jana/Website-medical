@@ -19,7 +19,7 @@
 //   PRERENDER_MAX=<n>     cap dynamic pages per type (default 2000)
 //   PRERENDER_CHROMIUM=<path>  explicit Chromium binary
 
-import { preview } from 'vite';
+import { preview, loadEnv } from 'vite';
 import { chromium } from 'playwright';
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -27,7 +27,12 @@ import fs from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.resolve(__dirname, '../dist');
-const API = (process.env.PRERENDER_API || process.env.VITE_API_URL || '').replace(/\/$/, '');
+
+// Resolve the API base from the shell first, then fall back to the .env files
+// Vite itself reads — so `npm run build:seo` just works after you set
+// VITE_API_URL in frontend/.env (no cross-platform inline-env juggling).
+const fileEnv = loadEnv('production', process.cwd(), '');
+const API = (process.env.PRERENDER_API || process.env.VITE_API_URL || fileEnv.VITE_API_URL || '').replace(/\/$/, '');
 const MAX = Number(process.env.PRERENDER_MAX || 2000);
 
 // Static, always-indexable routes. '/' is rendered LAST so that while other
