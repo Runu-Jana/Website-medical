@@ -34,7 +34,10 @@ export default function Home() {
     let active = true
     const fetchAll = async () => {
       try {
-        const [cats, deal, feat, best, news, latest, brnds, cpns] = await Promise.all([
+        // Load every section independently: a single failing or slow request
+        // (e.g. during a backend redeploy / cold start) must never blank the
+        // whole page, so we use allSettled instead of all-or-nothing Promise.all.
+        const results = await Promise.allSettled([
           api.get('/categories'),
           api.get('/products', { params: { deal: true, limit: 4 } }),
           api.get('/products', { params: { featured: true, limit: 8 } }),
@@ -42,20 +45,23 @@ export default function Home() {
           api.get('/products', { params: { isNew: true, limit: 8 } }),
           api.get('/products', { params: { sort: 'newest', limit: 8 } }),
           api.get('/brands'),
-          api.get('/coupons/active').catch(() => ({ data: [] })),
+          api.get('/coupons/active'),
         ])
         if (!active) return
+        const data = (i) => (results[i].status === 'fulfilled' ? results[i].value.data : undefined)
+        const cats = data(0), deal = data(1), feat = data(2), best = data(3)
+        const news = data(4), latest = data(5), brnds = data(6), cpns = data(7)
         // Fall back to the latest products when a flagged list is empty,
         // so these sections always show products.
-        const fallback = latest.data.products || []
+        const fallback = latest?.products || []
         const orFallback = (list) => (list && list.length ? list : fallback)
-        setCategories(Array.isArray(cats.data) ? cats.data : [])
-        setDeals(deal.data.products || [])
-        setFeatured(orFallback(feat.data.products))
-        setBestsellers(orFallback(best.data.products))
-        setNewArrivals(orFallback(news.data.products))
-        setBrands(Array.isArray(brnds.data) ? brnds.data : [])
-        setCoupons(Array.isArray(cpns.data) ? cpns.data : [])
+        setCategories(Array.isArray(cats) ? cats : [])
+        setDeals(deal?.products || [])
+        setFeatured(orFallback(feat?.products))
+        setBestsellers(orFallback(best?.products))
+        setNewArrivals(orFallback(news?.products))
+        setBrands(Array.isArray(brnds) ? brnds : [])
+        setCoupons(Array.isArray(cpns) ? cpns : [])
       } catch {
         /* keep empty states */
       } finally {
