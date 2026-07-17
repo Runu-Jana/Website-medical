@@ -41,8 +41,8 @@ const CURATED_SPECIALTIES = [
 
 function DoctorCard({ doc }) {
   return (
-    <div className="card flex items-center gap-3 p-3">
-      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-lightbg">
+    <div className="card flex min-w-0 items-center gap-3 p-3">
+      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-lightbg sm:h-16 sm:w-16">
         {doc.photo ? (
           <img src={doc.photo} onError={imgFallback} alt={doc.name} className="h-full w-full object-cover" />
         ) : (
@@ -63,7 +63,7 @@ function DoctorCard({ doc }) {
       </div>
       <Link
         to={`/doctors/${doc.slug || doc._id}`}
-        className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-xs font-bold text-white hover:bg-primaryDark"
+        className="shrink-0 whitespace-nowrap rounded-lg bg-primary px-3 py-2 text-[11px] font-bold text-white hover:bg-primaryDark sm:px-3.5 sm:text-xs"
       >
         Consult Now
       </Link>

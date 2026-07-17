@@ -12,7 +12,7 @@ import {
 } from 'react-icons/fa'
 
 const services = [
-  { icon: FaUserMd, label: 'Doctor Appointment', to: '/doctors', color: 'bg-sky-100 text-sky-600' },
+  { icon: FaUserMd, label: 'Doctor Consultation', to: '/doctors', color: 'bg-sky-100 text-sky-600' },
   { icon: FaFlask, label: 'Lab Tests', to: '/lab-tests', color: 'bg-violet-100 text-violet-600' },
   { icon: FaSyringe, label: 'Vaccination', to: '/shop?keyword=vaccine', color: 'bg-emerald-100 text-emerald-600' },
   { icon: FaShieldAlt, label: 'Health Insurance', to: '/contact', color: 'bg-indigo-100 text-indigo-600' },

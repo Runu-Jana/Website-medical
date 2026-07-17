@@ -5,7 +5,7 @@ import Spinner from '../components/Spinner'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { formatPrice } from '../lib/helpers'
-import { FaFlask, FaSearch, FaHome, FaFileMedical, FaCheckCircle, FaVial, FaClock } from 'react-icons/fa'
+import { FaFlask, FaSearch, FaHome, FaFileMedical, FaCheckCircle, FaVial, FaClock, FaArrowLeft } from 'react-icons/fa'
 
 function PackageCard({ t, selected, onToggle }) {
   return (
@@ -133,6 +133,15 @@ export default function LabTests() {
 
   return (
     <div className="container-x py-6 pb-28">
+      {/* Back */}
+      <button
+        onClick={() => navigate(-1)}
+        aria-label="Back"
+        className="mb-3 -ml-2 flex items-center gap-1.5 rounded-full py-1 pl-2 pr-3 text-sm font-semibold text-slate-600 hover:bg-lightbg"
+      >
+        <FaArrowLeft size={16} /> Back
+      </button>
+
       {/* Hero */}
       <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 p-6 text-white sm:p-8">
         <div className="flex items-center gap-3">
