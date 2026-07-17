@@ -152,9 +152,9 @@ export default function ProductCard({ product, list = false }) {
               type="button"
               disabled={outOfStock}
               onClick={() => addToCart(product)}
-              className={`btn-primary w-full ${list ? 'sm:w-48' : ''}`}
+              className={`btn-primary w-full whitespace-nowrap gap-1.5 px-3 text-xs sm:gap-2 sm:px-5 sm:text-sm ${list ? 'sm:w-48' : ''}`}
             >
-              <FaCartPlus />
+              <FaCartPlus className="shrink-0" />
               {outOfStock ? 'Out of Stock' : 'Add to Cart'}
             </button>
           </div>
