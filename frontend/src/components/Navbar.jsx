@@ -11,7 +11,6 @@ import {
   FaChevronDown,
   FaChevronRight,
   FaPills,
-  FaMapMarkerAlt,
 } from 'react-icons/fa'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
@@ -20,6 +19,7 @@ import api from '../lib/api'
 import SearchBar from './SearchBar'
 import QuickServices from './QuickServices'
 import ThemeToggle from './ThemeToggle'
+import DeliveryLocationPill from './DeliveryLocationPill'
 import { siteConfig, telLink, mailLink } from '../config/site'
 
 const navLinks = [
@@ -131,33 +131,7 @@ export default function Navbar() {
           )}
 
           <div className="ml-auto flex items-center gap-1 sm:gap-3">
-            {user && user.address?.city ? (
-              <Link
-                to="/account"
-                className="mr-1 hidden items-center gap-2 border-r border-bordergray pr-4 lg:flex"
-                title="Change delivery address"
-              >
-                <FaMapMarkerAlt className="text-primary" size={20} />
-                <span className="leading-tight">
-                  <span className="block text-[11px] text-slate-500">Express delivery to</span>
-                  <span className="block max-w-[10rem] truncate text-sm font-bold text-dark">
-                    {user.address.city}
-                  </span>
-                </span>
-              </Link>
-            ) : (
-              <Link
-                to={user ? '/account' : '/login'}
-                className="mr-1 hidden items-center gap-2 border-r border-bordergray pr-4 lg:flex"
-                title={user ? 'Add a delivery address' : 'Sign in to set your address'}
-              >
-                <FaMapMarkerAlt className="text-primary" size={20} />
-                <span className="leading-tight">
-                  <span className="block text-[11px] text-slate-500">Express delivery to</span>
-                  <span className="block text-sm font-bold text-dark">Select Address</span>
-                </span>
-              </Link>
-            )}
+            <DeliveryLocationPill className="mr-1 hidden border-r border-bordergray pr-4 lg:flex" />
             <ThemeToggle className="self-center" />
             <Link
               to="/wishlist"
@@ -212,6 +186,11 @@ export default function Navbar() {
             <SearchBar variant="mobile" onNavigate={() => setMobileOpen(false)} />
           </div>
         )}
+
+        {/* mobile delivery-location bar (desktop shows it in the header row) */}
+        <div className="container-x pb-2 lg:hidden">
+          <DeliveryLocationPill compact />
+        </div>
       </div>
 
       {/* Quick services strip — hidden on mobile for focused service pages (kept on desktop) */}

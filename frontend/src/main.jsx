@@ -7,6 +7,7 @@ import { ToastProvider } from './context/ToastContext.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { CartProvider } from './context/CartContext.jsx'
 import { WishlistProvider } from './context/WishlistContext.jsx'
+import { DeliveryLocationProvider } from './context/LocationContext.jsx'
 import { initNative } from './lib/native'
 import './index.css'
 
@@ -21,7 +22,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <AuthProvider>
             <WishlistProvider>
               <CartProvider>
-                <App />
+                <DeliveryLocationProvider>
+                  <App />
+                </DeliveryLocationProvider>
               </CartProvider>
             </WishlistProvider>
           </AuthProvider>

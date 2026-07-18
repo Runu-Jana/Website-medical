@@ -8,6 +8,7 @@ import SupportChat from './SupportChat'
 import BackToTop from './BackToTop'
 import Seo from './Seo'
 import RouteLoader from './RouteLoader'
+import DeliveryLocationModal from './DeliveryLocationModal'
 
 // Per-route SEO defaults for pages that don't set their own <Seo>. Pages with
 // dynamic metadata (Home, product pages) have no entry here and own their tags.
@@ -63,6 +64,8 @@ export default function Layout() {
       {!immersive && <SupportChat />}
       {/* Scroll-to-top button */}
       <BackToTop />
+      {/* First-visit delivery-location prompt (also opened from the navbar pill) */}
+      <DeliveryLocationModal />
     </div>
   )
 }
