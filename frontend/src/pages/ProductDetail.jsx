@@ -7,6 +7,7 @@ import QuantitySelector from '../components/QuantitySelector'
 import ProductCard from '../components/ProductCard'
 import BrandComparison from '../components/BrandComparison'
 import SectionHeading from '../components/SectionHeading'
+import { primaryMolecule, moleculeSignature } from '../lib/salt'
 import Seo from '../components/Seo'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
@@ -87,12 +88,21 @@ export default function ProductDetail() {
         if (!active) return
         setProduct(data.product)
         setRelated(data.related || [])
-        // Substitutes: other products with the same salt composition.
+        // Substitutes: other brands with the same molecule(s). Query the backend
+        // with the primary molecule (broad), then keep only exact molecule-
+        // signature matches so strength/format differences group but combination
+        // drugs stay separate.
         const salt = data.product?.saltComposition?.trim()
-        if (salt) {
+        const molecule = primaryMolecule(salt)
+        if (molecule) {
+          const sig = moleculeSignature(salt)
           api
-            .get('/products', { params: { salt, exclude: data.product._id, limit: 8 } })
-            .then(({ data: sub }) => active && setSubstitutes(sub.products || []))
+            .get('/products', { params: { salt: molecule, exclude: data.product._id, limit: 24 } })
+            .then(({ data: sub }) => {
+              if (!active) return
+              const matched = (sub.products || []).filter((pr) => moleculeSignature(pr.saltComposition) === sig)
+              setSubstitutes(matched.slice(0, 8))
+            })
             .catch(() => active && setSubstitutes([]))
         } else {
           setSubstitutes([])
