@@ -21,6 +21,7 @@ import LabBookings from './pages/LabBookings.jsx';
 import Vendors from './pages/Vendors.jsx';
 import VendorProfile from './pages/VendorProfile.jsx';
 import Settlements from './pages/Settlements.jsx';
+import VendorAnalytics from './pages/VendorAnalytics.jsx';
 import Customers from './pages/Customers.jsx';
 import Refills from './pages/Refills.jsx';
 import Messages from './pages/Messages.jsx';
@@ -59,6 +60,7 @@ export default function App() {
         <Route path="/vendors" element={<Vendors />} />
         <Route path="/vendor-profile" element={<VendorProfile />} />
         <Route path="/settlements" element={<Settlements />} />
+        <Route path="/vendor-analytics" element={<VendorAnalytics />} />
         <Route path="/customers" element={<Customers />} />
         <Route path="/refills" element={<Refills />} />
         <Route path="/messages" element={<Messages />} />

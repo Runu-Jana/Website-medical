@@ -6,6 +6,7 @@ import {
   getVendorStats,
   getMyEarnings,
   getSettlements,
+  getVendorAnalytics,
   recordPayout,
   getVendorPayouts,
   getVendors,
@@ -21,6 +22,7 @@ router.put('/me', protect, vendor, updateMyVendor);
 router.get('/stats', protect, vendor, getVendorStats);
 router.get('/earnings', protect, vendor, getMyEarnings);
 router.get('/settlements', protect, admin, getSettlements);
+router.get('/analytics', protect, admin, getVendorAnalytics);
 router.get('/', protect, admin, getVendors);
 router.post('/:id/payouts', protect, admin, recordPayout);
 router.get('/:id/payouts', protect, admin, getVendorPayouts);

@@ -22,6 +22,7 @@ import {
   FiShield,
   FiActivity,
   FiRefreshCw,
+  FiBarChart2,
   FiX,
 } from 'react-icons/fi';
 
@@ -38,6 +39,7 @@ const links = [
   { to: '/orders', label: 'Orders', icon: FiShoppingCart, vendor: true },
   { to: '/vendor-profile', label: 'My Shop', icon: FiShoppingBag, vendorOnly: true },
   { to: '/vendors', label: 'Vendors', icon: FiShoppingBag },
+  { to: '/vendor-analytics', label: 'Vendor Analytics', icon: FiBarChart2 },
   { to: '/settlements', label: 'Settlements', icon: FiPercent },
   { to: '/offers', label: 'Offers', icon: FiPercent },
   { to: '/doctors', label: 'Doctors', icon: FiUserPlus },

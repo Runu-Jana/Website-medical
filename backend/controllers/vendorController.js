@@ -201,6 +201,104 @@ export const getSettlements = async (req, res) => {
   res.json({ vendors: rows });
 };
 
+// @route GET /api/vendors/analytics  (admin)
+// One-glance comparison of every vendor: catalog size, discount spread, average
+// price, sales volume, revenue and settlement — so the admin can rank sellers
+// and compare their pricing/discounts side by side (Amazon/Flipkart style).
+export const getVendorAnalytics = async (req, res) => {
+  const [vendors, products, orders, payoutSums] = await Promise.all([
+    prisma.vendor.findMany({ orderBy: { createdAt: 'desc' } }),
+    prisma.product.findMany({
+      select: { vendorId: true, status: true, countInStock: true, discountPercent: true, price: true },
+    }),
+    prisma.order.findMany({ where: { isPaid: true, isRefunded: false }, select: { items: true }, take: 5000 }),
+    prisma.vendorPayout.groupBy({ by: ['vendorId'], _sum: { amount: true } }),
+  ]);
+
+  // Catalog metrics grouped by vendorId.
+  const prodBy = new Map();
+  for (const p of products) {
+    const key = p.vendorId || '';
+    if (!prodBy.has(key)) {
+      prodBy.set(key, { count: 0, active: 0, oos: 0, discSum: 0, minDisc: null, maxDisc: null, priceSum: 0 });
+    }
+    const m = prodBy.get(key);
+    m.count += 1;
+    if (p.status === 'active') m.active += 1;
+    if ((p.countInStock || 0) <= 0) m.oos += 1;
+    const d = p.discountPercent || 0;
+    m.discSum += d;
+    m.minDisc = m.minDisc === null ? d : Math.min(m.minDisc, d);
+    m.maxDisc = m.maxDisc === null ? d : Math.max(m.maxDisc, d);
+    m.priceSum += p.price || 0;
+  }
+
+  // Sales metrics (paid, non-refunded) grouped by vendorId.
+  const salesBy = new Map();
+  for (const o of orders) {
+    if (!Array.isArray(o.items)) continue;
+    const vendorsInOrder = new Set();
+    for (const it of o.items) {
+      if (!it.vendorId) continue;
+      if (!salesBy.has(it.vendorId)) salesBy.set(it.vendorId, { revenue: 0, units: 0, orders: 0 });
+      const s = salesBy.get(it.vendorId);
+      s.revenue += (it.price || 0) * (it.qty || 0);
+      s.units += it.qty || 0;
+      vendorsInOrder.add(it.vendorId);
+    }
+    for (const vid of vendorsInOrder) salesBy.get(vid).orders += 1;
+  }
+
+  const paidMap = new Map(payoutSums.map((p) => [p.vendorId, p._sum.amount || 0]));
+
+  const rows = vendors.map((v) => {
+    const pm = prodBy.get(v.id) || { count: 0, active: 0, oos: 0, discSum: 0, minDisc: 0, maxDisc: 0, priceSum: 0 };
+    const sm = salesBy.get(v.id) || { revenue: 0, units: 0, orders: 0 };
+    const gross = sm.revenue;
+    const commission = gross * (v.commissionPercent / 100);
+    const net = gross - commission;
+    const paid = paidMap.get(v.id) || 0;
+    return {
+      _id: v.id,
+      shopName: v.shopName || v.ownerName || 'Unnamed seller',
+      ownerName: v.ownerName,
+      email: v.email,
+      phone: v.phone,
+      licenseNumber: v.licenseNumber,
+      gstin: v.gstin,
+      status: v.status,
+      commissionPercent: v.commissionPercent,
+      joinedAt: v.createdAt,
+      productCount: pm.count,
+      activeCount: pm.active,
+      outOfStock: pm.oos,
+      avgDiscount: pm.count ? Math.round(pm.discSum / pm.count) : 0,
+      minDiscount: Math.round(pm.minDisc || 0),
+      maxDiscount: Math.round(pm.maxDisc || 0),
+      avgPrice: pm.count ? Math.round(pm.priceSum / pm.count) : 0,
+      unitsSold: sm.units,
+      orderCount: sm.orders,
+      revenue: Math.round(gross),
+      commission: Math.round(commission),
+      netEarned: Math.round(net),
+      totalPaid: Math.round(paid),
+      outstanding: Math.round(net - paid),
+    };
+  });
+
+  const summary = {
+    vendorCount: vendors.length,
+    approvedVendors: vendors.filter((v) => v.status === 'approved').length,
+    pendingVendors: vendors.filter((v) => v.status === 'pending').length,
+    totalProducts: products.length,
+    totalUnitsSold: rows.reduce((s, r) => s + r.unitsSold, 0),
+    totalRevenue: rows.reduce((s, r) => s + r.revenue, 0),
+    totalOutstanding: rows.reduce((s, r) => s + (r.outstanding > 0 ? r.outstanding : 0), 0),
+  };
+
+  res.json({ vendors: rows, summary });
+};
+
 // @route POST /api/vendors/:id/payouts  (admin) — record a settlement payment
 export const recordPayout = async (req, res) => {
   const v = await prisma.vendor.findUnique({ where: { id: req.params.id } });
