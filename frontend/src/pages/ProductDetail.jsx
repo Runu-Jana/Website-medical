@@ -5,7 +5,7 @@ import Spinner from '../components/Spinner'
 import RatingStars from '../components/RatingStars'
 import QuantitySelector from '../components/QuantitySelector'
 import ProductCard from '../components/ProductCard'
-import ProductCarousel from '../components/ProductCarousel'
+import BrandComparison from '../components/BrandComparison'
 import SectionHeading from '../components/SectionHeading'
 import Seo from '../components/Seo'
 import { useCart } from '../context/CartContext'
@@ -659,18 +659,20 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* Substitutes — same salt composition */}
+      {/* Same composition — compare brands & prices across vendors */}
       {substitutes.length > 0 && (
         <section className="mt-12">
           <SectionHeading
             subtitle="Same composition"
-            title="Substitutes & Alternatives"
+            title="Compare brands & save"
           />
           <p className="-mt-2 mb-4 text-sm text-slate-500">
-            Products with the same salt{product.saltComposition ? ` (${product.saltComposition})` : ''}.
-            Please consult your doctor before switching.
+            Other brands with the same salt{product.saltComposition ? ` (${product.saltComposition})` : ''}, sorted by price.
+            {product.requiresPrescription
+              ? ' This is a prescription medicine — please consult your doctor or pharmacist before switching brands.'
+              : ' Same molecule — pick the price and brand that suit you.'}
           </p>
-          <ProductCarousel products={substitutes} />
+          <BrandComparison current={product} substitutes={substitutes} />
         </section>
       )}
 
