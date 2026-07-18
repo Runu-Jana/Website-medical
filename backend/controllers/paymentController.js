@@ -16,6 +16,16 @@ const BOOKING_KINDS = {
   appointment: { model: 'appointment', amountField: 'fee', notify: notifyAppointmentBooked },
 };
 
+// A customer may only pay for their OWN record. A record with no userId is a
+// guest record (guest checkout) — there is no owner to check against, so it
+// passes. A record owned by a user requires the caller to be that same
+// authenticated user; this blocks creating/confirming payments for someone
+// else's order or appointment by guessing its id.
+function ownsRecord(req, record) {
+  if (!record?.userId) return true;
+  return !!req.user?.id && req.user.id === record.userId;
+}
+
 // @route GET /api/payments/config  — lets the storefront know if online pay is on
 export const getPaymentConfig = (req, res) => {
   res.json({
@@ -43,12 +53,16 @@ export const createPaymentOrder = async (req, res) => {
     // Doctor appointment / lab booking — price from its own record.
     const record = await prisma[kind.model].findUnique({ where: { id: recordId } }).catch(() => null);
     if (!record) return res.status(404).json({ message: 'Booking not found' });
+    if (!ownsRecord(req, record)) return res.status(403).json({ message: 'Not authorized for this booking' });
     rupees = record[kind.amountField];
     notes = { bookingType: req.body.type, bookingId: recordId };
   } else if (recordId) {
     // Shop order.
     const ourOrder = await prisma.order.findUnique({ where: { id: recordId } }).catch(() => null);
-    if (ourOrder) rupees = ourOrder.totalPrice;
+    if (ourOrder) {
+      if (!ownsRecord(req, ourOrder)) return res.status(403).json({ message: 'Not authorized for this order' });
+      rupees = ourOrder.totalPrice;
+    }
     notes = { orderId: recordId };
   }
 
@@ -91,6 +105,8 @@ export const verifyPayment = async (req, res) => {
   if (kind && recordId) {
     // Doctor appointment / lab booking — confirm it and notify admin now that
     // the payment has cleared.
+    const existing = await prisma[kind.model].findUnique({ where: { id: recordId } }).catch(() => null);
+    if (existing && !ownsRecord(req, existing)) return res.status(403).json({ message: 'Not authorized for this booking' });
     // Mark it paid; the booking stays 'pending' so the admin still runs their
     // confirm workflow. It only becomes visible to admin/customer once paid.
     const updated = await prisma[kind.model]
@@ -106,6 +122,8 @@ export const verifyPayment = async (req, res) => {
       .catch(() => null);
     if (updated) kind.notify(updated);
   } else if (recordId) {
+    const existing = await prisma.order.findUnique({ where: { id: recordId } }).catch(() => null);
+    if (existing && !ownsRecord(req, existing)) return res.status(403).json({ message: 'Not authorized for this order' });
     await prisma.order
       .update({
         where: { id: recordId },

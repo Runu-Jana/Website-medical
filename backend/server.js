@@ -93,13 +93,28 @@ const allowedOrigins = (process.env.CLIENT_URLS || '')
   .map((s) => s.trim())
   .filter(Boolean);
 
+// The mobile app (Capacitor WebView) uses these local origins — always allowed
+// so tightening CORS never breaks the Android/iOS app.
+const NATIVE_ORIGINS = new Set([
+  'capacitor://localhost',
+  'ionic://localhost',
+  'http://localhost',
+  'https://localhost',
+]);
+
+const isProd = process.env.NODE_ENV === 'production';
+
 app.use(
   cors({
     origin: (origin, cb) => {
-      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
-        return cb(null, true);
-      }
-      return cb(null, true); // permissive in dev; tighten in production
+      // No Origin header (same-origin, curl, native app, server-to-server).
+      if (!origin) return cb(null, true);
+      if (allowedOrigins.includes(origin) || NATIVE_ORIGINS.has(origin)) return cb(null, true);
+      // In development, or when CLIENT_URLS is not configured yet, stay
+      // permissive so nothing is accidentally locked out. In production with a
+      // configured allow-list, reject anything not on it.
+      if (!isProd || allowedOrigins.length === 0) return cb(null, true);
+      return cb(new Error(`Origin ${origin} is not allowed by CORS`));
     },
     credentials: true,
   })

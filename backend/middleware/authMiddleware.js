@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import prisma from '../prisma/client.js';
 import { serializeUser } from '../prisma/serialize.js';
+import { JWT_SECRET } from '../lib/jwtSecret.js';
 
 export const protect = async (req, res, next) => {
   let token;
@@ -12,7 +13,7 @@ export const protect = async (req, res, next) => {
     return res.status(401).json({ message: 'Not authorized, no token' });
   }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'devsecret');
+    const decoded = jwt.verify(token, JWT_SECRET);
     const user = await prisma.user.findUnique({ where: { id: decoded.id } });
     if (!user) {
       return res.status(401).json({ message: 'User no longer exists' });
@@ -58,7 +59,7 @@ export const optionalAuth = async (req, res, next) => {
   const auth = req.headers.authorization;
   if (auth && auth.startsWith('Bearer ')) {
     try {
-      const decoded = jwt.verify(auth.split(' ')[1], process.env.JWT_SECRET || 'devsecret');
+      const decoded = jwt.verify(auth.split(' ')[1], JWT_SECRET);
       const user = await prisma.user.findUnique({ where: { id: decoded.id } });
       if (user) req.user = serializeUser(user);
     } catch {

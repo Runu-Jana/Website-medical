@@ -27,3 +27,9 @@ export const reviewLimiter = rateLimit(
 export const supportLimiter = rateLimit(
   opts(10 * 60 * 1000, 30, 'You are sending messages too quickly. Please wait a moment.')
 );
+
+// Payments: caps how many payment orders / verifications a client can fire,
+// blocking abuse of the Razorpay order-creation endpoints.
+export const paymentLimiter = rateLimit(
+  opts(10 * 60 * 1000, 30, 'Too many payment attempts. Please wait a moment and try again.')
+);

@@ -197,8 +197,10 @@ export const phoneVerify = async (req, res) => {
     } catch {
       return res.status(401).json({ message: 'Invalid or expired verification token' });
     }
-  } else if (process.env.OTP_DEV_MODE === 'true') {
+  } else if (process.env.OTP_DEV_MODE === 'true' && process.env.NODE_ENV !== 'production') {
     // Dev/test mode: no Firebase needed — accept a fixed code (default 123456).
+    // Hard-disabled in production so a stray OTP_DEV_MODE=true can never bypass
+    // real SMS verification.
     phone = normalizePhone(req.body.phone);
     if (!phone) return res.status(400).json({ message: 'Phone number is required' });
     if ((code || '') !== (process.env.OTP_DEV_CODE || '123456')) {
