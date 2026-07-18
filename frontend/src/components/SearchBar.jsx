@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaSearch, FaSpinner } from 'react-icons/fa'
+import { FaSearch, FaSpinner, FaMicrophone } from 'react-icons/fa'
 import api from '../lib/api'
 import { productImage, formatPrice, imgFallback } from '../lib/helpers'
 
@@ -23,8 +23,13 @@ export default function SearchBar({ variant = 'desktop', onNavigate }) {
   const [loading, setLoading] = useState(false)
   const [active, setActive] = useState(-1)
   const [hint, setHint] = useState(0)
+  const [listening, setListening] = useState(false)
   const boxRef = useRef(null)
   const timer = useRef(null)
+  const recogRef = useRef(null)
+  // Voice search is available only where the browser supports the Web Speech API.
+  const voiceSupported =
+    typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition)
 
   // Rotate the placeholder hint while the field is empty.
   useEffect(() => {
@@ -76,6 +81,38 @@ export default function SearchBar({ variant = 'desktop', onNavigate }) {
   }
   const pickProduct = (p) => go(`/product/${p.slug || p._id}`)
 
+  // Speak-to-search: fill the box with what the customer says, then let the
+  // usual live search take over.
+  const startVoice = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SR) return
+    if (listening) {
+      recogRef.current?.stop()
+      return
+    }
+    const recog = new SR()
+    recog.lang = 'en-IN'
+    recog.interimResults = false
+    recog.maxAlternatives = 1
+    recog.onstart = () => setListening(true)
+    recog.onerror = () => setListening(false)
+    recog.onend = () => setListening(false)
+    recog.onresult = (e) => {
+      const text = e.results?.[0]?.[0]?.transcript || ''
+      if (text) {
+        setKeyword(text)
+        setOpen(true)
+        setActive(-1)
+      }
+    }
+    recogRef.current = recog
+    try {
+      recog.start()
+    } catch {
+      setListening(false)
+    }
+  }
+
   const onKeyDown = (e) => {
     if (!open || results.length === 0) return
     if (e.key === 'ArrowDown') {
@@ -111,6 +148,19 @@ export default function SearchBar({ variant = 'desktop', onNavigate }) {
             placeholder={`Search for ${HINTS[hint]}...`}
             className="w-full rounded-l-xl bg-transparent px-4 py-2.5 text-sm outline-none"
           />
+          {voiceSupported && (
+            <button
+              type="button"
+              onClick={startVoice}
+              aria-label={listening ? 'Listening… tap to stop' : 'Search by voice'}
+              title="Search by voice"
+              className={`flex h-11 shrink-0 items-center justify-center px-3 transition ${
+                listening ? 'animate-pulse text-red-500' : 'text-slate-400 hover:text-primary'
+              }`}
+            >
+              <FaMicrophone />
+            </button>
+          )}
           <button
             type="submit"
             className={

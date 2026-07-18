@@ -7,13 +7,16 @@ import {
   FaHeart,
   FaExchangeAlt,
   FaSearch,
+  FaShareAlt,
 } from 'react-icons/fa'
 import RatingStars from './RatingStars'
 import QuickViewModal from './QuickViewModal'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
+import { useToast } from '../context/ToastContext'
 import DeliveryPromise from './DeliveryPromise'
 import { formatPrice, productImage, imgFallback, isInList, toggleInList, savingsAmount } from '../lib/helpers'
+import { shareProduct } from '../lib/share'
 
 function HoverIcon({ label, active, onClick, children }) {
   return (
@@ -39,6 +42,7 @@ function HoverIcon({ label, active, onClick, children }) {
 export default function ProductCard({ product, list = false }) {
   const { addToCart } = useCart()
   const { isWishlisted, toggle: toggleWishlist } = useWishlist()
+  const { showToast } = useToast()
   const outOfStock = product.countInStock <= 0
   const link = `/product/${product.slug || product._id}`
   const fav = isWishlisted(product._id)
@@ -61,6 +65,12 @@ export default function ProductCard({ product, list = false }) {
   const openQuick = (e) => {
     stop(e)
     setQuickOpen(true)
+  }
+  const doShare = async (e) => {
+    stop(e)
+    const result = await shareProduct(product)
+    if (result === 'copied') showToast({ title: 'Link copied', subtitle: 'Share it with anyone.', tone: 'success' })
+    else if (result === 'failed') showToast({ title: 'Could not share this product', tone: 'info' })
   }
 
   return (
@@ -111,6 +121,9 @@ export default function ProductCard({ product, list = false }) {
             </HoverIcon>
             <HoverIcon label="Quick View" onClick={openQuick}>
               <FaSearch size={13} />
+            </HoverIcon>
+            <HoverIcon label="Share" onClick={doShare}>
+              <FaShareAlt size={13} />
             </HoverIcon>
           </div>
         </div>

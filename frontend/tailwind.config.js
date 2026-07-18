@@ -43,10 +43,16 @@ export default {
         shimmer: {
           '100%': { transform: 'translateX(100%)' },
         },
+        // Gentle rightward nudge to hint "scroll for more".
+        nudge: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '50%': { transform: 'translateX(4px)' },
+        },
       },
       animation: {
         loadbar: 'loadbar 1.1s ease-in-out infinite',
         shimmer: 'shimmer 1.5s infinite',
+        nudge: 'nudge 1s ease-in-out infinite',
       },
     },
   },

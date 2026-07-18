@@ -10,8 +10,10 @@ import SectionHeading from '../components/SectionHeading'
 import Seo from '../components/Seo'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import DeliveryPromise from '../components/DeliveryPromise'
 import { formatPrice, imgFallback, PLACEHOLDER_IMG, savingsAmount } from '../lib/helpers'
+import { shareProduct } from '../lib/share'
 import {
   FaCartPlus,
   FaBolt,
@@ -21,6 +23,7 @@ import {
   FaSearchPlus,
   FaChevronDown,
   FaStar,
+  FaShareAlt,
 } from 'react-icons/fa'
 
 // Collapsible FAQ row for the product page.
@@ -53,6 +56,7 @@ export default function ProductDetail() {
   const navigate = useNavigate()
   const { addToCart } = useCart()
   const { user } = useAuth()
+  const { showToast } = useToast()
 
   const [product, setProduct] = useState(null)
   const [related, setRelated] = useState([])
@@ -269,16 +273,31 @@ export default function ProductDetail() {
           )}
           <div className="mt-1 flex items-start justify-between gap-3">
             <h1 className="text-2xl font-bold text-dark sm:text-3xl">{product.name}</h1>
-            <span
-              className={`mt-1 shrink-0 rounded-md border px-2 py-1 text-xs font-bold ${
-                product.requiresPrescription
-                  ? 'border-amber-300 bg-amber-50 text-amber-700'
-                  : 'border-emerald-300 bg-emerald-50 text-emerald-700'
-              }`}
-              title={product.requiresPrescription ? 'Prescription required' : 'Over the counter'}
-            >
-              {product.requiresPrescription ? 'Rx' : 'OTC'}
-            </span>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  const result = await shareProduct(product)
+                  if (result === 'copied') showToast({ title: 'Link copied', subtitle: 'Share it with anyone.', tone: 'success' })
+                  else if (result === 'failed') showToast({ title: 'Could not share this product', tone: 'info' })
+                }}
+                aria-label="Share this product"
+                title="Share"
+                className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full border border-bordergray text-slate-600 transition hover:border-primary hover:bg-primary hover:text-white"
+              >
+                <FaShareAlt size={14} />
+              </button>
+              <span
+                className={`mt-1 rounded-md border px-2 py-1 text-xs font-bold ${
+                  product.requiresPrescription
+                    ? 'border-amber-300 bg-amber-50 text-amber-700'
+                    : 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                }`}
+                title={product.requiresPrescription ? 'Prescription required' : 'Over the counter'}
+              >
+                {product.requiresPrescription ? 'Rx' : 'OTC'}
+              </span>
+            </div>
           </div>
           {(product.packSize || product.unit) && (
             <p className="mt-1 text-sm text-slate-500">

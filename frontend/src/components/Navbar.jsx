@@ -91,7 +91,7 @@ export default function Navbar() {
       <div className="bg-dark text-white">
         <div className="container-x flex h-9 items-center gap-4 text-xs">
           <div className="marquee flex-1 overflow-hidden">
-            <div className="marquee-track marquee-ltr">
+            <div className="marquee-track marquee-rtl">
               {[0, 1].map((dup) => (
                 <div key={dup} className="flex shrink-0 items-center gap-10 pr-10">
                   <span>🚚 Free shipping on all orders over <strong>₹1000</strong></span>
