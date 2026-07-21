@@ -9,6 +9,7 @@ import {
   FiUploadCloud,
   FiDownload,
   FiFileText,
+  FiZap,
 } from 'react-icons/fi';
 import api, { API_URL } from '../lib/api.js';
 import { useToast } from '../context/ToastContext.jsx';
@@ -40,6 +41,38 @@ export default function Products() {
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState(null);
   const [uploaded, setUploaded] = useState(false);
+  // AI bulk description generator
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiStatus, setAiStatus] = useState({ enabled: false, pending: 0 });
+  const [aiBatch, setAiBatch] = useState(20);
+  const [aiRunning, setAiRunning] = useState(false);
+  const [aiResult, setAiResult] = useState(null);
+
+  const loadAiStatus = useCallback(async () => {
+    try {
+      const { data } = await api.get('/ai/bulk/status');
+      setAiStatus(data || { enabled: false, pending: 0 });
+    } catch {
+      setAiStatus({ enabled: false, pending: 0 });
+    }
+  }, []);
+
+  const runAiBatch = async () => {
+    setAiRunning(true);
+    try {
+      const limit = Math.min(100, Math.max(1, Number(aiBatch) || 20));
+      const { data } = await api.post('/ai/bulk/generate', { limit });
+      setAiResult(data);
+      setAiStatus((s) => ({ ...s, pending: data.remaining }));
+      if (data.updated) toast.success(`AI filled ${data.updated} product${data.updated > 1 ? 's' : ''}`);
+      if (data.failed) toast.error(`${data.failed} failed — see details`);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'AI generation failed');
+    } finally {
+      setAiRunning(false);
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -63,6 +96,10 @@ export default function Products() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    loadAiStatus();
+  }, [loadAiStatus]);
 
   const onSearch = (e) => {
     e.preventDefault();
@@ -152,6 +189,16 @@ export default function Products() {
           <p className="text-sm text-slate-500">{data.total} products in your catalog</p>
         </div>
         <div className="flex items-center gap-2">
+          {aiStatus.enabled && (
+            <button
+              type="button"
+              onClick={() => { setAiResult(null); loadAiStatus(); setAiOpen(true); }}
+              className="btn-ghost"
+              title="Fill missing product descriptions with AI"
+            >
+              <FiZap size={18} /> AI fill{aiStatus.pending > 0 ? ` (${aiStatus.pending})` : ''}
+            </button>
+          )}
           <button type="button" onClick={openImport} className="btn-ghost">
             <FiUploadCloud size={18} /> Import Excel
           </button>
@@ -395,6 +442,68 @@ export default function Products() {
             >
               <FiUploadCloud size={16} />{' '}
               {importing ? 'Importing…' : uploaded ? 'Imported' : 'Upload & Import'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* AI: fill missing product descriptions */}
+      <Modal
+        open={aiOpen}
+        onClose={() => !aiRunning && setAiOpen(false)}
+        title="AI: fill missing product details"
+      >
+        <div className="space-y-4">
+          <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
+            <p>
+              <b>{aiStatus.pending}</b> product{aiStatus.pending === 1 ? '' : 's'} have no description yet.
+              AI writes the description, salt, uses, directions, side-effects and FAQs from each
+              product’s <b>name</b> — and only fills fields that are <b>currently blank</b> (it never
+              overwrites what you’ve already entered).
+            </p>
+            <p className="mt-2">
+              It uses a <b>low-cost model</b> (~₹0.5–0.7 per product, one-time) and runs in batches so
+              you stay in control of the spend. Run it as many times as you like until the count hits 0.
+            </p>
+          </div>
+
+          <div>
+            <label className="label">How many to process this run (1–100)</label>
+            <input
+              type="number"
+              min={1}
+              max={100}
+              value={aiBatch}
+              onChange={(e) => setAiBatch(e.target.value)}
+              className="input max-w-[160px]"
+            />
+          </div>
+
+          {aiResult && (
+            <div className="rounded-lg border border-slate-200 p-3 text-sm">
+              <p className="font-semibold text-slate-700">Last run</p>
+              <p className="mt-1 text-slate-600">
+                Processed {aiResult.processed} · Filled <b className="text-emerald-600">{aiResult.updated}</b>
+                {aiResult.failed ? <> · Failed <b className="text-red-600">{aiResult.failed}</b></> : null} ·{' '}
+                Remaining <b>{aiResult.remaining}</b>
+              </p>
+              {aiResult.errors?.length > 0 && (
+                <ul className="mt-2 list-disc pl-5 text-xs text-red-600">
+                  {aiResult.errors.map((e, i) => (
+                    <li key={i}>{e.product}: {e.message}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <button className="btn-ghost" onClick={() => setAiOpen(false)} disabled={aiRunning}>
+              Close
+            </button>
+            <button className="btn-primary" onClick={runAiBatch} disabled={aiRunning || aiStatus.pending === 0}>
+              <FiZap size={16} />
+              {aiRunning ? 'Generating…' : aiStatus.pending === 0 ? 'All done' : `Generate next ${Math.min(100, Math.max(1, Number(aiBatch) || 20))}`}
             </button>
           </div>
         </div>

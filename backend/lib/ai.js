@@ -199,6 +199,100 @@ export const generateProductDetails = async ({ name = '', category = '', imageUr
   return parsed;
 };
 
+// ── Bulk, text-only generation (no carton image) ───────────────────────────
+// Uses the low-cost model to write catalog content from a product's NAME and
+// any known facts — for filling in thousands of imported rows cheaply.
+const BULK_MODEL = 'claude-haiku-4-5';
+
+// Same fields as the carton reader, plus a longer `description` paragraph.
+const BULK_PRODUCT_SCHEMA = {
+  type: 'object',
+  properties: {
+    description: {
+      type: 'string',
+      description: 'A clear 2–4 sentence customer-facing overview of the product in plain English.',
+    },
+    ...PRODUCT_SCHEMA.properties,
+  },
+  required: ['description', ...PRODUCT_SCHEMA.required],
+  additionalProperties: false,
+};
+
+const BULK_SYSTEM_PROMPT = `You are a pharmacist and product-catalog expert for an Indian online medical & pharmacy store (DBL Life Care).
+You are given a product's NAME and possibly its salt/composition, strength, generic name, brand or category — but NO image.
+Write accurate, customer-friendly catalog content in clear, simple English.
+
+Rules:
+- Work from the product name and the facts provided. Product names usually encode the molecule and strength (e.g. "Paracetamol 500mg Tablet") — use that.
+- Only state salt, strength, uses, etc. that are well-established for this molecule. Do NOT invent a brand, manufacturer, or specific claim that isn't given or well-known. If a field genuinely can't be determined, return an empty string (or empty list for faqs).
+- Be medically responsible: include a reminder to consult a doctor/pharmacist where relevant; never encourage misuse or overdosing.
+- Keep each field concise and scannable; use newline-separated points where a list reads better.
+- FAQs must be specific to THIS product. Plain text only — no markdown symbols like ** or #.`;
+
+/**
+ * Generate catalog details from a product's name + known facts (no image).
+ * @param {{ name?, brand?, category?, saltComposition?, strength?, genericName? }} input
+ * @returns {Promise<object>} validated BULK_PRODUCT_SCHEMA object
+ */
+export const generateProductDetailsFromText = async ({
+  name = '',
+  brand = '',
+  category = '',
+  saltComposition = '',
+  strength = '',
+  genericName = '',
+} = {}) => {
+  if (!aiEnabled) {
+    const err = new Error('AI is not configured. Set ANTHROPIC_API_KEY in the backend .env.');
+    err.status = 503;
+    throw err;
+  }
+  if (!String(name).trim()) {
+    const err = new Error('Product name is required.');
+    err.status = 400;
+    throw err;
+  }
+
+  const facts = [
+    `Product name: ${name}`,
+    genericName && `Generic name: ${genericName}`,
+    saltComposition && `Salt / composition: ${saltComposition}`,
+    strength && `Strength: ${strength}`,
+    brand && `Brand: ${brand}`,
+    category && `Category: ${category}`,
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const response = await client.messages.create({
+    model: BULK_MODEL,
+    max_tokens: 2000,
+    system: BULK_SYSTEM_PROMPT,
+    output_config: { format: { type: 'json_schema', schema: BULK_PRODUCT_SCHEMA } },
+    messages: [
+      {
+        role: 'user',
+        content: `${facts}\n\nWrite the catalog fields and FAQs for this product.`,
+      },
+    ],
+  });
+
+  const textBlock = response.content.find((b) => b.type === 'text');
+  if (!textBlock) throw new Error('AI returned no content.');
+  let parsed;
+  try {
+    parsed = JSON.parse(textBlock.text);
+  } catch {
+    throw new Error('AI returned malformed JSON.');
+  }
+  parsed.faqs = Array.isArray(parsed.faqs)
+    ? parsed.faqs
+        .filter((f) => f && f.question && f.answer)
+        .map((f) => ({ question: String(f.question), answer: String(f.answer) }))
+    : [];
+  return parsed;
+};
+
 // JSON shape for an AI-drafted promotional offer.
 const OFFER_SCHEMA = {
   type: 'object',
