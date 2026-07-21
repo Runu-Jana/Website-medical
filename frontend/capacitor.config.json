@@ -5,9 +5,13 @@
   "backgroundColor": "#0e9f8e",
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 1200,
+      "launchShowDuration": 3000,
+      "launchAutoHide": false,
       "backgroundColor": "#0e9f8e",
-      "showSpinner": false
+      "showSpinner": false,
+      "androidScaleType": "CENTER_CROP",
+      "splashFullScreen": true,
+      "splashImmersive": false
     },
     "FirebaseAuthentication": {
       "skipNativeAuth": false,

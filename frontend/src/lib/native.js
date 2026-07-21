@@ -14,6 +14,24 @@ export async function initNative() {
   // Lets CSS apply device safe-area insets only inside the packaged app.
   document.documentElement.classList.add('native-app')
 
+  // Hold the branded teal splash until the storefront has actually painted, then
+  // fade it out — so launch looks intentional with no blank flash. (Config has
+  // launchAutoHide:false so the splash waits for this call.)
+  try {
+    const { SplashScreen } = await import('@capacitor/splash-screen')
+    let hidden = false
+    const hide = () => {
+      if (hidden) return
+      hidden = true
+      SplashScreen.hide({ fadeOutDuration: 350 }).catch(() => {})
+    }
+    if (document.readyState === 'complete') requestAnimationFrame(hide)
+    else window.addEventListener('load', () => requestAnimationFrame(hide), { once: true })
+    setTimeout(hide, 3000) // safety net — never hold the splash longer than 3s
+  } catch {
+    /* plugin not present */
+  }
+
   // Tint the status bar with the brand colour.
   try {
     const { StatusBar, Style } = await import('@capacitor/status-bar')
