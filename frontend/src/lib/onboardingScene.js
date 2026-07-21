@@ -1,10 +1,11 @@
 import * as THREE from 'three'
 
 // A lightweight, procedurally-built pharmacy scene for the onboarding backdrop:
-// floating medicine capsules, a slowly rotating molecule, and a soft particle
-// field — all in the brand teal. No external model files, so it stays small and
-// runs smoothly even on low-end phones. Throws if WebGL is unavailable so the
-// caller can fall back to a static illustration.
+// colourful floating medicine capsules and tablets (red/white, blue/white,
+// yellow/orange, teal, purple… ), a slowly rotating molecule, and a soft
+// particle field. No external model files, so it stays small and runs smoothly
+// even on low-end phones. Throws if WebGL is unavailable so the caller can fall
+// back to a static illustration.
 //
 // createOnboardingScene(canvas) → { setSlide, resize, dispose }
 
@@ -12,13 +13,50 @@ const TEAL = 0x0e9f8e
 const TEAL_LIGHT = 0x2dd4bf
 const WHITE = 0xffffff
 
-function makeCapsule(color) {
-  const geo = new THREE.CapsuleGeometry(0.16, 0.44, 6, 14)
+// Vibrant medicine palette — two-tone capsule pairs [top colour, bottom colour].
+const CAPSULE_PAIRS = [
+  [0xef4444, 0xffffff], // red / white
+  [0x3b82f6, 0xffffff], // blue / white
+  [0xfacc15, 0xf97316], // yellow / orange
+  [0x0e9f8e, 0xffffff], // teal / white
+  [0x8b5cf6, 0xffffff], // purple / white
+  [0xf97316, 0xfde68a], // orange / cream
+  [0x22c55e, 0xffffff], // green / white
+  [0x38bdf8, 0x0ea5e9], // sky / blue
+  [0xec4899, 0xffffff], // pink / white
+  [0xef4444, 0xfacc15], // red / yellow
+]
+
+// Solid round-tablet colours.
+const TABLET_COLORS = [0xffffff, 0xf97316, 0xfacc15, 0x38bdf8, 0xf472b6, 0x86efac, 0xef4444]
+
+// Two-tone capsule in a single mesh: top half colour A, bottom half colour B
+// (via per-vertex colours), so it reads like a real medicine capsule.
+function makeCapsule(colorA, colorB) {
+  const geo = new THREE.CapsuleGeometry(0.16, 0.46, 8, 16)
+  const pos = geo.attributes.position
+  const colors = new Float32Array(pos.count * 3)
+  const cA = new THREE.Color(colorA)
+  const cB = new THREE.Color(colorB)
+  for (let i = 0; i < pos.count; i++) {
+    const c = pos.getY(i) >= 0 ? cA : cB
+    colors[i * 3] = c.r
+    colors[i * 3 + 1] = c.g
+    colors[i * 3 + 2] = c.b
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.32, metalness: 0.05 })
+  return new THREE.Mesh(geo, mat)
+}
+
+// A round tablet / pill (flattened disc).
+function makeTablet(color) {
+  const geo = new THREE.CylinderGeometry(0.26, 0.26, 0.12, 24)
   const mat = new THREE.MeshStandardMaterial({
     color,
-    roughness: 0.35,
-    metalness: 0.05,
-    emissive: new THREE.Color(color).multiplyScalar(0.06),
+    roughness: 0.45,
+    metalness: 0.04,
+    emissive: new THREE.Color(color).multiplyScalar(0.04),
   })
   return new THREE.Mesh(geo, mat)
 }
@@ -41,12 +79,12 @@ export function createOnboardingScene(canvas) {
   rim.position.set(-4, -2, 3)
   scene.add(rim)
 
-  // ── Floating capsules ──────────────────────────────────────────────
-  const capsuleColors = [TEAL, TEAL_LIGHT, WHITE, TEAL, WHITE]
+  // ── Floating medicines (colourful capsules + round tablets) ────────
   const capsules = []
   const capsuleGroup = new THREE.Group()
-  for (let i = 0; i < 11; i++) {
-    const m = makeCapsule(capsuleColors[i % capsuleColors.length])
+  // Give each floater a random position, tumble and gentle bob so the whole
+  // group drifts like pills suspended in liquid.
+  const addFloater = (m) => {
     m.position.set((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 4 - 1)
     m.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI)
     m.userData = {
@@ -57,6 +95,15 @@ export function createOnboardingScene(canvas) {
     }
     capsules.push(m)
     capsuleGroup.add(m)
+  }
+  // 11 vibrant two-tone capsules…
+  for (let i = 0; i < 11; i++) {
+    const [a, b] = CAPSULE_PAIRS[i % CAPSULE_PAIRS.length]
+    addFloater(makeCapsule(a, b))
+  }
+  // …and 5 solid round tablets sprinkled in.
+  for (let i = 0; i < 5; i++) {
+    addFloater(makeTablet(TABLET_COLORS[i % TABLET_COLORS.length]))
   }
   scene.add(capsuleGroup)
 
