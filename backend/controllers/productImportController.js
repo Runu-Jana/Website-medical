@@ -1,6 +1,10 @@
+import fs from 'fs';
+import path from 'path';
 import xlsx from 'xlsx';
 import prisma from '../prisma/client.js';
 import { slugify } from '../utils/slugify.js';
+import { extractSheetImages } from '../lib/xlsxImages.js';
+import { imagekit, imagekitEnabled } from '../lib/imagekit.js';
 
 // The full column set for the template, in display order. `key` is the
 // internal field; `header` is the human column name written to the sheet.
@@ -180,6 +184,28 @@ export const importProducts = async (req, res) => {
   const resolveCategory = makeResolver('category', catMap);
   const resolveBrand = makeResolver('brand', brandMap);
 
+  // Pictures embedded directly in the sheet, mapped to their row. Image-URL
+  // columns take priority; these are the per-row fallback (hybrid import).
+  let embeddedImages = new Map();
+  try {
+    embeddedImages = await extractSheetImages(req.file.buffer);
+  } catch {
+    embeddedImages = new Map();
+  }
+
+  // Push one embedded picture to storage (ImageKit in prod, local /uploads in dev).
+  const uploadEmbedded = async (buf, ext, baseName) => {
+    if (imagekitEnabled) {
+      const r = await imagekit.upload({ file: buf, fileName: `${baseName}.${ext}`, folder: '/dcare' });
+      return r.url;
+    }
+    const dir = path.join(process.cwd(), 'uploads');
+    fs.mkdirSync(dir, { recursive: true });
+    const fname = `${baseName}-${Date.now().toString(36)}.${ext}`;
+    fs.writeFileSync(path.join(dir, fname), buf);
+    return `${req.protocol}://${req.get('host')}/uploads/${fname}`;
+  };
+
   const results = { total: rows.length, created: 0, failed: 0, errors: [] };
 
   for (let i = 0; i < rows.length; i++) {
@@ -201,13 +227,26 @@ export const importProducts = async (req, res) => {
       const discountPercent = discInput || computeDiscount(oldPrice, price);
       const discAmt = num(pick(r, 'discountAmount')) || (oldPrice > price ? oldPrice - price : 0);
 
-      // Images: up to 4 columns (main may itself be comma-separated).
+      // Images (hybrid): image-URL columns first (main may be comma-separated).
       const images = [
         ...parseList(pick(r, 'mainImage')),
         ...parseList(pick(r, 'image2')),
         ...parseList(pick(r, 'image3')),
         ...parseList(pick(r, 'image4')),
       ];
+      // If this row has no image URLs, fall back to any pictures embedded in the
+      // sheet on this row — upload each to storage and use those.
+      if (!images.length) {
+        const embedded = embeddedImages.get(rowNum) || [];
+        for (let k = 0; k < embedded.length && images.length < 4; k++) {
+          try {
+            const url = await uploadEmbedded(embedded[k].buffer, embedded[k].ext, `${slugify(name)}-${k + 1}`);
+            if (url) images.push(url);
+          } catch {
+            /* skip a failed image — still create the product */
+          }
+        }
+      }
 
       // Categories (+ sub-category if given) resolved/created by name.
       const categoryIds = [];

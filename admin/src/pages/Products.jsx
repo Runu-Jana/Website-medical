@@ -314,11 +314,15 @@ export default function Products() {
                 <span className="font-semibold">Brand Name</span> are matched by name (auto-created if new).
               </li>
               <li>
-                Provide up to 4 image URLs (Main + Image 2–4). Prescription/Featured/Bestseller/
-                Trending/New&nbsp;Arrival accept <span className="font-semibold">Yes/No</span>. MRP is the
-                strike-through price, Sale Price is what customers pay.
+                <span className="font-semibold">Images (two ways):</span> paste up to 4 image URLs
+                (Main + Image 2–4), <span className="font-semibold">or</span> embed pictures
+                (PNG/JPG/JPEG) directly in the sheet — one image per product row, placed on that
+                row. If a row has image URLs, those are used; otherwise the embedded picture is
+                uploaded automatically. Prescription/Featured/Bestseller/Trending/New&nbsp;Arrival
+                accept <span className="font-semibold">Yes/No</span>. MRP is the strike-through
+                price, Sale Price is what customers pay.
               </li>
-              <li>Upload the file (.xlsx, .xls or .csv).</li>
+              <li>Upload the file (.xlsx, .xls or .csv). Embedded pictures work in .xlsx only.</li>
             </ol>
           </div>
 
