@@ -1,6 +1,9 @@
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
+
+// First-launch onboarding overlay — lazy so Three.js only loads on first run.
+const Onboarding = lazy(() => import('./components/Onboarding'))
 import ProtectedRoute from './components/ProtectedRoute'
 import Spinner from './components/Spinner'
 import Home from './pages/Home' // eager: the landing page, keep first paint fast
@@ -35,8 +38,18 @@ const CategoryRedirect = lazy(() => import('./pages/CategoryRedirect'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 export default function App() {
+  // Show onboarding only until the customer has seen it once.
+  const [onboarded, setOnboarded] = useState(() => {
+    try {
+      return !!localStorage.getItem('dbl_onboarded')
+    } catch {
+      return true
+    }
+  })
+
   return (
-    <Suspense fallback={<Spinner className="py-32" />}>
+    <>
+      <Suspense fallback={<Spinner className="py-32" />}>
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
@@ -87,6 +100,13 @@ export default function App() {
         {/* Standalone (no nav/footer) for clean printing */}
         <Route path="/invoice/:id" element={<Invoice />} />
       </Routes>
-    </Suspense>
+      </Suspense>
+
+      {!onboarded && (
+        <Suspense fallback={null}>
+          <Onboarding onDone={() => setOnboarded(true)} />
+        </Suspense>
+      )}
+    </>
   )
 }
