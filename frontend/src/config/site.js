@@ -20,7 +20,7 @@ export const siteConfig = {
   phone: '+91 80595 25000',
 
   // Support email.
-  email: 'geetagurukulindia@gmail.com',
+  email: 'dr.bhoumik@dblpharmacy.com',
 
   // Optional greeting pre-filled in the customer's WhatsApp chat box.
   whatsappMessage: 'Hi DBL Life Care, I need help with ',
