@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaClock } from 'react-icons/fa'
 import { siteConfig } from '../config/site'
+import { business } from '../config/business'
 import api from '../lib/api'
 
 const info = [
-  { icon: FaMapMarkerAlt, title: 'Address', text: '123 Health Street, Medical City' },
+  { icon: FaMapMarkerAlt, title: 'Address', text: business.address },
   { icon: FaPhoneAlt, title: 'Phone', text: siteConfig.phone },
   { icon: FaEnvelope, title: 'Email', text: siteConfig.email },
   { icon: FaClock, title: 'Hours', text: 'Open 24/7' },
