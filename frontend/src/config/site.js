@@ -17,7 +17,7 @@ export const siteConfig = {
 
   // Phone number to call. Any readable format is fine (spaces/dashes ok) —
   // it's shown as-is and auto-cleaned for the tel: link.
-  phone: '+91 79739 44144',
+  phone: '+91 80595 25000',
 
   // Support email.
   email: 'geetagurukulindia@gmail.com',
