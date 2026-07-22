@@ -25,6 +25,7 @@ import VendorAnalytics from './pages/VendorAnalytics.jsx';
 import Customers from './pages/Customers.jsx';
 import Refills from './pages/Refills.jsx';
 import Messages from './pages/Messages.jsx';
+import Subscribers from './pages/Subscribers.jsx';
 import SupportChats from './pages/SupportChats.jsx';
 import Admins from './pages/Admins.jsx';
 import NotFound from './pages/NotFound.jsx';
@@ -64,6 +65,7 @@ export default function App() {
         <Route path="/customers" element={<Customers />} />
         <Route path="/refills" element={<Refills />} />
         <Route path="/messages" element={<Messages />} />
+        <Route path="/subscribers" element={<Subscribers />} />
         <Route path="/support-chats" element={<SupportChats />} />
         <Route path="/admins" element={<Admins />} />
       </Route>

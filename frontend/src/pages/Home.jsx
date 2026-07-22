@@ -16,6 +16,7 @@ import ProductCard from '../components/ProductCard'
 import NewLaunches from '../components/NewLaunches'
 import BlogTeaser from '../components/BlogTeaser'
 import Testimonials from '../components/Testimonials'
+import NewsletterSignup from '../components/NewsletterSignup'
 import CountdownTimer from '../components/CountdownTimer'
 import Seo from '../components/Seo'
 import { FaArrowRight } from 'react-icons/fa'
@@ -229,28 +230,7 @@ export default function Home() {
       <BrandStrip brands={brands} />
 
       {/* Newsletter */}
-      <section className="container-x mt-14">
-        <div className="rounded-2xl bg-dark px-6 py-10 text-center text-white sm:px-12">
-          <h3 className="text-2xl font-bold">Subscribe to our Newsletter</h3>
-          <p className="mx-auto mt-2 max-w-md text-sm text-slate-300">
-            Get the latest offers, health tips and product updates delivered to your inbox.
-          </p>
-          <form
-            onSubmit={(e) => e.preventDefault()}
-            className="mx-auto mt-6 flex max-w-md flex-col gap-3 sm:flex-row"
-          >
-            <input
-              type="email"
-              required
-              placeholder="Enter your email"
-              className="input-base flex-1 text-dark"
-            />
-            <button type="submit" className="btn-accent shrink-0">
-              Subscribe
-            </button>
-          </form>
-        </div>
-      </section>
+      <NewsletterSignup />
 
       {/* Testimonials */}
       <Testimonials />

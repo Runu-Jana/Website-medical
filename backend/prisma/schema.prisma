@@ -510,3 +510,15 @@ model Contact {
   @@index([read])
   @@index([createdAt])
 }
+
+// Newsletter mailing list — emails captured from the storefront signup form.
+model Subscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  active    Boolean  @default(true) // false = unsubscribed
+  source    String   @default("website")
+  createdAt DateTime @default(now())
+
+  @@index([active])
+  @@index([createdAt])
+}
