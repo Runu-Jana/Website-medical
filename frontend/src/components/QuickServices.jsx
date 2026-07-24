@@ -51,10 +51,12 @@ export default function QuickServices({ onNavigate }) {
   return (
     <div className="border-b border-bordergray bg-white">
       <div className="container-x">
-        <div className="relative">
+        {/* Scroller + a reserved chevron column so the hint button lives in its
+            own space and can never overlap (or wash out) a service tile. */}
+        <div className="flex items-stretch">
           <ul
             ref={scrollerRef}
-            className="flex gap-1 overflow-x-auto py-2 sm:justify-between sm:gap-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex min-w-0 flex-1 gap-1 overflow-x-auto py-2 sm:justify-between sm:gap-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {services.map((s) => (
               <li key={s.label} className="shrink-0">
@@ -74,19 +76,18 @@ export default function QuickServices({ onNavigate }) {
             ))}
           </ul>
 
-          {/* Scroll-for-more hint — mobile only, hidden once scrolled to the end */}
+          {/* Scroll-for-more hint — its own column (mobile only), so it never
+              sits on top of a tile. Fades out once scrolled to the end. */}
           <div
-            className={`absolute inset-y-0 right-0 flex items-center transition-opacity duration-300 sm:hidden ${
+            className={`flex shrink-0 items-center pl-1 transition-opacity duration-300 sm:hidden ${
               canScrollRight ? 'opacity-100' : 'pointer-events-none opacity-0'
             }`}
           >
-            {/* Soft fade so the last tile looks "cut", signalling more content */}
-            <span className="pointer-events-none absolute inset-y-0 right-0 w-14 bg-gradient-to-l from-white to-transparent dark:from-slate-900" />
             <button
               type="button"
               onClick={nudgeRight}
               aria-label="More services"
-              className="relative mr-0.5 flex h-7 w-7 animate-nudge items-center justify-center rounded-full bg-primary text-white shadow-md"
+              className="flex h-7 w-7 animate-nudge items-center justify-center rounded-full bg-primary text-white shadow-md"
             >
               <FaChevronRight size={13} />
             </button>
