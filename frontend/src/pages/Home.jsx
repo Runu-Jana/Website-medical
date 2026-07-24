@@ -188,7 +188,7 @@ export default function Home() {
           </p>
           <div className="mt-auto pt-5">
             <Link
-              to="/shop"
+              to="/shop?keyword=vitamin"
               className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-primary"
             >
               Shop Now <FaArrowRight />
@@ -202,7 +202,7 @@ export default function Home() {
           </p>
           <div className="mt-auto pt-5">
             <Link
-              to="/shop"
+              to="/shop?keyword=device"
               className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-accent"
             >
               Explore <FaArrowRight />

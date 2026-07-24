@@ -15,7 +15,7 @@ const testimonials = [
   {
     name: 'Anuj Kumar',
     date: 'March 12, 2025',
-    text: 'DBL Life Care is the best application for ordering medicines and lab tests. I have been using it for the last 5 years. The customer support is also good.',
+    text: 'DBL Life Care is a great application for ordering medicines and lab tests. I have been using it regularly and the customer support is also very good.',
   },
   {
     name: 'Meha Jain',

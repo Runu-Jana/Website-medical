@@ -94,6 +94,14 @@ export default function Account() {
     return () => { active = false }
   }, [])
 
+  // Deep-link support: /account#orders (e.g. the "Track Order" tile) scrolls
+  // straight to the orders section once it has rendered.
+  useEffect(() => {
+    if (window.location.hash !== '#orders') return
+    const t = setTimeout(() => scrollTo('orders'), 400)
+    return () => clearTimeout(t)
+  }, [])
+
   const updateRefill = async (id, body) => {
     try {
       await api.patch(`/me/refills/${id}`, body)

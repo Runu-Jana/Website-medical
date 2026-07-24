@@ -27,6 +27,8 @@ const HealthClub = lazy(() => import('./pages/HealthClub'))
 const DoctorConsultation = lazy(() => import('./pages/DoctorConsultation'))
 const DoctorProfile = lazy(() => import('./pages/DoctorProfile'))
 const LabTests = lazy(() => import('./pages/LabTests'))
+const Vaccination = lazy(() => import('./pages/Vaccination'))
+const HealthInsurance = lazy(() => import('./pages/HealthInsurance'))
 const HealthRecords = lazy(() => import('./pages/HealthRecords'))
 const HealthAssistant = lazy(() => import('./pages/HealthAssistant'))
 const BecomeSeller = lazy(() => import('./pages/BecomeSeller'))
@@ -94,6 +96,8 @@ export default function App() {
           <Route path="/doctors" element={<DoctorConsultation />} />
           <Route path="/doctors/:idOrSlug" element={<DoctorProfile />} />
           <Route path="/lab-tests" element={<LabTests />} />
+          <Route path="/vaccination" element={<Vaccination />} />
+          <Route path="/health-insurance" element={<HealthInsurance />} />
           <Route path="/health-assistant" element={<HealthAssistant />} />
           <Route path="/sell" element={<BecomeSeller />} />
           <Route
