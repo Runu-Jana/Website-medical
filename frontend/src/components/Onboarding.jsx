@@ -100,8 +100,8 @@ export default function Onboarding({ onDone }) {
         </div>
 
         <div>
-          {/* Dots */}
-          <div className="mb-4 flex items-center gap-2">
+          {/* Dots — centred across the page width */}
+          <div className="mb-4 flex items-center justify-center gap-2">
             {SLIDES.map((_, i) => (
               <span
                 key={i}
