@@ -118,7 +118,7 @@ export default function Onboarding({ onDone }) {
         <button
           type="button"
           onClick={finish}
-          className="absolute right-5 top-6 z-10 text-sm font-semibold text-slate-500 hover:text-primary"
+          className="absolute right-5 top-6 z-10 text-sm font-semibold text-[#64748b] hover:text-primary"
         >
           Skip
         </button>
@@ -129,7 +129,7 @@ export default function Onboarding({ onDone }) {
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-sm">
           <span className="text-lg font-black leading-none">+</span>
         </span>
-        <span className="text-sm font-extrabold tracking-tight text-dark">DBL Life Care</span>
+        <span className="text-sm font-extrabold tracking-tight text-[#1e293b]">DBL Life Care</span>
       </div>
 
       <div className="flex-1" />
@@ -139,8 +139,8 @@ export default function Onboarding({ onDone }) {
         <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
           <S.icon size={22} />
         </span>
-        <h2 className="text-2xl font-extrabold leading-tight text-dark">{S.title}</h2>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">{S.text}</p>
+        <h2 className="text-2xl font-extrabold leading-tight text-[#1e293b]">{S.title}</h2>
+        <p className="mt-2 text-sm leading-relaxed text-[#475569]">{S.text}</p>
 
         {/* Dots */}
         <div className="mt-5 flex items-center gap-2">
