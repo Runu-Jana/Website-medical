@@ -13,6 +13,7 @@ export default function Messages() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ messages: [], page: 1, pages: 1, total: 0, unread: 0 });
   const [page, setPage] = useState(1);
+  const [q, setQ] = useState('');
   const [open, setOpen] = useState(null);
   const [delTarget, setDelTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -20,7 +21,7 @@ export default function Messages() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/contact', { params: { page, limit: 15 } });
+      const { data } = await api.get('/contact', { params: { page, limit: 15, q: q || undefined } });
       setData({
         messages: data.messages || [],
         page: data.page || 1,
@@ -33,7 +34,7 @@ export default function Messages() {
     } finally {
       setLoading(false);
     }
-  }, [page, toast]);
+  }, [page, q, toast]);
 
   useEffect(() => {
     load();
@@ -76,8 +77,34 @@ export default function Messages() {
       <div>
         <h2 className="text-xl font-bold text-slate-800">Messages</h2>
         <p className="text-sm text-slate-500">
-          {data.total} messages · {data.unread} unread
+          {data.total}{q ? ' matching' : ''} messages · {data.unread} unread
         </p>
+      </div>
+
+      {/* Search + quick filters (helps triage service enquiries) */}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          value={q}
+          onChange={(e) => { setPage(1); setQ(e.target.value); }}
+          placeholder="Search name, email or subject…"
+          className="w-full max-w-xs rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
+        />
+        {[
+          { label: 'All', v: '' },
+          { label: 'Vaccination', v: 'Vaccination request' },
+          { label: 'Insurance', v: 'insurance enquiry' },
+        ].map((f) => (
+          <button
+            key={f.label}
+            type="button"
+            onClick={() => { setPage(1); setQ(f.v); }}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+              q === f.v ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600 hover:bg-primary/10'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       <div className="card">

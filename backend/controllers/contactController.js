@@ -43,18 +43,29 @@ export const createContact = async (req, res) => {
   }
 };
 
-// @route GET /api/contact  (admin) — list messages
+// @route GET /api/contact  (admin) — list messages, optional ?q= search
 export const getContacts = async (req, res) => {
-  const { page = 1, limit = 20 } = req.query;
+  const { page = 1, limit = 20, q = '' } = req.query;
   const pageNum = Math.max(1, Number(page));
   const perPage = Number(limit);
+  // Filter across name/email/subject/message so enquiries (e.g. "Vaccination
+  // request: …") can be pulled up by keyword.
+  const term = String(q).trim();
+  const where = term
+    ? {
+        OR: ['name', 'email', 'subject', 'message'].map((f) => ({
+          [f]: { contains: term, mode: 'insensitive' },
+        })),
+      }
+    : undefined;
   const [items, total, unread] = await Promise.all([
     prisma.contact.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       skip: (pageNum - 1) * perPage,
       take: perPage,
     }),
-    prisma.contact.count(),
+    prisma.contact.count({ where }),
     prisma.contact.count({ where: { read: false } }),
   ]);
   res.json({
