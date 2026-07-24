@@ -27,6 +27,10 @@ export default defineConfig({
       workbox: {
         // Cache the app shell; never cache API calls (always live data).
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // The onboarding hero shows once and is served by the runtime image
+        // cache below — keep it out of the precache so a large illustration
+        // never blocks the build or bloats the service worker.
+        globIgnores: ['**/onboarding-pharmacist.png'],
         navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
           {
