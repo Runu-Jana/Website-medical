@@ -48,11 +48,17 @@ export default {
           '0%, 100%': { transform: 'translateX(0)' },
           '50%': { transform: 'translateX(4px)' },
         },
+        // Slow up-and-down float for the onboarding illustration.
+        floaty: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-12px)' },
+        },
       },
       animation: {
         loadbar: 'loadbar 1.1s ease-in-out infinite',
         shimmer: 'shimmer 1.5s infinite',
         nudge: 'nudge 1s ease-in-out infinite',
+        floaty: 'floaty 4s ease-in-out infinite',
       },
     },
   },

@@ -1,11 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { FaUserMd, FaFlask, FaTruck, FaArrowRight } from 'react-icons/fa'
 
-// First-launch onboarding: a friendly 3D pharmacist (top 60%) over a white
-// studio, with three pharmacy-themed slides (bottom 40%). Shown once; the caller
-// gates it on a localStorage flag and only on phones/the installed app.
-// Degrades to a clean static illustration when WebGL is unavailable or the user
-// prefers reduced motion.
+// First-launch onboarding: a 3D-style pharmacy illustration (top 60%) over a
+// white background, with three pharmacy-themed slides (bottom 40%). Shown once;
+// the caller gates it on a localStorage flag and only on phones/the installed
+// app. If the illustration is missing it degrades to a clean icon badge.
+//
+// Drop your artwork at: frontend/public/onboarding-pharmacist.png
+// (a watermark-free, transparent or white-background PNG).
+const HERO_IMG = '/onboarding-pharmacist.png'
 
 const SLIDES = [
   {
@@ -26,41 +29,9 @@ const SLIDES = [
 ]
 
 export default function Onboarding({ onDone }) {
-  const canvasRef = useRef(null)
-  const sceneRef = useRef(null)
   const [slide, setSlide] = useState(0)
-  const [use3d, setUse3d] = useState(true)
+  const [imgOk, setImgOk] = useState(true)
   const touchX = useRef(null)
-
-  // Spin up the 3D pharmacist (or fall back gracefully).
-  useEffect(() => {
-    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
-    if (reduced || !canvasRef.current) {
-      setUse3d(false)
-      return undefined
-    }
-    let disposed = false
-    import('../lib/onboardingScene')
-      .then(({ createOnboardingScene }) => {
-        if (disposed || !canvasRef.current) return
-        try {
-          sceneRef.current = createOnboardingScene(canvasRef.current)
-        } catch {
-          setUse3d(false) // no WebGL — show the static fallback
-        }
-      })
-      .catch(() => setUse3d(false))
-    return () => {
-      disposed = true
-      sceneRef.current?.dispose?.()
-      sceneRef.current = null
-    }
-  }, [])
-
-  // Nudge the scene when the slide changes.
-  useEffect(() => {
-    sceneRef.current?.setSlide?.(slide)
-  }, [slide])
 
   const finish = () => {
     try {
@@ -93,16 +64,20 @@ export default function Onboarding({ onDone }) {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* ── Top 60%: 3D pharmacist on white ── */}
-      <div className="relative h-[60%] w-full">
-        {use3d ? (
-          <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
+      {/* ── Top 60%: 3D pharmacy illustration on white ── */}
+      <div className="relative flex h-[60%] w-full items-center justify-center px-6">
+        {imgOk ? (
+          <img
+            src={HERO_IMG}
+            alt="DBL Life Care pharmacy"
+            onError={() => setImgOk(false)}
+            className="max-h-full max-w-full animate-floaty object-contain"
+          />
         ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <span className="flex h-40 w-40 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <S.icon size={72} />
-            </span>
-          </div>
+          // Fallback until the artwork is added.
+          <span className="flex h-40 w-40 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <S.icon size={72} />
+          </span>
         )}
 
         {/* Brand mark */}
