@@ -92,7 +92,7 @@ export default function HeroSlider() {
 
       {/* Content aligned to the page container */}
       <div className="container-x relative">
-        <div className="max-w-md py-6 sm:max-w-lg sm:py-14 lg:py-20">
+        <div className="max-w-md pt-6 pb-12 sm:max-w-lg sm:py-14 lg:py-20">
           {slide.badge && (
             <span className="inline-block rounded-md bg-red-500 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white sm:px-3 sm:py-1 sm:text-xs">
               {slide.badge}

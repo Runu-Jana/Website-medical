@@ -157,15 +157,15 @@
   white-space: nowrap;
   will-change: transform;
 }
-.marquee-rtl {
-  animation: marquee-rtl 28s linear infinite;
+.marquee-ltr {
+  animation: marquee-ltr 28s linear infinite;
 }
-@keyframes marquee-rtl {
+@keyframes marquee-ltr {
   from {
-    transform: translateX(0);
+    transform: translateX(-50%);
   }
   to {
-    transform: translateX(-50%);
+    transform: translateX(0);
   }
 }
 .marquee:hover .marquee-track {

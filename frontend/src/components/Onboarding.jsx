@@ -67,12 +67,12 @@ export default function Onboarding({ onDone }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-white"
+      className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-gradient-to-b from-[#e8f4f8] to-[#d6ecf3]"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* ── Top 60%: 3D pharmacy illustration on white ── */}
-      <div className="relative flex h-[60%] w-full items-center justify-center px-6">
+      {/* ── Top 60%: pharmacy illustration on the matching light-blue ── */}
+      <div className="relative flex h-[60%] w-full items-end justify-center px-6">
         {!heroFailed ? (
           <img
             src={HERO_CANDIDATES[heroIdx]}
@@ -96,8 +96,8 @@ export default function Onboarding({ onDone }) {
         </div>
       </div>
 
-      {/* ── Bottom 40%: content ── */}
-      <div className="flex h-[40%] flex-col justify-between px-6 pb-7 pt-4">
+      {/* ── Bottom 40%: content (pulled snug under the illustration) ── */}
+      <div className="flex h-[40%] flex-col justify-between px-6 pb-7 pt-1">
         <div>
           <span className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <S.icon size={20} />
