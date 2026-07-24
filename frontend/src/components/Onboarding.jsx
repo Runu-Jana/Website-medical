@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { FaUserMd, FaFlask, FaTruck, FaArrowRight } from 'react-icons/fa'
 
-// First-launch onboarding: three pharmacy-themed slides over a live Three.js
-// backdrop (floating capsules + molecule + particles). Shown once; the caller
-// gates it on a localStorage flag. Degrades to a clean static illustration when
-// WebGL is unavailable or the user prefers reduced motion.
+// First-launch onboarding: a friendly 3D pharmacist (top 60%) over a white
+// studio, with three pharmacy-themed slides (bottom 40%). Shown once; the caller
+// gates it on a localStorage flag and only on phones/the installed app.
+// Degrades to a clean static illustration when WebGL is unavailable or the user
+// prefers reduced motion.
 
 const SLIDES = [
   {
@@ -31,7 +32,7 @@ export default function Onboarding({ onDone }) {
   const [use3d, setUse3d] = useState(true)
   const touchX = useRef(null)
 
-  // Spin up the 3D backdrop (or fall back gracefully).
+  // Spin up the 3D pharmacist (or fall back gracefully).
   useEffect(() => {
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
     if (reduced || !canvasRef.current) {
@@ -56,7 +57,7 @@ export default function Onboarding({ onDone }) {
     }
   }, [])
 
-  // Nudge the scene's parallax when the slide changes.
+  // Nudge the scene when the slide changes.
   useEffect(() => {
     sceneRef.current?.setSlide?.(slide)
   }, [slide])
@@ -88,77 +89,71 @@ export default function Onboarding({ onDone }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-gradient-to-b from-[#f0fdfa] via-[#e6fbf6] to-[#cbf5ec]"
+      className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-white"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* 3D backdrop (or static fallback) */}
-      {use3d ? (
-        <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
-      ) : (
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          {/* Simple floating-capsule fallback */}
-          {[...Array(8)].map((_, i) => (
-            <span
-              key={i}
-              className="absolute block h-6 w-2.5 rounded-full opacity-70"
-              style={{
-                left: `${(i * 37) % 90 + 4}%`,
-                top: `${(i * 53) % 60 + 6}%`,
-                background: i % 2 ? '#0e9f8e' : '#2dd4bf',
-                transform: `rotate(${i * 40}deg)`,
-              }}
-            />
-          ))}
+      {/* ── Top 60%: 3D pharmacist on white ── */}
+      <div className="relative h-[60%] w-full">
+        {use3d ? (
+          <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <span className="flex h-40 w-40 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <S.icon size={72} />
+            </span>
+          </div>
+        )}
+
+        {/* Brand mark */}
+        <div className="absolute left-6 top-6 flex items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-sm">
+            <span className="text-lg font-black leading-none">+</span>
+          </span>
+          <span className="text-sm font-extrabold tracking-tight text-[#1e293b]">DBL Life Care</span>
         </div>
-      )}
-
-      {/* Skip */}
-      {!isLast && (
-        <button
-          type="button"
-          onClick={finish}
-          className="absolute right-5 top-6 z-10 text-sm font-semibold text-[#64748b] hover:text-primary"
-        >
-          Skip
-        </button>
-      )}
-
-      {/* Brand mark */}
-      <div className="relative z-10 flex items-center gap-2 px-6 pt-6">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-sm">
-          <span className="text-lg font-black leading-none">+</span>
-        </span>
-        <span className="text-sm font-extrabold tracking-tight text-[#1e293b]">DBL Life Care</span>
       </div>
 
-      <div className="flex-1" />
-
-      {/* Content panel */}
-      <div className="relative z-10 rounded-t-[2rem] bg-white/85 px-6 pb-8 pt-7 shadow-[0_-8px_30px_rgba(14,159,142,0.12)] backdrop-blur-sm">
-        <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <S.icon size={22} />
-        </span>
-        <h2 className="text-2xl font-extrabold leading-tight text-[#1e293b]">{S.title}</h2>
-        <p className="mt-2 text-sm leading-relaxed text-[#475569]">{S.text}</p>
-
-        {/* Dots */}
-        <div className="mt-5 flex items-center gap-2">
-          {SLIDES.map((_, i) => (
-            <span
-              key={i}
-              className={`h-2 rounded-full transition-all ${i === slide ? 'w-6 bg-primary' : 'w-2 bg-primary/25'}`}
-            />
-          ))}
+      {/* ── Bottom 40%: content ── */}
+      <div className="flex h-[40%] flex-col justify-between px-6 pb-7 pt-4">
+        <div>
+          <span className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <S.icon size={20} />
+          </span>
+          <h2 className="text-2xl font-extrabold leading-tight text-[#1e293b]">{S.title}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[#475569]">{S.text}</p>
         </div>
 
-        <button
-          type="button"
-          onClick={next}
-          className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-base font-bold text-white shadow-sm transition hover:bg-primaryDark"
-        >
-          {isLast ? 'Get Started' : 'Next'} <FaArrowRight size={14} />
-        </button>
+        <div>
+          {/* Dots */}
+          <div className="mb-4 flex items-center gap-2">
+            {SLIDES.map((_, i) => (
+              <span
+                key={i}
+                className={`h-2 rounded-full transition-all ${i === slide ? 'w-6 bg-primary' : 'w-2 bg-primary/25'}`}
+              />
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={next}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-base font-bold text-white shadow-sm transition hover:bg-primaryDark"
+          >
+            {isLast ? 'Get Started' : 'Continue'} <FaArrowRight size={14} />
+          </button>
+
+          {/* Skip — below Continue */}
+          {!isLast && (
+            <button
+              type="button"
+              onClick={finish}
+              className="mt-2 w-full py-2 text-center text-sm font-semibold text-[#64748b] transition hover:text-primary"
+            >
+              Skip
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
