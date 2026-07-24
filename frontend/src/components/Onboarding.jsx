@@ -6,9 +6,15 @@ import { FaUserMd, FaFlask, FaTruck, FaArrowRight } from 'react-icons/fa'
 // the caller gates it on a localStorage flag and only on phones/the installed
 // app. If the illustration is missing it degrades to a clean icon badge.
 //
-// Drop your artwork at: frontend/public/onboarding-pharmacist.jpg
-// (a watermark-free, white- or transparent-background image).
-const HERO_IMG = '/onboarding-pharmacist.jpg'
+// Drop your artwork at: frontend/public/onboarding-pharmacist.(png|jpg|webp)
+// (a watermark-free, white- or transparent-background image). The component
+// tries each extension in turn, so any of these formats works with no code
+// change.
+const HERO_CANDIDATES = [
+  '/onboarding-pharmacist.png',
+  '/onboarding-pharmacist.jpg',
+  '/onboarding-pharmacist.webp',
+]
 
 const SLIDES = [
   {
@@ -30,8 +36,9 @@ const SLIDES = [
 
 export default function Onboarding({ onDone }) {
   const [slide, setSlide] = useState(0)
-  const [imgOk, setImgOk] = useState(true)
+  const [heroIdx, setHeroIdx] = useState(0) // which HERO_CANDIDATES src to try
   const touchX = useRef(null)
+  const heroFailed = heroIdx >= HERO_CANDIDATES.length
 
   const finish = () => {
     try {
@@ -66,11 +73,11 @@ export default function Onboarding({ onDone }) {
     >
       {/* ── Top 60%: 3D pharmacy illustration on white ── */}
       <div className="relative flex h-[60%] w-full items-center justify-center px-6">
-        {imgOk ? (
+        {!heroFailed ? (
           <img
-            src={HERO_IMG}
+            src={HERO_CANDIDATES[heroIdx]}
             alt="DBL Life Care pharmacy"
-            onError={() => setImgOk(false)}
+            onError={() => setHeroIdx((i) => i + 1)}
             className="max-h-full max-w-full animate-floaty object-contain"
           />
         ) : (
