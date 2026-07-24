@@ -6,9 +6,9 @@ import { FaUserMd, FaFlask, FaTruck, FaArrowRight } from 'react-icons/fa'
 // the caller gates it on a localStorage flag and only on phones/the installed
 // app. If the illustration is missing it degrades to a clean icon badge.
 //
-// Drop your artwork at: frontend/public/onboarding-pharmacist.png
-// (a watermark-free, transparent or white-background PNG).
-const HERO_IMG = '/onboarding-pharmacist.png'
+// Drop your artwork at: frontend/public/onboarding-pharmacist.jpg
+// (a watermark-free, white- or transparent-background image).
+const HERO_IMG = '/onboarding-pharmacist.jpg'
 
 const SLIDES = [
   {

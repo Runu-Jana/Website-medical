@@ -30,7 +30,7 @@ export default defineConfig({
         // The onboarding hero shows once and is served by the runtime image
         // cache below — keep it out of the precache so a large illustration
         // never blocks the build or bloats the service worker.
-        globIgnores: ['**/onboarding-pharmacist.png'],
+        globIgnores: ['**/onboarding-pharmacist.{png,jpg,jpeg,webp}'],
         navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
           {
