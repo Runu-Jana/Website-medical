@@ -37,11 +37,25 @@ const Invoice = lazy(() => import('./pages/Invoice'))
 const CategoryRedirect = lazy(() => import('./pages/CategoryRedirect'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
+// The 3D onboarding is a mobile-app experience — show it only in the installed
+// app or on a phone-sized browser. On tablet/desktop web, skip straight to the
+// home page (its popups still greet the visitor).
+function shouldOnboard() {
+  try {
+    if (window.Capacitor?.isNativePlatform?.()) return true
+    return window.matchMedia?.('(max-width: 767px)')?.matches ?? window.innerWidth < 768
+  } catch {
+    return false
+  }
+}
+
 export default function App() {
-  // Show onboarding only until the customer has seen it once.
+  // Show onboarding only until the customer has seen it once — and only on
+  // phones / the installed app (never on desktop web).
   const [onboarded, setOnboarded] = useState(() => {
     try {
-      return !!localStorage.getItem('dbl_onboarded')
+      if (localStorage.getItem('dbl_onboarded')) return true
+      return !shouldOnboard() // desktop/web → treat as already onboarded (skip)
     } catch {
       return true
     }
