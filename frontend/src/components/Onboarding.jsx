@@ -95,7 +95,7 @@ export default function Onboarding({ onDone }) {
             src={HERO_CANDIDATES[heroIdx]}
             alt="DBL Life Care pharmacy"
             onError={() => setHeroIdx((i) => i + 1)}
-            className="max-h-[46vh] w-auto max-w-full animate-floaty object-contain drop-shadow-[0_22px_34px_rgba(13,110,98,0.22)]"
+            className="max-h-[46vh] w-auto max-w-full animate-floaty object-contain"
           />
         ) : (
           <span className="flex h-44 w-44 items-center justify-center rounded-full bg-primary/10 text-primary">
