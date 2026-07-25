@@ -65,7 +65,7 @@ export default function Onboarding({ onDone }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-white"
+      className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-[#ffffff]"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
