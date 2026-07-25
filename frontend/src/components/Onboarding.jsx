@@ -1,15 +1,13 @@
 import { useRef, useState } from 'react'
 import { FaUserMd, FaFlask, FaTruck, FaArrowRight } from 'react-icons/fa'
 
-// First-launch onboarding: a 3D-style pharmacy illustration (top 60%) over a
-// white background, with three pharmacy-themed slides (bottom 40%). Shown once;
-// the caller gates it on a localStorage flag and only on phones/the installed
-// app. If the illustration is missing it degrades to a clean icon badge.
+// First-launch onboarding: a pharmacy illustration floating on a white→teal
+// gradient, with three pharmacy-themed slides. Shown once; the caller gates it
+// on a localStorage flag and only on phones/the installed app. The artwork is a
+// transparent PNG so it blends into the gradient (no white box). Falls back to a
+// clean icon badge if the image is missing.
 //
 // Drop your artwork at: frontend/public/onboarding-pharmacist.(png|jpg|webp)
-// (a watermark-free, white- or transparent-background image). The component
-// tries each extension in turn, so any of these formats works with no code
-// change.
 const HERO_CANDIDATES = [
   '/onboarding-pharmacist.png',
   '/onboarding-pharmacist.jpg',
@@ -25,7 +23,7 @@ const SLIDES = [
   {
     icon: FaFlask,
     title: 'Genuine medicines, expert care',
-    text: '100% authentic products, licensed pharmacy, and guidance whenever you need it.',
+    text: '100% authentic products, a licensed pharmacy, and guidance whenever you need it.',
   },
   {
     icon: FaTruck,
@@ -36,7 +34,7 @@ const SLIDES = [
 
 export default function Onboarding({ onDone }) {
   const [slide, setSlide] = useState(0)
-  const [heroIdx, setHeroIdx] = useState(0) // which HERO_CANDIDATES src to try
+  const [heroIdx, setHeroIdx] = useState(0)
   const touchX = useRef(null)
   const heroFailed = heroIdx >= HERO_CANDIDATES.length
 
@@ -67,75 +65,71 @@ export default function Onboarding({ onDone }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-gradient-to-b from-[#e8f4f8] to-[#d6ecf3]"
+      className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-gradient-to-b from-white via-[#e4f5f2] to-[#9ed7cf]"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* ── Top 60%: pharmacy illustration on the matching light-blue ── */}
-      <div className="relative flex h-[60%] w-full items-end justify-center px-6">
+      {/* Soft decorative glows for depth */}
+      <div className="pointer-events-none absolute -left-20 top-24 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-16 top-1/3 h-64 w-64 rounded-full bg-teal-300/25 blur-3xl" />
+
+      {/* Top bar: brand + Skip (always visible) */}
+      <div className="relative z-10 flex items-center justify-between px-6 pt-6">
+        <div className="flex items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-sm">
+            <span className="text-lg font-black leading-none">+</span>
+          </span>
+          <span className="text-sm font-extrabold tracking-tight text-[#0f2f2b]">DBL Life Care</span>
+        </div>
+        {!isLast && (
+          <button
+            type="button"
+            onClick={finish}
+            className="rounded-full bg-white/70 px-4 py-1.5 text-sm font-bold text-primaryDark shadow-sm backdrop-blur transition hover:bg-white"
+          >
+            Skip
+          </button>
+        )}
+      </div>
+
+      {/* Illustration — floats on the gradient, no box, soft shadow */}
+      <div className="relative z-10 flex flex-1 items-center justify-center px-8">
         {!heroFailed ? (
           <img
             src={HERO_CANDIDATES[heroIdx]}
             alt="DBL Life Care pharmacy"
             onError={() => setHeroIdx((i) => i + 1)}
-            className="max-h-full max-w-full animate-floaty object-contain"
+            className="max-h-[46vh] w-auto max-w-full animate-floaty object-contain drop-shadow-[0_22px_34px_rgba(13,110,98,0.22)]"
           />
         ) : (
-          // Fallback until the artwork is added.
-          <span className="flex h-40 w-40 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <S.icon size={72} />
+          <span className="flex h-44 w-44 items-center justify-center rounded-full bg-white/60 text-primary shadow-inner">
+            <S.icon size={76} />
           </span>
         )}
-
-        {/* Brand mark */}
-        <div className="absolute left-6 top-6 flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-sm">
-            <span className="text-lg font-black leading-none">+</span>
-          </span>
-          <span className="text-sm font-extrabold tracking-tight text-[#1e293b]">DBL Life Care</span>
-        </div>
       </div>
 
-      {/* ── Bottom 40%: content (pulled snug under the illustration) ── */}
-      <div className="flex h-[40%] flex-col justify-between px-6 pb-7 pt-1">
-        <div>
-          <span className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <S.icon size={20} />
-          </span>
-          <h2 className="text-2xl font-extrabold leading-tight text-[#1e293b]">{S.title}</h2>
-          <p className="mt-2 text-sm leading-relaxed text-[#475569]">{S.text}</p>
+      {/* Content */}
+      <div className="relative z-10 px-7 pb-9 text-center">
+        <h2 className="text-2xl font-extrabold leading-tight text-[#0f2f2b]">{S.title}</h2>
+        <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[#2b4a46]">{S.text}</p>
+
+        {/* Dots — centred */}
+        <div className="mt-5 flex items-center justify-center gap-2">
+          {SLIDES.map((_, i) => (
+            <span
+              key={i}
+              className={`h-2 rounded-full transition-all ${i === slide ? 'w-7 bg-primary' : 'w-2 bg-primaryDark/25'}`}
+            />
+          ))}
         </div>
 
-        <div>
-          {/* Dots — centred across the page width */}
-          <div className="mb-4 flex items-center justify-center gap-2">
-            {SLIDES.map((_, i) => (
-              <span
-                key={i}
-                className={`h-2 rounded-full transition-all ${i === slide ? 'w-6 bg-primary' : 'w-2 bg-primary/25'}`}
-              />
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={next}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-base font-bold text-white shadow-sm transition hover:bg-primaryDark"
-          >
-            {isLast ? 'Get Started' : 'Continue'} <FaArrowRight size={14} />
-          </button>
-
-          {/* Skip — below Continue */}
-          {!isLast && (
-            <button
-              type="button"
-              onClick={finish}
-              className="mt-2 w-full py-2 text-center text-sm font-semibold text-[#64748b] transition hover:text-primary"
-            >
-              Skip
-            </button>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={next}
+          className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-4 text-base font-bold text-white shadow-lg shadow-primary/30 transition hover:bg-primaryDark active:scale-[0.99]"
+        >
+          {isLast ? 'Get Started' : 'Continue'} <FaArrowRight size={14} />
+        </button>
       </div>
     </div>
   )
