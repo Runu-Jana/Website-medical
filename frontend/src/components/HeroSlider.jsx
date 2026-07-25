@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FaArrowRight } from 'react-icons/fa'
 import api, { API } from '../lib/api'
@@ -44,6 +44,8 @@ const resolveImg = (u) => {
 export default function HeroSlider() {
   const [slides, setSlides] = useState(fallbackSlides)
   const [index, setIndex] = useState(0)
+  const [nudge, setNudge] = useState(0) // bump to restart the auto-timer after manual nav
+  const touchX = useRef(null)
 
   useEffect(() => {
     api
@@ -59,17 +61,39 @@ export default function HeroSlider() {
       })
   }, [])
 
+  // Auto-rotate; restarts whenever the customer navigates manually (nudge).
   useEffect(() => {
     if (slides.length <= 1) return
     const t = setInterval(() => setIndex((i) => (i + 1) % slides.length), 5000)
     return () => clearInterval(t)
-  }, [slides])
+  }, [slides, nudge])
+
+  const goTo = (i) => {
+    setIndex(((i % slides.length) + slides.length) % slides.length)
+    setNudge((n) => n + 1)
+  }
+  const go = (dir) => goTo(index + dir)
+
+  const onTouchStart = (e) => {
+    touchX.current = e.touches[0].clientX
+  }
+  const onTouchEnd = (e) => {
+    if (touchX.current == null || slides.length <= 1) return
+    const dx = e.changedTouches[0].clientX - touchX.current
+    if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1) // swipe left → next, right → prev
+    touchX.current = null
+  }
 
   const slide = slides[index] || slides[0]
   const bg = slide.bgColor || '#fbe3ec'
 
   return (
-    <section className="relative mt-[5px] w-full overflow-hidden" style={{ backgroundColor: bg }}>
+    <section
+      className="relative mt-[5px] w-full touch-pan-y select-none overflow-hidden"
+      style={{ backgroundColor: bg }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
       {/* Full-bleed product image covering the whole banner */}
       {slide.image && (
         <img
@@ -120,13 +144,35 @@ export default function HeroSlider() {
         </div>
       </div>
 
+      {/* Prev / next arrows (desktop; mobile uses swipe) */}
+      {slides.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={() => go(-1)}
+            aria-label="Previous banner"
+            className="absolute left-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/70 text-dark shadow-md backdrop-blur transition hover:bg-white sm:flex"
+          >
+            <FaArrowRight className="rotate-180" size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={() => go(1)}
+            aria-label="Next banner"
+            className="absolute right-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/70 text-dark shadow-md backdrop-blur transition hover:bg-white sm:flex"
+          >
+            <FaArrowRight size={14} />
+          </button>
+        </>
+      )}
+
       {/* Dots */}
       {slides.length > 1 && (
-        <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2">
+        <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 gap-2">
           {slides.map((_, i) => (
             <button
               key={i}
-              onClick={() => setIndex(i)}
+              onClick={() => goTo(i)}
               aria-label={`Go to slide ${i + 1}`}
               className={`h-2.5 rounded-full transition-all ${
                 i === index ? 'w-7 bg-primary' : 'w-2.5 bg-slate-400/60'
