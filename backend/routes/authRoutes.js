@@ -5,6 +5,7 @@ import {
   adminLogin,
   getProfile,
   updateProfile,
+  phoneStatus,
   phoneCheck,
   phoneVerify,
   changePassword,
@@ -21,6 +22,7 @@ router.post('/login', validate(loginSchema), login);
 router.post('/admin/login', adminLogin);
 router.post('/admin/forgot', adminForgotPassword);
 router.post('/admin/reset', adminResetPassword);
+router.get('/phone/status', phoneStatus);
 router.post('/phone/check', phoneCheck);
 router.post('/phone/verify', phoneVerify);
 router.get('/profile', protect, getProfile);

@@ -151,6 +151,16 @@ export const updateProfile = async (req, res) => {
 
 // @route POST /api/auth/phone/check
 // Step 1: if this device is already trusted for the phone, log in WITHOUT an OTP.
+// @route GET /api/auth/phone/status  (public) — is backend OTP verification ready?
+// Lets you confirm from a URL that the server sees the Firebase service-account
+// credentials, without exposing any secret.
+export const phoneStatus = (req, res) => {
+  res.json({
+    firebaseEnabled,
+    devMode: process.env.OTP_DEV_MODE === 'true' && process.env.NODE_ENV !== 'production',
+  });
+};
+
 export const phoneCheck = async (req, res) => {
   const phone = normalizePhone(req.body.phone);
   const { deviceToken } = req.body;
