@@ -65,14 +65,10 @@ export default function Onboarding({ onDone }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-gradient-to-b from-white via-[#e4f5f2] to-[#9ed7cf]"
+      className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-white"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* Soft decorative glows for depth */}
-      <div className="pointer-events-none absolute -left-20 top-24 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
-      <div className="pointer-events-none absolute -right-16 top-1/3 h-64 w-64 rounded-full bg-teal-300/25 blur-3xl" />
-
       {/* Top bar: brand + Skip (always visible) */}
       <div className="relative z-10 flex items-center justify-between px-6 pt-6">
         <div className="flex items-center gap-2">
@@ -85,7 +81,7 @@ export default function Onboarding({ onDone }) {
           <button
             type="button"
             onClick={finish}
-            className="rounded-full bg-white/70 px-4 py-1.5 text-sm font-bold text-primaryDark shadow-sm backdrop-blur transition hover:bg-white"
+            className="rounded-full bg-primary/10 px-4 py-1.5 text-sm font-bold text-primaryDark transition hover:bg-primary/20"
           >
             Skip
           </button>
@@ -102,7 +98,7 @@ export default function Onboarding({ onDone }) {
             className="max-h-[46vh] w-auto max-w-full animate-floaty object-contain drop-shadow-[0_22px_34px_rgba(13,110,98,0.22)]"
           />
         ) : (
-          <span className="flex h-44 w-44 items-center justify-center rounded-full bg-white/60 text-primary shadow-inner">
+          <span className="flex h-44 w-44 items-center justify-center rounded-full bg-primary/10 text-primary">
             <S.icon size={76} />
           </span>
         )}
