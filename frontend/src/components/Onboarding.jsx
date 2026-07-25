@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react'
 import { FaUserMd, FaFlask, FaTruck, FaArrowRight } from 'react-icons/fa'
 
-// First-launch onboarding: a pharmacy illustration floating on a white→teal
-// gradient, with three pharmacy-themed slides. Shown once; the caller gates it
-// on a localStorage flag and only on phones/the installed app. The artwork is a
-// transparent PNG so it blends into the gradient (no white box). Falls back to a
+// First-launch onboarding: a pharmacy illustration on a clean white background,
+// with three pharmacy-themed slides. Shown once; the caller gates it on a
+// localStorage flag and only on phones/the installed app. The white background
+// is a literal #ffffff so the app's dark theme can't remap it. Falls back to a
 // clean icon badge if the image is missing.
 //
 // Drop your artwork at: frontend/public/onboarding-pharmacist.(png|jpg|webp)
@@ -88,7 +88,7 @@ export default function Onboarding({ onDone }) {
         )}
       </div>
 
-      {/* Illustration — floats on the gradient, no box, soft shadow */}
+      {/* Illustration — floats on the white, no box, soft shadow */}
       <div className="relative z-10 flex flex-1 items-center justify-center px-8">
         {!heroFailed ? (
           <img
