@@ -171,7 +171,7 @@ export default function Login() {
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? 'Please wait…' : 'Continue'}
             </button>
-            {!firebaseEnabled && (
+            {!realOtpAvailable() && (
               <p className="text-center text-xs text-amber-600">
                 Dev mode: no SMS sent — use code <strong>123456</strong> on the next screen.
               </p>
