@@ -37,6 +37,8 @@ export default function Layout() {
 
   // Immersive full-screen pages hide the storefront chrome on mobile (kept on desktop).
   const immersive = pathname === '/health-assistant'
+  // Auth pages are short — no need for a scroll-to-top button there.
+  const hideBackToTop = pathname === '/login' || pathname === '/register'
   const routeSeo = ROUTE_SEO[pathname]
 
   return (
@@ -62,8 +64,8 @@ export default function Layout() {
       <PopupBanner />
       {/* AI customer-support widget — hidden on the dedicated AI Assistant page */}
       {!immersive && <SupportChat />}
-      {/* Scroll-to-top button */}
-      <BackToTop />
+      {/* Scroll-to-top button (hidden on the short auth pages) */}
+      {!hideBackToTop && <BackToTop />}
       {/* First-visit delivery-location prompt (also opened from the navbar pill) */}
       <DeliveryLocationModal />
     </div>
