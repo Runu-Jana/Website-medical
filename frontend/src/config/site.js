@@ -6,7 +6,7 @@
 export const siteConfig = {
   // Brand logo image (place the file in `frontend/public/`, e.g. public/logo.png).
   // Used in the header and footer. Swap the file to rebrand — no code change.
-  logo: '/logo.png',
+  logo: '/logo.jpeg',
   brandName: 'DBL Life Care',
 
   // WhatsApp number in FULL international format, DIGITS ONLY — country code
