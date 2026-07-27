@@ -8,6 +8,7 @@ import ConfirmDialog from '../components/ConfirmDialog.jsx';
 
 const STATUSES = ['pending', 'reviewed', 'quoted', 'completed'];
 const resolveImg = (u) => (!u ? '' : u.startsWith('http') ? u : `${API_URL}${u.startsWith('/') ? '' : '/'}${u}`);
+const isPdf = (u) => /\.pdf(\?|$)/i.test(u || '');
 const formatDate = (d) => (d ? new Date(d).toLocaleString() : '');
 
 export default function Prescriptions() {
@@ -16,6 +17,7 @@ export default function Prescriptions() {
   const [items, setItems] = useState([]);
   const [delTarget, setDelTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [preview, setPreview] = useState(null); // { url, pdf } for the inline viewer
 
   const load = async () => {
     setLoading(true);
@@ -93,18 +95,23 @@ export default function Prescriptions() {
         <div className="space-y-3">
           {items.map((rx) => (
             <div key={rx._id} className="card flex flex-col gap-4 p-3 sm:flex-row sm:items-center">
-              <a
-                href={resolveImg(rx.fileUrl)}
-                target="_blank"
-                rel="noreferrer"
+              <button
+                type="button"
+                onClick={() => rx.fileUrl && setPreview({ url: resolveImg(rx.fileUrl), pdf: isPdf(rx.fileUrl) })}
                 className="relative flex h-24 w-full shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100 sm:w-32"
+                title={rx.fileUrl ? 'View prescription' : 'No file'}
               >
-                {rx.fileUrl ? (
-                  <img src={resolveImg(rx.fileUrl)} alt="rx" className="h-full w-full object-cover" />
-                ) : (
+                {!rx.fileUrl ? (
                   <FiFileText className="text-slate-300" size={28} />
+                ) : isPdf(rx.fileUrl) ? (
+                  <span className="flex flex-col items-center gap-1 text-red-500">
+                    <FiFileText size={26} />
+                    <span className="text-[10px] font-bold">PDF</span>
+                  </span>
+                ) : (
+                  <img src={resolveImg(rx.fileUrl)} alt="rx" className="h-full w-full object-cover" />
                 )}
-              </a>
+              </button>
               <div className="min-w-0 flex-1">
                 <p className="font-semibold text-slate-800">{rx.name || 'Customer'}</p>
                 <p className="text-sm text-slate-500">{rx.phone || '—'}</p>
@@ -175,6 +182,40 @@ export default function Prescriptions() {
         title="Delete prescription"
         message="Remove this prescription upload?"
       />
+
+      {/* Inline file viewer — PDFs render in an iframe, images inline. */}
+      {preview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setPreview(null)}
+        >
+          <div className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+              <h3 className="font-semibold text-slate-800">Prescription</h3>
+              <div className="flex items-center gap-2">
+                <a
+                  href={preview.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1 rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-semibold text-primary hover:bg-blue-100"
+                >
+                  <FiExternalLink size={14} /> Open in new tab
+                </a>
+                <button onClick={() => setPreview(null)} className="rounded-lg px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-100">
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto bg-slate-50">
+              {preview.pdf ? (
+                <iframe src={preview.url} title="Prescription PDF" className="h-full w-full" />
+              ) : (
+                <img src={preview.url} alt="Prescription" className="mx-auto max-h-full max-w-full object-contain" />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
