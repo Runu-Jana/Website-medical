@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { FaHeartbeat, FaEnvelope, FaMobileAlt } from 'react-icons/fa'
@@ -25,10 +25,34 @@ export default function Login() {
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
   const [phoneStep, setPhoneStep] = useState('phone') // 'phone' | 'code'
+  const [resendIn, setResendIn] = useState(0) // seconds until "Resend code" is allowed
 
   const [error, setError] = useState('')
   const [welcome, setWelcome] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Tick down the resend cooldown once per second.
+  useEffect(() => {
+    if (resendIn <= 0) return undefined
+    const t = setTimeout(() => setResendIn((s) => Math.max(0, s - 1)), 1000)
+    return () => clearTimeout(t)
+  }, [resendIn])
+
+  // Re-send the OTP and restart the cooldown.
+  const onResend = async () => {
+    if (resendIn > 0 || loading) return
+    setError('')
+    setLoading(true)
+    try {
+      if (realOtpAvailable()) await startPhoneAuth(toE164(phone))
+      setCode('')
+      setResendIn(30)
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Could not resend the code.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const goAfterLogin = (data) => {
     const who = data.user?.name && data.user.name !== 'Customer' ? `, ${data.user.name}` : ''
@@ -66,6 +90,7 @@ export default function Login() {
         await startPhoneAuth(e164) // native SMS in the app, reCAPTCHA+SMS on web
       }
       setPhoneStep('code')
+      setResendIn(30) // start the resend cooldown
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Could not send the code.')
     } finally {
@@ -201,12 +226,27 @@ export default function Login() {
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? 'Verifying…' : 'Verify & Sign In'}
             </button>
+            <div className="text-center text-sm">
+              {resendIn > 0 ? (
+                <span className="text-slate-400">Resend code in {resendIn}s</span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onResend}
+                  disabled={loading}
+                  className="font-semibold text-primary hover:underline disabled:opacity-60"
+                >
+                  Resend code
+                </button>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => {
                 setPhoneStep('phone')
                 setCode('')
                 setError('')
+                setResendIn(0)
               }}
               className="w-full text-center text-sm text-slate-500 hover:text-primary"
             >
