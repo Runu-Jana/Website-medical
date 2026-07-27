@@ -421,28 +421,44 @@ export const answerSupportQuery = async ({ messages = [], context = '' }) => {
     throw err;
   }
 
-  const response = await client.messages.create({
+  const system = [
+    { type: 'text', text: SUPPORT_SYSTEM },
+    { type: 'text', text: `STORE CONTEXT (the only facts you may rely on):\n${context}` },
+  ];
+
+  // Primary path: ask for structured JSON so we also get the escalate flag.
+  try {
+    const response = await client.messages.create({
+      model: SUPPORT_MODEL,
+      max_tokens: 700,
+      system,
+      output_config: { format: { type: 'json_schema', schema: SUPPORT_SCHEMA } },
+      messages: trimmed,
+    });
+    const textBlock = response.content.find((b) => b.type === 'text');
+    const parsed = JSON.parse(textBlock.text);
+    return {
+      reply: String(parsed.reply || '').trim() || "I'm sorry, I couldn't process that. Let me connect you with our team.",
+      escalate: !!parsed.escalate,
+      escalationReason: String(parsed.escalationReason || '').trim(),
+    };
+  } catch (e) {
+    // Structured output unsupported by the model/SDK, or non-JSON reply — fall
+    // back to a plain-text answer so the assistant still responds.
+    console.error('Support structured output failed, falling back to plain text:', e.message);
+  }
+
+  const fallback = await client.messages.create({
     model: SUPPORT_MODEL,
     max_tokens: 700,
-    system: [
-      { type: 'text', text: SUPPORT_SYSTEM },
-      { type: 'text', text: `STORE CONTEXT (the only facts you may rely on):\n${context}` },
-    ],
-    output_config: { format: { type: 'json_schema', schema: SUPPORT_SCHEMA } },
+    system,
     messages: trimmed,
   });
-
-  const textBlock = response.content.find((b) => b.type === 'text');
-  if (!textBlock) throw new Error('AI returned no content.');
-  let parsed;
-  try {
-    parsed = JSON.parse(textBlock.text);
-  } catch {
-    throw new Error('AI returned malformed JSON.');
-  }
+  const tb = fallback.content.find((b) => b.type === 'text');
+  const reply = String(tb?.text || '').trim();
   return {
-    reply: String(parsed.reply || '').trim() || "I'm sorry, I couldn't process that. Let me connect you with our team.",
-    escalate: !!parsed.escalate,
-    escalationReason: String(parsed.escalationReason || '').trim(),
+    reply: reply || "I'm sorry, I couldn't process that. Let me connect you with our team.",
+    escalate: false,
+    escalationReason: '',
   };
 };
