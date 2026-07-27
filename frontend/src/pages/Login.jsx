@@ -46,7 +46,7 @@ export default function Login() {
     try {
       if (realOtpAvailable()) await startPhoneAuth(toE164(phone))
       setCode('')
-      setResendIn(30)
+      setResendIn(60)
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Could not resend the code.')
     } finally {
@@ -90,7 +90,7 @@ export default function Login() {
         await startPhoneAuth(e164) // native SMS in the app, reCAPTCHA+SMS on web
       }
       setPhoneStep('code')
-      setResendIn(30) // start the resend cooldown
+      setResendIn(60) // start the resend cooldown
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Could not send the code.')
     } finally {
