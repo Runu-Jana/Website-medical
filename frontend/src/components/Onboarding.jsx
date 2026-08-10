@@ -18,7 +18,7 @@ const SLIDES = [
   {
     icon: FaUserMd,
     title: 'Your health, our priority',
-    text: 'One app for medicines, doctor consultations and lab tests — care that comes to you.',
+    text: 'One app for medicines, lab tests and health essentials — care that comes to you.',
   },
   {
     icon: FaFlask,

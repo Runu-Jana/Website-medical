@@ -3,7 +3,7 @@ import { siteConfig } from '../config/site'
 
 const BRAND = siteConfig.brandName || 'DBL Life Care'
 const DEFAULT_DESC =
-  'Order genuine medicines, book lab tests and consult doctors online. Fast delivery, secure payments and expert care.'
+  'Order genuine medicines and book lab tests online. Fast delivery, secure payments and expert care.'
 
 // Per-page <title>, meta description and Open Graph / Twitter tags, plus optional
 // JSON-LD structured data. Makes each route shareable (rich WhatsApp/social

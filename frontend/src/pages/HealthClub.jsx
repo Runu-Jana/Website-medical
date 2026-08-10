@@ -17,6 +17,7 @@ import {
 } from 'react-icons/fa'
 import api from '../lib/api'
 import { useAuth } from '../context/AuthContext'
+import { FEATURES } from '../config/features'
 
 const benefits = [
   {
@@ -25,12 +26,15 @@ const benefits = [
     desc: 'A complimentary full-body health check-up every year to stay ahead of any concern.',
     color: 'bg-rose-100 text-rose-600',
   },
-  {
-    icon: FaUserMd,
-    title: 'Doctor Consultation Discounts',
-    desc: 'Flat discounts on online and in-clinic doctor consultations, whenever you need them.',
-    color: 'bg-sky-100 text-sky-600',
-  },
+  // Doctor-consultation perk — only when the doctors feature is enabled.
+  ...(FEATURES.doctors
+    ? [{
+        icon: FaUserMd,
+        title: 'Doctor Consultation Discounts',
+        desc: 'Flat discounts on online and in-clinic doctor consultations, whenever you need them.',
+        color: 'bg-sky-100 text-sky-600',
+      }]
+    : []),
   {
     icon: FaTruck,
     title: 'Free Delivery',
@@ -127,8 +131,8 @@ export default function HealthClub() {
               A healthier family.
             </h1>
             <p className="mt-4 max-w-md text-sm text-white/90 sm:text-base">
-              Unlock free delivery, exclusive discounts, doctor savings, reward points and
-              personalised health care — all in one membership built to keep your family well.
+              Unlock free delivery, exclusive discounts, reward points and personalised health
+              care — all in one membership built to keep your family well.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
               {isMember ? (

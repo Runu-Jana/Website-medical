@@ -12,9 +12,10 @@ import {
   FaRobot,
   FaChevronRight,
 } from 'react-icons/fa'
+import { FEATURES } from '../config/features'
 
-const services = [
-  { icon: FaUserMd, label: 'Doctor Consultation', to: '/doctors', color: 'bg-sky-100 text-sky-600' },
+const allServices = [
+  { icon: FaUserMd, label: 'Doctor Consultation', to: '/doctors', color: 'bg-sky-100 text-sky-600', feature: 'doctors' },
   { icon: FaFlask, label: 'Lab Tests', to: '/lab-tests', color: 'bg-violet-100 text-violet-600' },
   { icon: FaSyringe, label: 'Vaccination', to: '/vaccination', color: 'bg-emerald-100 text-emerald-600' },
   { icon: FaShieldAlt, label: 'Health Insurance', to: '/health-insurance', color: 'bg-indigo-100 text-indigo-600' },
@@ -24,6 +25,9 @@ const services = [
   { icon: FaRobot, label: 'AI Assistant', to: '/health-assistant', color: 'bg-fuchsia-100 text-fuchsia-600' },
   { icon: FaTruck, label: 'Track Order', to: '/account#orders', color: 'bg-teal-100 text-teal-600' },
 ]
+
+// Hide any tile whose feature flag is off (e.g. Doctor Consultation).
+const services = allServices.filter((s) => !s.feature || FEATURES[s.feature])
 
 export default function QuickServices({ onNavigate }) {
   const scrollerRef = useRef(null)

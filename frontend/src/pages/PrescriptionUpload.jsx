@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { waLink, telLink } from '../config/site'
+import { FEATURES } from '../config/features'
 import { isNativeApp, capturePrescription } from '../lib/nativeCamera'
 import {
   FaPrescriptionBottleAlt,
@@ -30,11 +31,14 @@ const quickActions = [
     label: 'Ask Question',
     placeholder: 'What would you like to ask our pharmacist?',
   },
-  {
-    icon: FaUserMd,
-    label: 'Doctor Appointment',
-    placeholder: 'Tell us your concern and a preferred day/time…',
-  },
+  // Doctor Appointment — only when the doctors feature is enabled.
+  ...(FEATURES.doctors
+    ? [{
+        icon: FaUserMd,
+        label: 'Doctor Appointment',
+        placeholder: 'Tell us your concern and a preferred day/time…',
+      }]
+    : []),
   {
     icon: FaFlask,
     label: 'Lab Tests',

@@ -1,6 +1,7 @@
 import { Suspense, lazy, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
+import { FEATURES } from './config/features'
 
 // First-launch onboarding overlay — lazy so Three.js only loads on first run.
 const Onboarding = lazy(() => import('./components/Onboarding'))
@@ -93,8 +94,12 @@ export default function App() {
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/brands" element={<Brands />} />
           <Route path="/health-club" element={<HealthClub />} />
-          <Route path="/doctors" element={<DoctorConsultation />} />
-          <Route path="/doctors/:idOrSlug" element={<DoctorProfile />} />
+          {FEATURES.doctors && (
+            <>
+              <Route path="/doctors" element={<DoctorConsultation />} />
+              <Route path="/doctors/:idOrSlug" element={<DoctorProfile />} />
+            </>
+          )}
           <Route path="/lab-tests" element={<LabTests />} />
           <Route path="/vaccination" element={<Vaccination />} />
           <Route path="/health-insurance" element={<HealthInsurance />} />
