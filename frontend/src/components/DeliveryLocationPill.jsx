@@ -18,7 +18,7 @@ export default function DeliveryLocationPill({ className = '', compact = false }
         {!compact && <span className="block text-[11px] text-slate-500">Deliver to</span>}
         <span className="flex items-center gap-1">
           <span className={`block max-w-[10rem] truncate font-bold text-dark ${compact ? 'text-xs' : 'text-sm'}`}>
-            {location ? `${location.city}${location.pincode ? `, ${location.pincode}` : ''}` : 'Select location'}
+            {location ? `${location.area || location.city}${location.pincode ? `, ${location.pincode}` : ''}` : 'Select location'}
           </span>
           <FaChevronDown className="shrink-0 text-slate-400" size={compact ? 9 : 11} />
         </span>

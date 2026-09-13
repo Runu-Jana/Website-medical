@@ -1,17 +1,124 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FaMapMarkerAlt, FaLocationArrow, FaSearch, FaTimes, FaSpinner } from 'react-icons/fa'
 import { useDeliveryLocation } from '../context/LocationContext'
 
+// Most frequent { city, state } wins — used to order a shared pincode's areas so
+// the district it mostly belongs to (e.g. Chandigarh for 160014) comes first
+// instead of an alphabetically-first outlier (Rupnagar).
+function pickMajority(rows) {
+  const counts = new Map()
+  for (const r of rows) {
+    if (!r.city) continue
+    const key = `${r.city}|${r.state || ''}`
+    counts.set(key, (counts.get(key) || 0) + 1)
+  }
+  let bestKey = null
+  let bestN = 0
+  for (const [key, n] of counts) {
+    if (n > bestN) {
+      bestN = n
+      bestKey = key
+    }
+  }
+  if (!bestKey) return null
+  const [city, state] = bestKey.split('|')
+  return { city, state }
+}
+
+// "Sector 14 (Chandigarh)" → "Sector 14" for a tidy label.
+const cleanArea = (name) => String(name || '').replace(/\s*\(.*?\)\s*$/, '').trim()
+
+// Resolve a 6-digit pincode to a list of selectable areas.
+// Returns [] when the pincode is unknown, or null on a network error.
+async function lookupAreas(code) {
+  try {
+    // 1) India Post — richest data (a district per post office).
+    const res = await fetch(`https://api.postalpincode.in/pincode/${code}`)
+    const d = await res.json()
+    const offices = d?.[0]?.PostOffice || []
+    if (offices.length) {
+      const seen = new Set()
+      const opts = []
+      for (const o of offices) {
+        const key = `${o.Name}|${o.District}`
+        if (seen.has(key)) continue
+        seen.add(key)
+        opts.push({ area: cleanArea(o.Name) || o.Name, city: o.District, state: o.State })
+      }
+      // Majority-district areas first (Chandigarh before Rupnagar for 160014).
+      const maj = pickMajority(offices.map((o) => ({ city: o.District, state: o.State })))
+      opts.sort((a, b) => {
+        if (maj) {
+          const am = a.city === maj.city ? 0 : 1
+          const bm = b.city === maj.city ? 0 : 1
+          if (am !== bm) return am - bm
+        }
+        return a.area.localeCompare(b.area)
+      })
+      return opts
+    }
+
+    // 2) Fallback — Zippopotam covers pincodes India Post is missing (e.g. 160016).
+    const zres = await fetch(`https://api.zippopotam.us/in/${code}`)
+    if (zres.ok) {
+      const z = await zres.json()
+      const seen = new Set()
+      const opts = []
+      for (const p of z?.places || []) {
+        const nm = p['place name']
+        if (!nm || seen.has(nm)) continue
+        seen.add(nm)
+        opts.push({ area: cleanArea(nm) || nm, city: p.state, state: p.state })
+      }
+      return opts
+    }
+    return []
+  } catch {
+    return null
+  }
+}
+
 // First-visit "Where do you want the delivery?" prompt. Two ways to set the
-// delivery area — detect via the device GPS, or type a pincode. Both run
-// entirely in the customer's browser (free, no API key), so they work the same
-// on the website and inside the mobile app.
+// delivery area — detect via the device GPS, or type a pincode and pick the exact
+// area. Both run entirely in the customer's browser (free, no API key), so they
+// work the same on the website and inside the mobile app.
 export default function DeliveryLocationModal() {
   const { promptOpen, closePrompt, saveLocation, location } = useDeliveryLocation()
   const [mode, setMode] = useState('choose') // 'choose' | 'manual'
   const [pin, setPin] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [options, setOptions] = useState([])
+
+  // As soon as a full 6-digit pincode is entered, suggest its areas (debounced).
+  useEffect(() => {
+    if (mode !== 'manual') return
+    if (pin.length !== 6) {
+      setOptions([])
+      setError('')
+      return
+    }
+    let cancelled = false
+    setBusy(true)
+    setError('')
+    setOptions([])
+    const t = setTimeout(async () => {
+      const opts = await lookupAreas(pin)
+      if (cancelled) return
+      setBusy(false)
+      if (opts === null) {
+        setError('Could not look up that pincode. Please try again.')
+      } else if (opts.length === 0) {
+        setError('We couldn’t find that pincode. Please check and try again.')
+      } else {
+        setOptions(opts)
+      }
+    }, 350)
+    return () => {
+      cancelled = true
+      clearTimeout(t)
+    }
+  }, [pin, mode])
 
   if (!promptOpen) return null
 
@@ -20,6 +127,7 @@ export default function DeliveryLocationModal() {
     setPin('')
     setError('')
     setBusy(false)
+    setOptions([])
   }
   const close = () => {
     reset()
@@ -43,7 +151,13 @@ export default function DeliveryLocationModal() {
           )
           const d = await res.json()
           const city = d.city || d.locality || d.principalSubdivision || 'Your area'
-          saveLocation({ city, pincode: d.postcode || '', state: d.principalSubdivision || '', source: 'gps' })
+          saveLocation({
+            city,
+            area: d.locality || '',
+            pincode: d.postcode || '',
+            state: d.principalSubdivision || '',
+            source: 'gps',
+          })
           reset()
         } catch {
           setError('Could not detect your area. Please select manually.')
@@ -61,31 +175,10 @@ export default function DeliveryLocationModal() {
     )
   }
 
-  // Look up an Indian pincode → city/district (free India Post API).
-  const applyPincode = async () => {
-    const code = pin.trim()
-    if (!/^\d{6}$/.test(code)) {
-      setError('Please enter a valid 6-digit pincode.')
-      return
-    }
-    setBusy(true)
-    setError('')
-    try {
-      const res = await fetch(`https://api.postalpincode.in/pincode/${code}`)
-      const d = await res.json()
-      const po = d?.[0]?.PostOffice?.[0]
-      if (!po) {
-        setError('We couldn’t find that pincode. Please check and try again.')
-        setBusy(false)
-        return
-      }
-      saveLocation({ city: po.District, pincode: code, state: po.State, source: 'manual' })
-      reset()
-    } catch {
-      setError('Could not look up that pincode. Please try again.')
-    } finally {
-      setBusy(false)
-    }
+  // Customer taps their exact area from the suggested list.
+  const choose = (opt) => {
+    saveLocation({ city: opt.city, area: opt.area, pincode: pin, state: opt.state, source: 'manual' })
+    reset()
   }
 
   return (
@@ -135,27 +228,55 @@ export default function DeliveryLocationModal() {
         ) : (
           <div className="mt-5">
             <label className="mb-1.5 block text-sm font-semibold text-dark">Enter your pincode</label>
-            <div className="flex gap-2">
-              <input
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                onKeyDown={(e) => e.key === 'Enter' && applyPincode()}
-                inputMode="numeric"
-                placeholder="e.g. 110001"
-                autoFocus
-                className="input-base flex-1"
-              />
-              <button
-                onClick={applyPincode}
-                disabled={busy}
-                className="flex items-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-white transition hover:bg-primaryDark disabled:opacity-60"
-              >
-                {busy ? <FaSpinner className="animate-spin" /> : 'Apply'}
-              </button>
-            </div>
+            <input
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              inputMode="numeric"
+              placeholder="e.g. 160014"
+              autoFocus
+              className="input-base w-full"
+            />
+
+            {busy && (
+              <p className="mt-3 flex items-center gap-2 text-sm text-slate-500">
+                <FaSpinner className="animate-spin" /> Finding areas for {pin}…
+              </p>
+            )}
+
+            {!busy && pin.length > 0 && pin.length < 6 && (
+              <p className="mt-2 text-xs text-slate-400">Enter all 6 digits to see areas.</p>
+            )}
+
+            {!busy && options.length > 0 && (
+              <div className="mt-3">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Select your area</p>
+                <ul className="max-h-56 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200 dark:divide-slate-800 dark:border-slate-700">
+                  {options.map((o, i) => (
+                    <li key={`${o.area}-${o.city}-${i}`}>
+                      <button
+                        onClick={() => choose(o)}
+                        className="flex w-full items-start gap-2 px-3 py-2.5 text-left transition hover:bg-primary/5"
+                      >
+                        <FaMapMarkerAlt className="mt-0.5 shrink-0 text-primary/70" size={13} />
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-semibold text-dark">{o.area}</span>
+                          <span className="block truncate text-xs text-slate-500">
+                            {o.city}
+                            {o.state && o.state !== o.city ? `, ${o.state}` : ''} · {pin}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <button
               onClick={() => {
                 setError('')
+                setPin('')
+                setOptions([])
                 setMode('choose')
               }}
               className="mt-3 text-sm font-semibold text-slate-500 hover:text-primary"
@@ -167,7 +288,7 @@ export default function DeliveryLocationModal() {
 
         {location && (
           <button onClick={close} className="mt-4 block w-full text-center text-xs font-medium text-slate-400 hover:text-slate-600">
-            Keep {location.city}
+            Keep {location.area || location.city}
             {location.pincode ? `, ${location.pincode}` : ''}
           </button>
         )}
