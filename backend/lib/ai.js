@@ -12,6 +12,27 @@ const SUPPORT_MODEL = 'claude-haiku-4-5';
 
 const client = aiEnabled ? new Anthropic({ apiKey: ANTHROPIC_API_KEY }) : null;
 
+// Force Claude to return JSON matching `schema` by exposing exactly one tool and
+// requiring it. This is supported on every SDK/API version — unlike the
+// `output_config` structured-output parameter, which the pinned SDK
+// (@anthropic-ai/sdk 0.70.1) does not support on messages.create(). The tool's
+// `input` arrives already parsed, so there is no JSON text to (mis)parse.
+const emitJson = async ({ model, maxTokens, system, messages, schema, toolName, toolDescription }) => {
+  const response = await client.messages.create({
+    model,
+    max_tokens: maxTokens,
+    ...(system ? { system } : {}),
+    tools: [{ name: toolName, description: toolDescription, input_schema: schema }],
+    tool_choice: { type: 'tool', name: toolName },
+    messages,
+  });
+  const toolUse = response.content.find((b) => b.type === 'tool_use');
+  if (!toolUse || typeof toolUse.input !== 'object' || toolUse.input === null) {
+    throw new Error('AI returned no structured content.');
+  }
+  return toolUse.input;
+};
+
 // JSON shape Claude must return. `strict` schema keeps every field present.
 const PRODUCT_SCHEMA = {
   type: 'object',
@@ -168,28 +189,16 @@ export const generateProductDetails = async ({ name = '', category = '', imageUr
     .filter(Boolean)
     .join('\n');
 
-  const response = await client.messages.create({
+  const parsed = await emitJson({
     model: MODEL,
-    max_tokens: 4000,
+    maxTokens: 4000,
     system: SYSTEM_PROMPT,
-    output_config: { format: { type: 'json_schema', schema: PRODUCT_SCHEMA } },
-    messages: [
-      {
-        role: 'user',
-        content: [...imageBlocks, { type: 'text', text: hint }],
-      },
-    ],
+    messages: [{ role: 'user', content: [...imageBlocks, { type: 'text', text: hint }] }],
+    schema: PRODUCT_SCHEMA,
+    toolName: 'save_product_details',
+    toolDescription: 'Save the catalog details and FAQs read from the product packaging.',
   });
 
-  // With json_schema output, the text block is the JSON document.
-  const textBlock = response.content.find((b) => b.type === 'text');
-  if (!textBlock) throw new Error('AI returned no content.');
-  let parsed;
-  try {
-    parsed = JSON.parse(textBlock.text);
-  } catch {
-    throw new Error('AI returned malformed JSON.');
-  }
   // Normalise faqs to a clean array of {question, answer}.
   parsed.faqs = Array.isArray(parsed.faqs)
     ? parsed.faqs
@@ -264,27 +273,16 @@ export const generateProductDetailsFromText = async ({
     .filter(Boolean)
     .join('\n');
 
-  const response = await client.messages.create({
+  const parsed = await emitJson({
     model: BULK_MODEL,
-    max_tokens: 2000,
+    maxTokens: 2000,
     system: BULK_SYSTEM_PROMPT,
-    output_config: { format: { type: 'json_schema', schema: BULK_PRODUCT_SCHEMA } },
-    messages: [
-      {
-        role: 'user',
-        content: `${facts}\n\nWrite the catalog fields and FAQs for this product.`,
-      },
-    ],
+    messages: [{ role: 'user', content: `${facts}\n\nWrite the catalog fields and FAQs for this product.` }],
+    schema: BULK_PRODUCT_SCHEMA,
+    toolName: 'save_product_details',
+    toolDescription: 'Save the catalog details and FAQs for this product.',
   });
 
-  const textBlock = response.content.find((b) => b.type === 'text');
-  if (!textBlock) throw new Error('AI returned no content.');
-  let parsed;
-  try {
-    parsed = JSON.parse(textBlock.text);
-  } catch {
-    throw new Error('AI returned malformed JSON.');
-  }
   parsed.faqs = Array.isArray(parsed.faqs)
     ? parsed.faqs
         .filter((f) => f && f.question && f.answer)
@@ -331,15 +329,14 @@ export const generateOfferSuggestion = async ({ brief = '' } = {}) => {
     err.status = 503;
     throw err;
   }
-  const response = await client.messages.create({
+  return emitJson({
     model: MODEL,
-    max_tokens: 1200,
+    maxTokens: 1200,
     system:
       'You are a growth-marketing expert for an Indian online medical & pharmacy store (DBL Life Care). ' +
       'Draft a single, sensible promotional coupon that would drive sales without destroying margins. ' +
       'Discounts for a pharmacy are usually modest (5-25% or ₹50-₹300). Codes must be uppercase, memorable, ' +
       'and letters/digits only. Return realistic, ready-to-use values.',
-    output_config: { format: { type: 'json_schema', schema: OFFER_SCHEMA } },
     messages: [
       {
         role: 'user',
@@ -350,14 +347,10 @@ export const generateOfferSuggestion = async ({ brief = '' } = {}) => {
           '\nReturn one coupon.',
       },
     ],
+    schema: OFFER_SCHEMA,
+    toolName: 'draft_offer',
+    toolDescription: 'Draft a single ready-to-use promotional coupon for the store.',
   });
-  const textBlock = response.content.find((b) => b.type === 'text');
-  if (!textBlock) throw new Error('AI returned no content.');
-  try {
-    return JSON.parse(textBlock.text);
-  } catch {
-    throw new Error('AI returned malformed JSON.');
-  }
 };
 
 // Structured reply for the storefront support assistant.
@@ -426,26 +419,26 @@ export const answerSupportQuery = async ({ messages = [], context = '' }) => {
     { type: 'text', text: `STORE CONTEXT (the only facts you may rely on):\n${context}` },
   ];
 
-  // Primary path: ask for structured JSON so we also get the escalate flag.
+  // Primary path: force a tool call so we also get the escalate flag as JSON.
   try {
-    const response = await client.messages.create({
+    const parsed = await emitJson({
       model: SUPPORT_MODEL,
-      max_tokens: 700,
+      maxTokens: 700,
       system,
-      output_config: { format: { type: 'json_schema', schema: SUPPORT_SCHEMA } },
       messages: trimmed,
+      schema: SUPPORT_SCHEMA,
+      toolName: 'answer_customer',
+      toolDescription: 'Reply to the customer and flag whether the query needs a human.',
     });
-    const textBlock = response.content.find((b) => b.type === 'text');
-    const parsed = JSON.parse(textBlock.text);
     return {
       reply: String(parsed.reply || '').trim() || "I'm sorry, I couldn't process that. Let me connect you with our team.",
       escalate: !!parsed.escalate,
       escalationReason: String(parsed.escalationReason || '').trim(),
     };
   } catch (e) {
-    // Structured output unsupported by the model/SDK, or non-JSON reply — fall
-    // back to a plain-text answer so the assistant still responds.
-    console.error('Support structured output failed, falling back to plain text:', e.message);
+    // If the tool call fails for any reason, fall back to a plain-text answer
+    // so the assistant still responds (we just lose the escalate flag).
+    console.error('Support structured tool call failed, falling back to plain text:', e.message);
   }
 
   const fallback = await client.messages.create({
