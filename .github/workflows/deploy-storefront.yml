@@ -1,0 +1,55 @@
+name: Deploy storefront (Hostinger)
+
+# Builds the Vite storefront and uploads the built dist/ to Hostinger over FTP.
+# Runs on every push to main that touches the storefront, and can be run manually
+# from the Actions tab (Run workflow) — use that for the very first deploy.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-storefront.yml'
+  workflow_dispatch: {}
+
+# Never run two storefront deploys at once.
+concurrency:
+  group: deploy-storefront
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build & upload to Hostinger
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install & build
+        working-directory: frontend
+        env:
+          # Public backend URL baked into the build. Override by adding a repo
+          # Variable named VITE_API_URL (Settings → Secrets and variables →
+          # Actions → Variables) if your backend URL ever changes.
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'https://website-medical-production.up.railway.app' }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Upload dist/ to Hostinger via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.HOSTINGER_FTP_HOST }}
+          username: ${{ secrets.HOSTINGER_FTP_USER }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          protocol: ftps
+          # Folder your storefront is served from. Most Hostinger accounts use
+          # public_html/. If yours differs, add a repo Variable named
+          # HOSTINGER_STOREFRONT_DIR (must end with a trailing slash), e.g.
+          # domains/dblpharmacy.com/public_html/
+          server-dir: ${{ vars.HOSTINGER_STOREFRONT_DIR || 'public_html/' }}
+          local-dir: ./frontend/dist/
