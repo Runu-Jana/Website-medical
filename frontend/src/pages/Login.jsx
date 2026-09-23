@@ -29,6 +29,10 @@ export default function Login() {
 
   const [error, setError] = useState('')
   const [welcome, setWelcome] = useState('')
+  // Shown once after a successful password reset redirects back here.
+  const [notice] = useState(
+    location.state?.resetDone ? 'Password updated — please sign in with your new password.' : ''
+  )
   const [loading, setLoading] = useState(false)
 
   // Tick down the resend cooldown once per second.
@@ -152,6 +156,11 @@ export default function Login() {
           ))}
         </div>
 
+        {notice && !welcome && (
+          <div className="mb-4 rounded-xl bg-primary/10 px-4 py-3 text-sm font-medium text-primary">
+            {notice}
+          </div>
+        )}
         {welcome && (
           <div className="mb-4 rounded-xl bg-primary/10 px-4 py-3 text-sm font-semibold text-primary">
             {welcome}
@@ -170,6 +179,11 @@ export default function Login() {
             <div>
               <label className="mb-1 block text-sm font-medium">Password</label>
               <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="input-base" />
+            </div>
+            <div className="-mt-1 text-right">
+              <Link to="/forgot-password" className="text-sm font-medium text-primary hover:underline">
+                Forgot password?
+              </Link>
             </div>
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? 'Signing in...' : 'Sign In'}

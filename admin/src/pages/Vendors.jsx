@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FiShoppingBag, FiCheck, FiX, FiSlash, FiPhone, FiMail } from 'react-icons/fi';
+import { FiShoppingBag, FiCheck, FiX, FiSlash, FiPhone, FiMail, FiKey, FiLock, FiCopy } from 'react-icons/fi';
 import api from '../lib/api.js';
 import { useToast } from '../context/ToastContext.jsx';
 import Loader from '../components/Loader.jsx';
@@ -18,6 +18,7 @@ export default function Vendors() {
   const [vendors, setVendors] = useState([]);
   const [pending, setPending] = useState(0);
   const [filter, setFilter] = useState('');
+  const [tempPw, setTempPw] = useState(null); // { id, email, password }
 
   const load = async () => {
     setLoading(true);
@@ -47,6 +48,33 @@ export default function Vendors() {
       await api.put(`/vendors/${id}`, { commissionPercent });
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not update');
+    }
+  };
+  const sendReset = async (v) => {
+    if (!window.confirm(`Email a password-reset code to ${v.shopName || v.ownerName}? They'll set their own new password.`)) return;
+    try {
+      const { data } = await api.post(`/vendors/${v._id}/send-reset`);
+      toast.success(data.message || 'Reset code emailed');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not send reset email');
+    }
+  };
+  const setTemp = async (v) => {
+    if (!window.confirm(`Set a temporary password for ${v.shopName || v.ownerName}? Their current password will stop working immediately.`)) return;
+    try {
+      const { data } = await api.post(`/vendors/${v._id}/set-temp-password`);
+      setTempPw({ id: v._id, email: data.email, password: data.tempPassword });
+      toast.success('Temporary password set');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not set a temporary password');
+    }
+  };
+  const copyTemp = async () => {
+    try {
+      await navigator.clipboard.writeText(tempPw.password);
+      toast.success('Copied');
+    } catch {
+      toast.error('Copy failed — select the password manually');
     }
   };
 
@@ -97,7 +125,9 @@ export default function Vendors() {
                       className="input w-20 py-1"
                     />
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <button onClick={() => sendReset(v)} className="inline-flex items-center gap-1 rounded-lg bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 hover:bg-sky-100"><FiKey size={13} /> Send reset email</button>
+                    <button onClick={() => setTemp(v)} className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"><FiLock size={13} /> Set temp password</button>
                     {v.status !== 'approved' && (
                       <button onClick={() => setStatus(v._id, 'approved')} className="inline-flex items-center gap-1 rounded-lg bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100"><FiCheck size={13} /> Approve</button>
                     )}
@@ -110,6 +140,22 @@ export default function Vendors() {
                   </div>
                 </div>
               </div>
+
+              {tempPw?.id === v._id && (
+                <div className="mt-3 rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+                  <p className="text-xs font-semibold text-indigo-800">
+                    Temporary password for {tempPw.email || 'this seller'}
+                  </p>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <code className="rounded bg-white px-2 py-1 text-sm font-bold tracking-wider text-slate-800">{tempPw.password}</code>
+                    <button onClick={copyTemp} className="inline-flex items-center gap-1 rounded-lg bg-white px-2 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"><FiCopy size={12} /> Copy</button>
+                    <button onClick={() => setTempPw(null)} className="text-xs text-slate-500 hover:text-slate-700">Dismiss</button>
+                  </div>
+                  <p className="mt-1.5 text-[11px] text-indigo-700">
+                    Share it with the seller by phone. Shown only once — it won't appear again. They'll be asked to set their own password at next login.
+                  </p>
+                </div>
+              )}
             </div>
           ))}
         </div>

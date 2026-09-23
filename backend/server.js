@@ -76,9 +76,7 @@ app.use(
   })
 );
 
-// Reasonable body limits. Actual files are uploaded as multipart (see the
-// upload route), so JSON stays small — this shrinks the DoS surface.
-// `verify` keeps the raw body so we can validate the Razorpay webhook signature.
+
 app.use(
   express.json({
     limit: '5mb',

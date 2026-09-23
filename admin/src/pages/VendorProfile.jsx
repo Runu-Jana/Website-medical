@@ -1,10 +1,45 @@
 import { useEffect, useState } from 'react';
-import { FiShoppingBag, FiSave } from 'react-icons/fi';
+import { FiShoppingBag, FiSave, FiLock } from 'react-icons/fi';
 import api from '../lib/api.js';
 import { useToast } from '../context/ToastContext.jsx';
 import Loader from '../components/Loader.jsx';
 
 const F = ({ label, children }) => (<div><label className="label">{label}</label>{children}</div>);
+
+function ChangePassword() {
+  const toast = useToast();
+  const [pw, setPw] = useState({ currentPassword: '', newPassword: '', confirm: '' });
+  const [saving, setSaving] = useState(false);
+  const set = (k, v) => setPw((p) => ({ ...p, [k]: v }));
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (pw.newPassword !== pw.confirm) return toast.error('New passwords do not match');
+    setSaving(true);
+    try {
+      await api.post('/auth/change-password', { currentPassword: pw.currentPassword, newPassword: pw.newPassword });
+      setPw({ currentPassword: '', newPassword: '', confirm: '' });
+      toast.success('Password changed');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not change password');
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <form onSubmit={submit} className="card space-y-4 p-5">
+      <div className="flex items-center gap-2">
+        <FiLock className="text-primary" size={18} />
+        <h3 className="font-bold text-slate-800">Change password</h3>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <F label="Current password"><input type="password" required value={pw.currentPassword} onChange={(e) => set('currentPassword', e.target.value)} className="input" /></F>
+        <F label="New password"><input type="password" required minLength={6} value={pw.newPassword} onChange={(e) => set('newPassword', e.target.value)} className="input" /></F>
+        <F label="Confirm new"><input type="password" required minLength={6} value={pw.confirm} onChange={(e) => set('confirm', e.target.value)} className="input" /></F>
+      </div>
+      <button type="submit" disabled={saving} className="btn-primary"><FiLock size={16} /> {saving ? 'Saving...' : 'Update password'}</button>
+    </form>
+  );
+}
 
 export default function VendorProfile() {
   const toast = useToast();
@@ -72,6 +107,8 @@ export default function VendorProfile() {
         <F label="Address"><textarea rows={2} value={form.address} onChange={(e) => set('address', e.target.value)} className="input resize-y" /></F>
         <button type="submit" disabled={saving} className="btn-primary"><FiSave size={16} /> {saving ? 'Saving...' : 'Save Profile'}</button>
       </form>
+
+      <ChangePassword />
     </div>
   );
 }

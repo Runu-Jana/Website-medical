@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import prisma from '../prisma/client.js';
 import generateToken from '../utils/generateToken.js';
@@ -5,6 +6,7 @@ import { serializeUser, withId } from '../prisma/serialize.js';
 import { resolveVendor } from '../lib/vendor.js';
 import { createNotification } from '../lib/notify.js';
 import { sendMail } from '../lib/mailer.js';
+import { issueResetCode } from '../lib/resetCode.js';
 
 // @route POST /api/vendors/register  (public) — a pharmacy applies to sell
 export const registerVendor = async (req, res) => {
@@ -309,6 +311,53 @@ export const recordPayout = async (req, res) => {
     data: { vendorId: v.id, amount, note: String(req.body.note || '').trim() },
   });
   res.status(201).json(withId(payout));
+};
+
+// @route POST /api/vendors/:id/send-reset  (admin) — email this seller a
+// password-reset code so a locked-out vendor can set a new password. The admin
+// never sees or handles the password; it's the same self-service flow the
+// vendor would use from the "Forgot password?" link.
+export const sendVendorReset = async (req, res) => {
+  const v = await prisma.vendor.findUnique({ where: { id: req.params.id } });
+  if (!v) return res.status(404).json({ message: 'Vendor not found' });
+  const user = await prisma.user.findUnique({ where: { id: v.userId } });
+  if (!user || !user.email) {
+    return res.status(400).json({ message: 'This vendor has no login email on file.' });
+  }
+  await issueResetCode(user);
+  res.json({ success: true, message: `Reset code emailed to ${user.email}` });
+};
+
+// A friendly, reasonably strong temporary password, e.g. "Dbl-7fa2-9c1d".
+const makeTempPassword = () =>
+  `Dbl-${crypto.randomBytes(2).toString('hex')}-${crypto.randomBytes(2).toString('hex')}`;
+
+// @route POST /api/vendors/:id/set-temp-password  (admin) — set a temporary
+// password for a locked-out seller who can't use the email code flow. The
+// plaintext is returned to the admin ONCE to relay to the vendor (by phone),
+// and the vendor is forced to choose a new password on next login.
+export const setVendorTempPassword = async (req, res) => {
+  const v = await prisma.vendor.findUnique({ where: { id: req.params.id } });
+  if (!v) return res.status(404).json({ message: 'Vendor not found' });
+  const user = await prisma.user.findUnique({ where: { id: v.userId } });
+  if (!user) return res.status(404).json({ message: 'This vendor has no login account.' });
+
+  const tempPassword = makeTempPassword();
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      password: await bcrypt.hash(tempPassword, 10),
+      mustChangePassword: true,
+      resetCodeHash: null,
+      resetCodeExpires: null,
+    },
+  });
+  res.json({
+    success: true,
+    email: user.email,
+    tempPassword,
+    message: 'Temporary password set. Share it with the seller — they must change it at next login.',
+  });
 };
 
 // @route GET /api/vendors/:id/payouts  (admin) — a vendor's payout history

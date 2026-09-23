@@ -54,7 +54,7 @@ export default function ForgotPassword() {
 
         {step === 'request' ? (
           <form onSubmit={requestCode} className="card p-6 sm:p-8">
-            <label className="label">Admin email address</label>
+            <label className="label">Email address</label>
             <div className="relative mb-5">
               <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
@@ -113,8 +113,9 @@ export default function ForgotPassword() {
         )}
 
         <div className="mt-5 rounded-xl bg-white/5 p-4 text-center text-xs text-slate-300">
-          <b>No access to your email?</b> Ask another admin to reset your password from
-          <span className="text-primary"> Admins</span> in the dashboard.
+          <b>No access to your email?</b> Sellers can ask the platform admin to send a
+          reset code from the <span className="text-primary">Vendors</span> page; admins can
+          ask another admin from <span className="text-primary">Admins</span>.
         </div>
 
         <Link

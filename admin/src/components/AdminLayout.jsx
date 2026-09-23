@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { FiMenu, FiLogOut } from 'react-icons/fi';
 import Sidebar from './Sidebar.jsx';
 import NotificationsBell from './NotificationsBell.jsx';
+import ForcePasswordChange from './ForcePasswordChange.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const SECTIONS = {
@@ -34,6 +35,9 @@ export default function AdminLayout() {
   const { user, logout } = useAuth();
   const { pathname } = useLocation();
   const section = SECTIONS[pathname.split('/')[1] || ''] || 'Admin';
+
+  // A user on a temporary password must set their own before using the panel.
+  if (user?.mustChangePassword) return <ForcePasswordChange />;
 
   const initials = (user?.name || 'Admin')
     .split(' ')

@@ -77,7 +77,7 @@ export default function ProductCard({ product, list = false }) {
     <>
       <div
         className={`card group overflow-hidden hover:shadow-lift ${
-          list ? 'flex flex-row' : 'flex flex-col hover:-translate-y-1'
+          list ? 'flex flex-row' : 'flex h-full flex-col hover:-translate-y-1'
         }`}
       >
         <div className={`relative ${list ? 'w-32 shrink-0 sm:w-52' : ''}`}>
@@ -134,7 +134,7 @@ export default function ProductCard({ product, list = false }) {
           )}
           <Link
             to={link}
-            className="mt-0.5 line-clamp-2 min-h-[2.5rem] text-sm font-semibold text-dark hover:text-primary"
+            className="mt-0.5 line-clamp-2 min-h-[3rem] text-sm font-semibold text-dark hover:text-primary"
           >
             {product.name}
           </Link>

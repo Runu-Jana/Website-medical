@@ -9,6 +9,8 @@ import {
   phoneCheck,
   phoneVerify,
   changePassword,
+  forgotPassword,
+  resetPassword,
   adminForgotPassword,
   adminResetPassword,
 } from '../controllers/authController.js';
@@ -19,6 +21,8 @@ const router = express.Router();
 
 router.post('/register', validate(registerSchema), register);
 router.post('/login', validate(loginSchema), login);
+router.post('/forgot', forgotPassword);
+router.post('/reset', resetPassword);
 router.post('/admin/login', adminLogin);
 router.post('/admin/forgot', adminForgotPassword);
 router.post('/admin/reset', adminResetPassword);
