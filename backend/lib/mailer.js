@@ -11,6 +11,12 @@ const transporter = mailerEnabled
       port: Number(SMTP_PORT) || 587,
       secure: Number(SMTP_PORT) === 465, // true for 465, false for 587/25
       auth: { user: SMTP_USER, pass: SMTP_PASS },
+      // Generous caps so a slow (but working) mail server still completes —
+      // the email is sent in the background, so this never blocks a request.
+      // These only stop a truly dead connection from lingering forever.
+      connectionTimeout: 30000,
+      greetingTimeout: 30000,
+      socketTimeout: 60000,
     })
   : null;
 
