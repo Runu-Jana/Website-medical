@@ -701,20 +701,20 @@ export default function ProductDetail() {
       {/* Sticky mobile add-to-cart bar (sits above the bottom nav) */}
       {!outOfStock && (
         <>
-          <div className="fixed inset-x-0 bottom-16 z-40 flex items-center gap-3 border-t border-bordergray bg-white px-3 py-2.5 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] md:hidden">
-            <div className="leading-tight">
-              <p className="text-lg font-bold text-primary">{formatPrice(product.price)}</p>
+          <div className="fixed inset-x-0 bottom-16 z-40 flex items-center gap-2 border-t border-bordergray bg-white px-3 py-2 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] md:hidden">
+            <div className="shrink-0 leading-tight">
+              <p className="text-base font-bold text-primary">{formatPrice(product.price)}</p>
               {savingsAmount(product) > 0 && (
-                <p className="text-[11px] font-semibold text-emerald-600">
+                <p className="text-[10px] font-semibold text-emerald-600">
                   Save {formatPrice(savingsAmount(product))}
                 </p>
               )}
             </div>
-            <button onClick={() => addToCart(product, qty)} className="btn-primary flex-1">
-              <FaCartPlus /> Add
+            <button onClick={() => addToCart(product, qty)} className="btn-primary flex-1 gap-1.5 px-2.5 py-2 text-[13px]">
+              <FaCartPlus className="text-xs" /> Add
             </button>
-            <button onClick={handleBuyNow} className="btn-accent flex-1">
-              <FaBolt /> Buy Now
+            <button onClick={handleBuyNow} className="btn-accent flex-1 gap-1.5 px-2.5 py-2 text-[13px]">
+              <FaBolt className="text-xs" /> Buy Now
             </button>
           </div>
           {/* Spacer so the sticky bar doesn't cover page content */}

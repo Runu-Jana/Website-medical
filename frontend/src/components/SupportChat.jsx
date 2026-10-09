@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { FaComments, FaTimes, FaPaperPlane, FaHeadset } from 'react-icons/fa'
 import api from '../lib/api'
 import { siteConfig } from '../config/site'
@@ -18,6 +19,10 @@ export default function SupportChat() {
   const [escalated, setEscalated] = useState(false)
   const scrollRef = useRef(null)
   const panelRef = useRef(null)
+  // Product pages have a sticky Add/Buy bar at the bottom on mobile — lift the
+  // launcher above it so the two never overlap.
+  const { pathname } = useLocation()
+  const onProductPage = pathname.startsWith('/product/')
 
   // Close the chat when clicking/tapping anywhere outside the panel.
   useEffect(() => {
@@ -74,7 +79,7 @@ export default function SupportChat() {
         <button
           onClick={() => setOpen(true)}
           aria-label="Chat with us"
-          className="fixed bottom-20 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/40 transition hover:scale-105 md:bottom-6 md:right-6"
+          className={`fixed ${onProductPage ? 'bottom-32' : 'bottom-20'} right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/40 transition hover:scale-105 md:bottom-6 md:right-6`}
         >
           <FaComments size={22} />
           <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[9px] font-bold">
