@@ -10,6 +10,7 @@ import {
   FaTruck,
   FaNotesMedical,
   FaRobot,
+  FaChevronLeft,
   FaChevronRight,
 } from 'react-icons/fa'
 import { FEATURES } from '../config/features'
@@ -31,14 +32,18 @@ const services = allServices.filter((s) => !s.feature || FEATURES[s.feature])
 
 export default function QuickServices({ onNavigate }) {
   const scrollerRef = useRef(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
 
-  // Show the "scroll for more" hint only while there is content hidden off the
-  // right edge; it fades away once the customer reaches the end.
+  // Toggle the back / forward arrows based on how far the strip is scrolled —
+  // each one fades away once you reach that end.
   useEffect(() => {
     const el = scrollerRef.current
     if (!el) return
-    const update = () => setCanScrollRight(el.scrollWidth - el.clientWidth - el.scrollLeft > 8)
+    const update = () => {
+      setCanScrollLeft(el.scrollLeft > 8)
+      setCanScrollRight(el.scrollWidth - el.clientWidth - el.scrollLeft > 8)
+    }
     update()
     el.addEventListener('scroll', update, { passive: true })
     window.addEventListener('resize', update)
@@ -48,8 +53,8 @@ export default function QuickServices({ onNavigate }) {
     }
   }, [])
 
-  const nudgeRight = () => {
-    scrollerRef.current?.scrollBy({ left: 160, behavior: 'smooth' })
+  const nudge = (dir) => {
+    scrollerRef.current?.scrollBy({ left: dir * 160, behavior: 'smooth' })
   }
 
   return (
@@ -58,6 +63,23 @@ export default function QuickServices({ onNavigate }) {
         {/* Scroller + a reserved chevron column so the hint button lives in its
             own space and can never overlap (or wash out) a service tile. */}
         <div className="flex items-stretch">
+          {/* Back arrow — slides in once the strip is scrolled right (mobile
+              only). Collapses to zero width when at the start so it leaves no gap. */}
+          <div
+            className={`flex shrink-0 items-center overflow-hidden transition-all duration-300 sm:hidden ${
+              canScrollLeft ? 'w-8 pr-1 opacity-100' : 'w-0 opacity-0'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => nudge(-1)}
+              aria-label="Previous services"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md"
+            >
+              <FaChevronLeft size={13} />
+            </button>
+          </div>
+
           <ul
             ref={scrollerRef}
             className="flex min-w-0 flex-1 gap-1 overflow-x-auto py-2 sm:justify-between sm:gap-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -89,7 +111,7 @@ export default function QuickServices({ onNavigate }) {
           >
             <button
               type="button"
-              onClick={nudgeRight}
+              onClick={() => nudge(1)}
               aria-label="More services"
               className="flex h-7 w-7 animate-nudge items-center justify-center rounded-full bg-primary text-white shadow-md"
             >
