@@ -248,7 +248,7 @@ export default function Shop() {
 
         {/* Content */}
         <div className="min-w-0 flex-1">
-          <div className="card mb-5 flex flex-wrap items-center justify-between gap-3 p-4">
+          <div className="card mb-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 p-4">
             <button
               onClick={() => setShowFilters(true)}
               className="btn-outline lg:hidden"
@@ -258,13 +258,13 @@ export default function Shop() {
             <p className="text-sm text-slate-600">
               <span className="font-semibold text-dark">{data.total}</span> products found
             </p>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-slate-500">Sort by:</label>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-1.5">
+                <label className="whitespace-nowrap text-sm text-slate-500">Sort by:</label>
                 <select
                   value={sort}
                   onChange={(e) => updateParam('sort', e.target.value)}
-                  className="input-base w-auto py-2"
+                  className="input-base w-auto max-w-[11.5rem] truncate px-3 py-2 sm:max-w-none"
                 >
                   {sortOptions.map((o) => (
                     <option key={o.value} value={o.value}>
