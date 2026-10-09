@@ -315,21 +315,29 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* mobile menu */}
-      {mobileOpen && (
-        <nav className="border-b border-bordergray bg-white lg:hidden">
-          <ul className="container-x flex flex-col py-2">
+      {/* mobile menu — slides open smoothly into a soft primary-tinted panel */}
+      <div
+        className={`grid transition-all duration-300 ease-out lg:hidden ${
+          mobileOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+        }`}
+      >
+        <nav
+          className={`overflow-hidden border-b border-bordergray bg-primary/10 dark:bg-primary/20 ${
+            mobileOpen ? '' : 'pointer-events-none'
+          }`}
+        >
+          <ul className="container-x flex flex-col py-1.5">
             {navLinks.map((l) => {
               const expanded = mobileExpanded === l.label
               return (
-                <li key={l.label} className="border-b border-bordergray/60 last:border-0">
+                <li key={l.label} className="border-b border-primary/10 last:border-0">
                   {l.dropdown ? (
                     // Items with a submenu toggle it open on tap (no navigation).
                     <button
                       type="button"
                       onClick={() => setMobileExpanded(expanded ? null : l.label)}
                       aria-expanded={expanded}
-                      className="flex w-full items-center justify-between py-3 text-sm font-semibold text-dark"
+                      className="flex w-full items-center justify-between py-2.5 text-sm font-semibold text-dark"
                     >
                       {l.label}
                       <FaChevronDown
@@ -341,13 +349,13 @@ export default function Navbar() {
                     <Link
                       to={l.to}
                       onClick={() => setMobileOpen(false)}
-                      className="block py-3 text-sm font-semibold text-dark hover:text-primary"
+                      className="block py-2.5 text-sm font-semibold text-dark hover:text-primary"
                     >
                       {l.label}
                     </Link>
                   )}
                   {l.dropdown && expanded && (
-                    <ul className="ml-3 border-l border-bordergray pb-2">
+                    <ul className="ml-3 border-l border-primary/20 pb-1.5">
                       {l.dropdown.map((d) => (
                         <li key={d.label}>
                           <Link
@@ -356,7 +364,7 @@ export default function Navbar() {
                               setMobileOpen(false)
                               setMobileExpanded(null)
                             }}
-                            className="block py-2 pl-3 text-sm text-slate-600 hover:text-primary"
+                            className="block py-1.5 pl-3 text-sm text-slate-600 hover:text-primary"
                           >
                             {d.label}
                           </Link>
@@ -369,7 +377,7 @@ export default function Navbar() {
             })}
           </ul>
         </nav>
-      )}
+      </div>
     </header>
   )
 }
