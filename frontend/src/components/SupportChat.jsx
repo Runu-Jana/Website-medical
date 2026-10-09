@@ -9,20 +9,47 @@ const GREETING = {
   content: `Hi! I'm the ${siteConfig.brandName || 'DBL Life Care'} Care Assistant 💊 Ask me about products, offers, delivery, or your orders. For medical advice, please consult a doctor or pharmacist.`,
 }
 
+// The chat conversation is kept in sessionStorage: it survives page reloads and
+// navigation for as long as the tab/app stays open, and the browser clears it
+// automatically when the customer closes the window or the app — on mobile or
+// any device. (localStorage would outlive the session; we don't want that.)
+const CHAT_KEY = 'dbl_support_chat'
+
+function loadChat() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(CHAT_KEY) || 'null')
+    if (saved && Array.isArray(saved.messages) && saved.messages.length) return saved
+  } catch {
+    /* sessionStorage can be unavailable (private mode) — start fresh */
+  }
+  return null
+}
+
 export default function SupportChat() {
   const [enabled, setEnabled] = useState(false)
   const [open, setOpen] = useState(false)
-  const [messages, setMessages] = useState([GREETING])
+  const [messages, setMessages] = useState(() => loadChat()?.messages || [GREETING])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
-  const [conversationId, setConversationId] = useState(null)
-  const [escalated, setEscalated] = useState(false)
+  const [conversationId, setConversationId] = useState(() => loadChat()?.conversationId || null)
+  const [escalated, setEscalated] = useState(() => loadChat()?.escalated || false)
   const scrollRef = useRef(null)
   const panelRef = useRef(null)
   // Product pages have a sticky Add/Buy bar at the bottom on mobile — lift the
   // launcher above it so the two never overlap.
   const { pathname } = useLocation()
   const onProductPage = pathname.startsWith('/product/')
+
+  // Keep the conversation in sessionStorage so it stays intact while the
+  // customer browses (across pages and reloads) and is cleared only when they
+  // close the window/app.
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(CHAT_KEY, JSON.stringify({ messages, conversationId, escalated }))
+    } catch {
+      /* ignore storage errors (private mode / quota) */
+    }
+  }, [messages, conversationId, escalated])
 
   // Close the chat when clicking/tapping anywhere outside the panel.
   useEffect(() => {
