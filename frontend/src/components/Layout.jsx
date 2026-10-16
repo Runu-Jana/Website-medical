@@ -62,8 +62,8 @@ export default function Layout() {
       {!immersive && <MobileBottomNav />}
       {/* Welcome / offer popup (managed in Admin → Popups) */}
       <PopupBanner />
-      {/* AI customer-support widget — hidden on the dedicated AI Assistant page */}
-      {!immersive && <SupportChat />}
+      {/* AI customer-support widget — shown only on the homepage */}
+      {pathname === '/' && <SupportChat />}
       {/* Scroll-to-top button (hidden on the short auth pages) */}
       {!hideBackToTop && <BackToTop />}
       {/* First-visit delivery-location prompt (also opened from the navbar pill) */}
