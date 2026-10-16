@@ -127,7 +127,6 @@ export default function Home() {
       {categories.length > 0 && (
         <section className="container-x mt-14">
           <SectionHeading
-            subtitle="Browse"
             title="Shop by Category"
             link="/shop"
             linkText="All Categories"
@@ -169,7 +168,6 @@ export default function Home() {
       {/* Featured */}
       <section className="container-x mt-14">
         <SectionHeading
-          subtitle="Handpicked"
           title="Featured Products"
           link="/shop?featured=true"
         />

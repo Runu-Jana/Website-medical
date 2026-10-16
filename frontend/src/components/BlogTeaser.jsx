@@ -28,7 +28,7 @@ export default function BlogTeaser() {
 
   return (
     <section className="container-x mt-14">
-      <SectionHeading subtitle="Latest" title="From Our Blog" link="/blog" />
+      <SectionHeading title="From Our Blog" link="/blog" />
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {posts.map((p) => (
           <article

@@ -672,10 +672,7 @@ export default function ProductDetail() {
       {/* Same composition — compare brands & prices across vendors */}
       {substitutes.length > 0 && (
         <section className="mt-12">
-          <SectionHeading
-            subtitle="Same composition"
-            title="Compare brands & save"
-          />
+          <SectionHeading title="Compare brands & save" />
           <p className="-mt-2 mb-4 text-sm text-slate-500">
             Other brands with the same salt{product.saltComposition ? ` (${product.saltComposition})` : ''}, sorted by price.
             {product.requiresPrescription
@@ -689,7 +686,7 @@ export default function ProductDetail() {
       {/* Related */}
       {related.length > 0 && (
         <section className="mt-12">
-          <SectionHeading subtitle="You may also like" title="Related Products" />
+          <SectionHeading title="Related Products" />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {related.slice(0, 4).map((p) => (
               <ProductCard key={p._id} product={p} />

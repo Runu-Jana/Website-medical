@@ -26,7 +26,7 @@ const topics = [
 export default function HealthCorner() {
   return (
     <section className="container-x mt-14">
-      <SectionHeading subtitle="Shop by concern" title="Health Corner" />
+      <SectionHeading title="Health Corner" />
       <div className="grid grid-cols-4 gap-3 sm:grid-cols-4 lg:grid-cols-8">
         {topics.map((t) => (
           <Link
