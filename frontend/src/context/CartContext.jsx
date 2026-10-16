@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import api from '../lib/api'
 import { useAuth } from './AuthContext'
 import { useToast } from './ToastContext'
@@ -36,7 +36,6 @@ export function CartProvider({ children }) {
   const { user } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
-  const location = useLocation()
   const [items, setItems] = useState(loadLocal)
   const [coupon, setCoupon] = useState(null) // { code, discount, description }
   const [pendingCoupon, setPendingCoupon] = useState(() => {
@@ -86,20 +85,22 @@ export function CartProvider({ children }) {
     return () => clearTimeout(saveTimer.current)
   }, [items, user])
 
-  // Sign-in required before adding anything. Returns true if allowed.
-  const requireAuth = () => {
-    if (user) return true
-    showToast({
-      title: 'Please sign in',
-      subtitle: 'Sign in or create an account to continue.',
-      tone: 'info',
-    })
-    navigate('/login', { state: { from: location.pathname + location.search } })
-    return false
+  // Guests can browse and build a cart freely — sign-in is required only at
+  // checkout. Call this from the "Proceed to Checkout" / purchase actions.
+  const goToCheckout = () => {
+    if (!user) {
+      showToast({
+        title: 'Almost there — please sign in',
+        subtitle: 'Sign in or create an account to place your order.',
+        tone: 'info',
+      })
+      navigate('/login', { state: { from: '/checkout' } })
+      return
+    }
+    navigate('/checkout')
   }
 
   const addToCart = (product, qty = 1) => {
-    if (!requireAuth()) return false
     const id = product._id || product.product
     showToast({
       title: 'Added to cart',
@@ -327,6 +328,7 @@ export function CartProvider({ children }) {
         removeCoupon,
         claimCoupon,
         pendingCoupon,
+        goToCheckout,
       }}
     >
       {children}

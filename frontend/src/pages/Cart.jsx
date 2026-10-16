@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { FaTrashAlt, FaArrowLeft, FaShoppingCart } from 'react-icons/fa'
 import { useCart } from '../context/CartContext'
 import QuantitySelector from '../components/QuantitySelector'
@@ -7,8 +7,7 @@ import CouponInput from '../components/CouponInput'
 import { formatPrice, imgFallback, PLACEHOLDER_IMG } from '../lib/helpers'
 
 export default function Cart() {
-  const navigate = useNavigate()
-  const { items, updateQty, removeFromCart, totals } = useCart()
+  const { items, updateQty, removeFromCart, totals, goToCheckout } = useCart()
 
   // Total saved vs MRP across the cart.
   const totalSavings = items.reduce(
@@ -163,7 +162,7 @@ export default function Cart() {
                 <span className="shrink-0">→</span>
               </Link>
             )}
-            <button onClick={() => navigate('/checkout')} className="btn-primary mt-5 w-full">
+            <button onClick={goToCheckout} className="btn-primary mt-5 w-full">
               Proceed to Checkout
             </button>
           </div>

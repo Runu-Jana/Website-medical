@@ -77,7 +77,14 @@ export default function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/prescription" element={<PrescriptionUpload />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <Checkout />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/order-success/:id" element={<OrderSuccess />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
